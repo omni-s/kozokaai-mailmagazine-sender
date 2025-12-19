@@ -105,7 +105,7 @@ async function renderMailComponent(
     }
 
     // React → HTML 変換
-    const html = render(Component(), { plainText: false });
+    const html = await render(Component(), { plainText: false });
 
     return { html };
   } catch (error) {

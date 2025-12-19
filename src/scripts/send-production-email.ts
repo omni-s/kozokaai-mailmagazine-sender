@@ -106,7 +106,7 @@ async function renderMailComponent(
     }
 
     // React → HTML 変換
-    const html = render(Component(), { plainText: false });
+    const html = await render(Component(), { plainText: false });
 
     return { html };
   } catch (error) {
@@ -188,24 +188,42 @@ async function sendProductionEmail(
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
   try {
-    // Resend Broadcast API でAudienceに一斉送信
-    const { data, error } = await resend.broadcasts.send({
-      audience_id: audienceId,
+    // Step 1: Broadcast を作成
+    const { data: createData, error: createError } = await resend.broadcasts.create({
+      name: `Broadcast - ${subject}`,
+      audienceId: audienceId,
       from: fromEmail,
       subject: subject,
       html,
     });
 
-    if (error) {
+    if (createError) {
       return {
         success: false,
-        error: error.message || 'Resend API エラー',
+        error: createError.message || 'Broadcast作成エラー',
+      };
+    }
+
+    if (!createData?.id) {
+      return {
+        success: false,
+        error: 'Broadcast IDが取得できませんでした',
+      };
+    }
+
+    // Step 2: Broadcast を送信
+    const { data: sendData, error: sendError } = await resend.broadcasts.send(createData.id);
+
+    if (sendError) {
+      return {
+        success: false,
+        error: sendError.message || 'Broadcast送信エラー',
       };
     }
 
     return {
       success: true,
-      id: data?.id,
+      id: sendData?.id || createData.id,
     };
   } catch (error) {
     return {
