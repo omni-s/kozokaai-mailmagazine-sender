@@ -68,15 +68,14 @@ export default function Home() {
           <Link href="/draft">
             <Button size="lg">メール編集画面へ</Button>
           </Link>
-          <Button variant="outline" size="lg" asChild>
-            <a
-              href="https://github.com/anthropics/claude-code"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              ドキュメント
-            </a>
-          </Button>
+          <a
+            href="https://github.com/anthropics/claude-code"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 bg-transparent hover:bg-gray-100 h-11 px-8"
+          >
+            ドキュメント
+          </a>
         </CardFooter>
       </Card>
     </div>
