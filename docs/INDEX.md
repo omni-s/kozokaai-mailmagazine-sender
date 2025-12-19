@@ -19,7 +19,9 @@ docs/
 │   └── environment.md   # AWS、Resend、GitHub設定
 ├── ops/              # 運用ガイド
 │   ├── workflow.md      # 日常的な配信フロー
-│   └── troubleshooting.md  # トラブルシューティング
+│   ├── troubleshooting.md  # トラブルシューティング
+│   ├── security-updates.md # セキュリティアップデート手順
+│   └── todo.md          # 本番環境設定チェックリスト
 └── specs/            # 仕様関連ドキュメント
     ├── require.md       # 要件定義書
     ├── task.md          # 実装タスクリスト
@@ -65,6 +67,12 @@ docs/
   - 画像が表示されない問題の診断
   - メールが届かない問題の診断
   - config.json エラーの解読方法
+
+- **[security-updates.md](./ops/security-updates.md)** - セキュリティアップデート手順
+  - 依存関係の脆弱性対応フロー（検出 → 影響確認 → 更新 → 検証）
+  - 破壊的変更への対応パターン（Tailwind CSS、@react-email/render、Resend SDK等）
+  - 頻出パターン集とトラブルシューティング
+  - 脆弱性対応履歴（CVE-2025-55182: React2Shell等）
 
 - **[todo.md](./ops/todo.md)** - 本番環境設定と初回配信チェックリスト
   - 本番環境への設定（AWS S3、Resend、GitHub Secrets、Environments）
