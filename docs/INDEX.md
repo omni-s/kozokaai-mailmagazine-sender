@@ -66,6 +66,12 @@ docs/
   - メールが届かない問題の診断
   - config.json エラーの解読方法
 
+- **[todo.md](./ops/todo.md)** - 本番環境設定と初回配信チェックリスト
+  - 本番環境への設定（AWS S3、Resend、GitHub Secrets、Environments）
+  - デプロイテスト（ローカル確認、アーカイブ作成、GitHub Actions確認）
+  - 初回配信（メールマガジン第1号制作、レビュー、Manual Approval）
+  - 運用開始後の定期メンテナンス
+
 ### 仕様関連（specs/）
 
 - **[require.md](./specs/require.md)** - Resendメール配信システム要件定義書
