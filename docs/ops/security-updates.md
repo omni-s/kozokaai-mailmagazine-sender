@@ -309,6 +309,18 @@ npm outdated <package-name>
   - Resend broadcasts API 2ステップ化
 - **コミット**: b68945f
 
+### 2025-12-22: CVE-2025-55182 最新版アップグレード（保守的）
+
+- **方針**: Next.js/React は現状維持（既にCVE対応済み）、関連パッケージのみ最新化
+- **対応**:
+  - @react-email/render 1.0.1 → 2.0.0（React Email 2.0安定版）
+  - Resend SDK 4.0.1 → 6.6.0（最新のバグ修正とAPI改善）
+  - TypeScript 5.7.2 → 5.9.3（package.json修正、実インストール版と整合）
+  - Next.js 15.5.9、React 19.2.3: 維持（Vercel推奨バージョンを満たす）
+- **破壊的変更**: なし（既存コードは互換性あり）
+- **検証**: ビルド、型チェック、Lint すべて成功
+- **参考**: Vercel Security Bulletin - https://vercel.com/changelog/cve-2025-55182
+
 ---
 
-最終更新日: 2025-12-19
+最終更新日: 2025-12-22

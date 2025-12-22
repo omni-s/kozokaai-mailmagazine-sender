@@ -22,8 +22,8 @@
 - **TypeScript**: 5.7.2
 
 ### Email Platform
-- **Resend API**: メール配信プラットフォーム
-- **@react-email/render**: React → HTML変換
+- **Resend API**: メール配信プラットフォーム（SDK v6.6.0）
+- **@react-email/render**: React → HTML変換（v2.0.0）
 - **@react-email/components**: メール用Reactコンポーネント
 
 ### Infrastructure
