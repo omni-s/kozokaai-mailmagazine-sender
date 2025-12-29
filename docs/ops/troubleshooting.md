@@ -275,7 +275,93 @@ EmailWrapper コンポーネントは、以下の2つの用途で設計されて
 
 ---
 
-## 4. GitHub Actions エラー
+## 4. Next.js キャッシュ問題（コードは正しいのにエラーが出る）
+
+### 症状
+
+- コードを修正したのにブラウザに反映されない
+- Git commitで修正を確認できるのに、エラーが継続する
+- 特に EmailWrapper の `preview` prop 変更後に発生
+- ブラウザコンソールに Hydration Error が表示され続ける
+
+### 原因
+
+Next.js の開発サーバー（Turbopack）が `.next/` ディレクトリに古いビルドをキャッシュしているため。
+
+**技術的詳細**:
+- **SSR（サーバーサイド）**: キャッシュされた古いコードをレンダリング
+- **CSR（クライアントサイド）**: 新しいコードをレンダリング
+- この不一致により Hydration Error が発生
+
+**具体例**（EmailWrapper の `preview` prop 変更時）:
+```
+Server-side (cached):
+<body>
+  <div id="__next">
+    <html lang="ja">  ← 古いコード（preview=false）
+      <body><table>...</table></body>
+    </html>
+  </div>
+</body>
+
+Client-side (new code):
+<body>
+  <div id="__next">
+    <div>  ← 新しいコード（preview=true）
+      <table>...</table>
+    </div>
+  </div>
+</body>
+
+→ Mismatch = Hydration Error
+```
+
+### 解決策
+
+#### 方法1: キャッシュクリアコマンド実行
+
+```bash
+# 1. 開発サーバーを停止（Ctrl+C）
+
+# 2. キャッシュディレクトリ削除
+rm -rf .next
+
+# 3. pnpm store クリーンアップ
+pnpm store prune
+
+# 4. 開発サーバー再起動
+pnpm run dev
+```
+
+#### 方法2: クリーンスタートスクリプト使用
+
+```bash
+# キャッシュクリア + 自動再起動
+pnpm run dev:clean
+```
+
+#### ブラウザ側の対応
+
+- **ハードリフレッシュ実行**:
+  - macOS: `Cmd + Shift + R`
+  - Windows/Linux: `Ctrl + Shift + R`
+- **開発者ツールでキャッシュ無効化**:
+  - Chrome DevTools → Network タブ → "Disable cache" チェック
+
+### 予防策
+
+- コンポーネントの大きな変更後は `pnpm run dev:clean` を使用
+- 依存コンポーネント（EmailWrapper等）を変更した場合は特に注意
+- Prop の追加・削除・型変更時は開発サーバー再起動を推奨
+
+### 参考
+
+- **dev:clean スクリプト**: `package.json` L7
+- **関連Issue**: Next.js Turbopack キャッシュ問題
+
+---
+
+## 5. GitHub Actions エラー
 
 ### Check Workflow 失敗
 
@@ -570,7 +656,7 @@ Error: Resource not accessible by integration
 
 ---
 
-## 5. 画像が表示されない
+## 6. 画像が表示されない
 
 ### ローカル開発時
 
@@ -651,7 +737,7 @@ Error: Resource not accessible by integration
 
 ---
 
-## 6. メールが届かない
+## 7. メールが届かない
 
 ### Resend Dashboard でエラーログ確認
 
@@ -712,7 +798,7 @@ Error: Resource not accessible by integration
 
 ---
 
-## 7. config.json エラー
+## 8. config.json エラー
 
 ### Zodスキーマエラーの解読方法
 
