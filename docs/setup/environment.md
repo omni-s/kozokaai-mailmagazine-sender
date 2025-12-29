@@ -329,6 +329,32 @@ pnpm run dev
 
 ブラウザで http://localhost:3000 を開き、Next.jsアプリが起動することを確認してください。
 
+### 5.6. .eslintrc.json作成（Next.js 16対応）
+
+Next.js 16 では ESLint 設定ファイルが必須です。プロジェクトルートに `.eslintrc.json` を作成してください。
+
+```bash
+# プロジェクトルートに移動
+cd /Users/m-yamashita/Desktop/dev/x/kozokaai-mailmagazine-sender
+
+# .eslintrc.json を作成
+cat > .eslintrc.json << 'EOF'
+{
+  "extends": "next/core-web-vitals"
+}
+EOF
+```
+
+**確認**:
+
+```bash
+pnpm run lint
+```
+
+エラーがなければ設定完了です。
+
+⚠️ **トラブルシューティング**: `Invalid project directory provided` エラーが発生する場合は、[トラブルシューティング: Next.js 16 ESLint 問題](../ops/troubleshooting.md#2-nextjs-16-eslint-問題) を参照してください。
+
 ---
 
 ## 6. 環境構築の確認

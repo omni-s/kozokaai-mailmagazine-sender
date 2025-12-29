@@ -54,3 +54,6 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# Actual configuration (project-specific, not committed)
+docs/ops/actual-configuration.md
