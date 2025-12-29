@@ -19,7 +19,7 @@
 │                        ローカル制作フェーズ                          │
 └─────────────────────────────────────────────────────────────────┘
                                  │
-                                 │ npm run dev
+                                 │ pnpm run dev
                                  ▼
                     ┌──────────────────────┐
                     │ src/app/draft/       │
@@ -29,7 +29,7 @@
                     │   mail-assets/       │
                     └──────────────────────┘
                                  │
-                                 │ npm run commit
+                                 │ pnpm run commit
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                       アーカイブフェーズ                             │
@@ -129,7 +129,7 @@
 
 | 技術 | 用途 |
 |------|------|
-| **inquirer** | 対話型CLI（npm run commit） |
+| **inquirer** | 対話型CLI（pnpm run commit） |
 | **chalk** | ターミナル出力の色付け |
 | **zod** | スキーマ検証（config.json） |
 | **date-fns** | 日付フォーマット |
@@ -167,7 +167,7 @@ kozokaai-mailmagazine-sender/
 │   │   ├── resend.ts              # Resend SDK初期化
 │   │   └── s3.ts                  # S3 Client初期化
 │   └── scripts/
-│       ├── commit.ts              # npm run commit（アーカイブ）
+│       ├── commit.ts              # pnpm run commit（アーカイブ）
 │       ├── validate-archive.ts    # Check Workflow
 │       ├── upload-to-s3.ts        # Staging Workflow
 │       ├── send-test-email.ts     # Staging Workflow
@@ -197,7 +197,7 @@ src/app/draft/page.tsx (編集中)
   └── <p>メール本文...</p>
 
            │
-           │ npm run commit
+           │ pnpm run commit
            ▼
 
 public/archives/2024/05/20-summer-sale/
@@ -287,7 +287,7 @@ export default function DraftMail() {
 }
 ```
 
-#### アーカイブ時（`npm run commit`）
+#### アーカイブ時（`pnpm run commit`）
 
 `public/archives/2024/05/20-summer-sale/mail.tsx` に移動（パス変更なし）
 
@@ -538,7 +538,7 @@ export async function listAudiences() {
 
 #### 初期状態（アーカイブ時）
 
-`npm run commit` 実行時、`config.json` は `sentAt: null` で生成されます。
+`pnpm run commit` 実行時、`config.json` は `sentAt: null` で生成されます。
 
 ```json
 {
@@ -698,9 +698,9 @@ on:
 jobs:
   check:
     steps:
-      - ESLint (npm run lint)
-      - TypeScript (npm run type-check)
-      - Build (npm run build)
+      - ESLint (pnpm run lint)
+      - TypeScript (pnpm run type-check)
+      - Build (pnpm run build)
       - Validate Archive (validate-archive.ts)
 ```
 
@@ -784,7 +784,7 @@ if (!result.success) {
 
 ### GitHub Actions 最適化
 
-- **npm ci**: `package-lock.json` 使用（依存関係の固定）
+- **pnpm install --frozen-lockfile**: `package-lock.json` 使用（依存関係の固定）
 - **Node.js cache**: `actions/setup-node@v4` の `cache: 'npm'` 使用
 
 ---

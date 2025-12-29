@@ -39,7 +39,7 @@ export default function Home() {
                 画像は <code className="bg-gray-200 px-1 rounded">public/mail-assets/</code> に配置
               </li>
               <li>
-                完成したら <code className="bg-gray-200 px-1 rounded">npm run commit</code> を実行
+                完成したら <code className="bg-gray-200 px-1 rounded">pnpm run commit</code> を実行
               </li>
               <li>PRを作成して上長にレビュー依頼 → マージで本番配信</li>
             </ol>
@@ -50,7 +50,7 @@ export default function Home() {
             <div className="space-y-2 text-sm text-gray-700">
               <div className="flex items-center gap-2">
                 <span className="font-medium">1. ローカル制作:</span>
-                <span>メールをデザイン → npm run commit</span>
+                <span>メールをデザイン → pnpm run commit</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium">2. レビュー:</span>

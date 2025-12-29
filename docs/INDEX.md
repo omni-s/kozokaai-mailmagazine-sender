@@ -62,7 +62,7 @@ docs/
   - 配信履歴の確認方法
 
 - **[troubleshooting.md](./ops/troubleshooting.md)** - トラブルシューティング
-  - npm run commit エラー対処
+  - pnpm run commit エラー対処
   - GitHub Actions エラー対処（Check、Staging、Production）
   - 画像が表示されない問題の診断
   - メールが届かない問題の診断

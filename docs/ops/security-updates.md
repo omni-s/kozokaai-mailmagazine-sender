@@ -61,8 +61,8 @@ npx fix-react2shell-next
 # 1. package.json の該当パッケージバージョンを更新
 # 例: "next": "^15.1.3" → "next": "^15.5.9"
 
-# 2. npm install 実行
-npm install
+# 2. pnpm install 実行
+pnpm install
 
 # 3. 実際のバージョン確認
 npm list next react react-dom
@@ -75,19 +75,19 @@ npm list next react react-dom
 #### 4.1. ビルドエラーの確認
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 #### 4.2. 型エラーの修正（TypeScript）
 
 ```bash
-npm run type-check
+pnpm run type-check
 ```
 
 #### 4.3. Lint エラーの確認
 
 ```bash
-npm run lint
+pnpm run lint
 ```
 
 #### 4.4. 頻出する破壊的変更パターン
@@ -95,7 +95,7 @@ npm run lint
 **Tailwind CSS メジャーバージョン更新**
 - Tailwind CSS 4.x: PostCSS プラグインが別パッケージ化
   ```bash
-  npm install -D @tailwindcss/postcss
+  pnpm install -D @tailwindcss/postcss
   ```
   ```javascript
   // postcss.config.js
@@ -147,7 +147,7 @@ npm run lint
 #### 5.1. ビルド成功確認
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 出力例（成功時）:
@@ -161,19 +161,19 @@ npm run build
 #### 5.2. 型チェック通過確認
 
 ```bash
-npm run type-check
+pnpm run type-check
 ```
 
 #### 5.3. Lint 通過確認
 
 ```bash
-npm run lint
+pnpm run lint
 ```
 
 #### 5.4. ローカル開発サーバー起動確認
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 http://localhost:3000 にアクセスして、アプリケーションが正常に動作することを確認。
@@ -269,13 +269,13 @@ npm outdated <package-name>
 1. `node_modules` と `package-lock.json` を削除して再インストール
    ```bash
    rm -rf node_modules package-lock.json
-   npm install
+   pnpm install
    ```
 
 2. Next.js のキャッシュをクリア
    ```bash
    rm -rf .next
-   npm run build
+   pnpm run build
    ```
 
 ### 型エラーが解消されない場合

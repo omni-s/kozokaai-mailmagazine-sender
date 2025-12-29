@@ -104,13 +104,13 @@ feature ブランチへの push 時に自動実行される品質チェック：
 **実装例（Node.jsプロジェクトの場合）:**
 ```yaml
 - name: Run lint check
-  run: npm run lint:check
+  run: pnpm run lint:check
 
 - name: Run format check
-  run: npm run format:check
+  run: pnpm run format:check
 
 - name: Run build
-  run: npm run build
+  run: pnpm run build
 ```
 
 #### 2. Create Pull Request Job
@@ -319,9 +319,9 @@ Settings > Actions > General > Workflow permissions
 **解決策:**
 ```bash
 # ローカルで品質チェック実行（プロジェクトの構成に応じて）
-# 例: npm run lint:check
-# 例: npm run format:check
-# 例: npm run build
+# 例: pnpm run lint:check
+# 例: pnpm run format:check
+# 例: pnpm run build
 
 # エラーを修正後、再度 push
 git add .

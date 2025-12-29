@@ -6,7 +6,7 @@ import { Img } from '@/components/email/Img';
  * メールテンプレート作業用ファイル
  *
  * このファイルを編集してメールをデザインします。
- * `npm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
+ * `pnpm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
  *
  * 画像は public/mail-assets/ に配置してください。
  * 例: <Img src="/mail-assets/hero.jpg" alt="Hero Image" width="600" />
@@ -73,9 +73,9 @@ export default function DraftEmail() {
           <li style={{ marginBottom: '8px' }}>
             画像を public/mail-assets/ に配置
           </li>
-          <li style={{ marginBottom: '8px' }}>npm run dev でプレビュー確認</li>
+          <li style={{ marginBottom: '8px' }}>pnpm run dev でプレビュー確認</li>
           <li style={{ marginBottom: '8px' }}>
-            完成したら npm run commit を実行
+            完成したら pnpm run commit を実行
           </li>
         </ol>
 
@@ -85,7 +85,7 @@ export default function DraftEmail() {
 
         <div style={{ marginBottom: '16px' }}>
           <Img
-            src="/mail-assets/sample-placeholder.jpg"
+            src="/mail-assets/placeholder.jpg"
             alt="サンプル画像"
             width="520"
             style={{

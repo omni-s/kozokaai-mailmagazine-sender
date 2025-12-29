@@ -123,7 +123,7 @@
   - **参照**: [docs/setup/environment.md - 5.1. リポジトリクローン](../setup/environment.md#51-リポジトリクローン)
 
 - [ ] **依存関係インストール**
-  - `npm install` 実行
+  - `pnpm install` 実行
   - Node.js 20.x以上が必要
   - **参照**: [docs/setup/environment.md - 5.2. 依存関係インストール](../setup/environment.md#52-依存関係インストール)
 
@@ -139,23 +139,23 @@
 ### 2.1. ローカル開発環境の動作確認
 
 - [ ] **開発サーバー起動確認**
-  - `npm run dev` 実行
+  - `pnpm run dev` 実行
   - http://localhost:3000 にアクセス
   - ホーム画面が表示されることを確認
   - **参照**: [docs/setup/environment.md - 5.5. 開発サーバー起動確認](../setup/environment.md#55-開発サーバー起動確認)
 
 - [ ] **TypeScript型チェック**
-  - `npm run type-check` 実行
+  - `pnpm run type-check` 実行
   - エラーなく完了することを確認
   - **参照**: [docs/setup/environment.md - 6.1. ローカル確認](../setup/environment.md#61-ローカル確認)
 
 - [ ] **ESLint確認**
-  - `npm run lint` 実行
+  - `pnpm run lint` 実行
   - エラーなく完了することを確認
   - **参照**: [docs/setup/environment.md - 6.1. ローカル確認](../setup/environment.md#61-ローカル確認)
 
 - [ ] **ビルド確認**
-  - `npm run build` 実行
+  - `pnpm run build` 実行
   - エラーなく完了することを確認
   - **参照**: [docs/setup/environment.md - 6.1. ローカル確認](../setup/environment.md#61-ローカル確認)
 
@@ -164,14 +164,14 @@
 ### 2.2. アーカイブ作成テスト
 
 - [ ] **テストメールを制作**
-  - `npm run dev` で開発サーバー起動
+  - `pnpm run dev` で開発サーバー起動
   - http://localhost:3000/draft でプレビュー
   - `src/app/draft/page.tsx` を編集
   - テスト用画像を `public/mail-assets/` に配置
   - **参照**: [docs/ops/workflow.md - ステップ1: ローカル制作フェーズ](./workflow.md#ステップ1-ローカル制作フェーズ)
 
-- [ ] **npm run commit 実行**
-  - `npm run commit` を実行
+- [ ] **pnpm run commit 実行**
+  - `pnpm run commit` を実行
   - コミットメッセージ: `test-email`
   - メール件名: `【テスト】メール配信システムテスト`
   - Resend Audience ID: 作成したAudience IDを入力
@@ -263,14 +263,14 @@
 ### 3.1. メールマガジン第1号の制作
 
 - [ ] **メールコンテンツ作成**
-  - `npm run dev` で開発サーバー起動
+  - `pnpm run dev` で開発サーバー起動
   - `src/app/draft/page.tsx` を編集
   - 画像を `public/mail-assets/` に配置
   - プレビュー確認（http://localhost:3000/draft）
   - **参照**: [docs/ops/workflow.md - ステップ1: ローカル制作フェーズ](./workflow.md#ステップ1-ローカル制作フェーズ)
 
 - [ ] **アーカイブ & コミット**
-  - `npm run commit` 実行
+  - `pnpm run commit` 実行
   - コミットメッセージ、件名、Audience ID 入力
   - Git push 確認
   - **参照**: [docs/ops/workflow.md - ステップ2: アーカイブ & コミット](./workflow.md#ステップ2-アーカイブ--コミット)

@@ -8,7 +8,7 @@ import { execSync } from 'child_process';
 import chalk from 'chalk';
 
 /**
- * npm run commit メインスクリプト
+ * pnpm run commit メインスクリプト
  *
  * ローカル制作完了後の自動アーカイブ・コミット処理
  */

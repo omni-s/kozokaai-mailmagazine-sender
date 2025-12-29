@@ -6,7 +6,7 @@
 
 ## 目次
 
-1. [npm run commit エラー](#1-npm-run-commit-エラー)
+1. [pnpm run commit エラー](#1-npm-run-commit-エラー)
 2. [GitHub Actions エラー](#2-github-actions-エラー)
 3. [画像が表示されない](#3-画像が表示されない)
 4. [メールが届かない](#4-メールが届かない)
@@ -14,7 +14,7 @@
 
 ---
 
-## 1. npm run commit エラー
+## 1. pnpm run commit エラー
 
 ### エラー: `draft/page.tsx が見つかりません`
 
@@ -130,13 +130,95 @@ git push  # 認証情報を入力
 # リモートの変更を取り込む
 git pull --rebase
 
-# 再度 npm run commit 実行
-npm run commit
+# 再度 pnpm run commit 実行
+pnpm run commit
 ```
 
 ---
 
-## 2. GitHub Actions エラー
+## 2. Next.js 16 ESLint 問題
+
+### エラー: `Invalid project directory provided`
+
+**エラーメッセージ**:
+```
+Error: Invalid project directory provided, no such directory: .../lint
+Command failed: pnpm run lint
+```
+
+**原因**: Next.js 16 の `next lint` コマンドにバグがあり、プロジェクトディレクトリを正しく認識できない場合があります。
+
+**対処法**:
+
+#### 方法1: `.eslintrc.json` ファイルを作成
+
+Next.js 16 では ESLint 設定ファイルが必要です。
+
+```bash
+# プロジェクトルートに .eslintrc.json を作成
+code .eslintrc.json
+```
+
+以下の内容を貼り付け:
+
+```json
+{
+  "extends": "next/core-web-vitals"
+}
+```
+
+#### 方法2: `package.json` の lint スクリプトを変更
+
+`next lint` の代わりに `eslint .` を直接実行します。
+
+**package.json** の `scripts` セクションを編集:
+
+```json
+{
+  "scripts": {
+    "lint": "eslint ."
+  }
+}
+```
+
+**変更前**: `"lint": "next lint"`
+**変更後**: `"lint": "eslint ."`
+
+---
+
+### よくある ESLint エラー
+
+#### 未使用変数エラー
+
+**エラーメッセージ**:
+```
+error 'PutObjectCommand' is defined but never used @typescript-eslint/no-unused-vars
+```
+
+**対処法**:
+
+1. 該当ファイルを開く
+   ```bash
+   code src/lib/s3.ts
+   ```
+
+2. 未使用のインポートや変数を削除
+   ```typescript
+   // ❌ 削除前
+   import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+
+   // ✅ 削除後
+   import { S3Client } from '@aws-sdk/client-s3';
+   ```
+
+3. 再度 lint 実行
+   ```bash
+   pnpm run lint
+   ```
+
+---
+
+## 3. GitHub Actions エラー
 
 ### Check Workflow 失敗
 
@@ -151,14 +233,14 @@ Error: ESLint found 5 errors
 
 ```bash
 # ローカルでESLint実行
-npm run lint
+pnpm run lint
 
 # エラー内容を確認
 # 例: Unexpected console statement (no-console)
 #     Missing semicolon (semi)
 
 # 自動修正を試す
-npm run lint -- --fix
+pnpm run lint -- --fix
 
 # 手動修正が必要な場合はエディタで修正
 code src/app/draft/page.tsx
@@ -185,7 +267,7 @@ Error: Type 'string' is not assignable to type 'number'
 
 ```bash
 # ローカルでTypeCheck実行
-npm run type-check
+pnpm run type-check
 
 # エラー内容を確認
 # 例: src/app/draft/page.tsx:15:7
@@ -216,17 +298,17 @@ Error: Build failed with 1 error
 
 ```bash
 # ローカルでビルド実行
-npm run build
+pnpm run build
 
 # エラーログを確認
 # 例: Module not found: Can't resolve '@/components/...'
 
 # node_modules を再インストール
 rm -rf node_modules package-lock.json
-npm install
+pnpm install
 
 # 再度ビルド
-npm run build
+pnpm run build
 ```
 
 **よくあるBuildエラー**:
@@ -235,7 +317,7 @@ npm run build
 |-------|------|------|
 | `Module not found` | インポートパスミス | パスを修正 |
 | `Unexpected token` | 構文エラー | コードを修正 |
-| `Out of memory` | メモリ不足 | `NODE_OPTIONS=--max-old-space-size=4096 npm run build` |
+| `Out of memory` | メモリ不足 | `NODE_OPTIONS=--max-old-space-size=4096 pnpm run build` |
 
 ---
 
@@ -250,8 +332,8 @@ Error: Validation failed: config.json schema error
 
 | エラー | 原因 | 対処 |
 |-------|------|------|
-| `subject: String must contain at least 1 character(s)` | 件名が空文字 | `npm run commit` で件名を入力 |
-| `audienceId: Invalid audience ID format` | `aud_` プレフィックスなし | Resend Dashboard から正しいAudience IDをコピー |
+| `subject: String must contain at least 1 character(s)` | 件名が空文字 | `pnpm run commit` で件名を入力 |
+| `audienceId: Invalid segment ID format` | Segment ID形式不正 | Resend Dashboard から正しいSegment IDをコピー（`seg_{uuid}`またはUUID形式） |
 | `sentAt: Expected string, received null` | 通常は問題なし | 送信後に自動更新される |
 
 **画像パスエラー**:
@@ -267,18 +349,19 @@ Error: Image path not found: /mail-assets/hero.png
 2. `assets/hero.png` が実在するか確認
 3. ファイル名の大文字小文字一致確認（Linux環境は厳密）
 
-**Audience ID不正**:
+**Segment ID不正**:
 
 **エラーメッセージ**:
 ```
-Error: Audience ID not found: aud_invalid
+Error: Segment ID not found: aud_invalid
 ```
 
 **対処法**:
 
-1. [Resend Dashboard](https://resend.com/audiences) でAudience ID確認
-2. `public/archives/{YYYY}/{MM}/{DD-MSG}/config.json` の `audienceId` を修正
-3. Git commit & push
+1. [Resend Dashboard](https://resend.com/segments) でSegment ID確認
+2. `public/archives/{YYYY}/{MM}/{DD-MSG}/config.json` の `audienceId` フィールドに正しいSegment IDを設定
+3. Segment ID形式: `seg_{uuid}` または UUID形式（例: `a355a0bd-32fa-4ef4-b6d5-7341f702d35b`）
+4. Git commit & push
 
 ---
 
@@ -374,14 +457,15 @@ Error: Deployment timeout (30 minutes)
 
 **エラーメッセージ**:
 ```
-Error: Audience not found
+Error: Segment not found
 ```
 
 **対処法**:
 
-1. [Resend Dashboard](https://resend.com/audiences) で Audience 作成
-2. Audience ID を `config.json` に反映
-3. Git commit & push
+1. [Resend Dashboard](https://resend.com/segments) で Segment 作成
+2. Segment ID を `config.json` の `audienceId` フィールドに反映
+3. Segment ID形式: `seg_{uuid}` または UUID形式
+4. Git commit & push
 
 **エラーメッセージ**:
 ```
@@ -522,22 +606,22 @@ Error: Resource not accessible by integration
 | Status | 意味 | 対処 |
 |--------|------|------|
 | `delivered` | 配信成功 | 問題なし |
-| `bounced` | バウンス（メールアドレス不正） | Audience 内のアドレスを確認 |
+| `bounced` | バウンス（メールアドレス不正） | Segment 内のアドレスを確認 |
 | `failed` | 送信失敗 | エラーログ確認、APIキー確認 |
 | `rejected` | 拒否（スパム判定等） | From Email検証、内容確認 |
 
 ---
 
-### Audience ID の存在確認
+### Segment ID の存在確認
 
 **対処法**:
 
 1. **Dashboard で確認**
-   - [Resend Dashboard](https://resend.com/audiences) → 該当 Audience 存在確認
+   - [Resend Dashboard](https://resend.com/segments) → 該当 Segment 存在確認
 
 2. **API経由で確認**
    ```bash
-   npx tsx -e "import { resend } from './src/lib/resend.js'; resend.audiences.list().then(console.log)"
+   npx tsx -e "import { resend } from './src/lib/resend.js'; resend.segments.list().then(console.log)"
    ```
 
 ---
@@ -605,23 +689,25 @@ code public/archives/2024/05/20-summer-sale/config.json
 
 **エラーメッセージ**:
 ```
-audienceId: Invalid audience ID format
+audienceId: Invalid segment ID format
 ```
 
-**意味**: `aud_` プレフィックス不足、または UUID形式不正
+**意味**: Segment ID の形式が不正
 
 **対処**:
 
-1. Resend Dashboard から正しい Audience ID をコピー
+1. Resend Dashboard から正しい Segment ID をコピー
 2. `config.json` を修正
 
 ```json
 {
   "subject": "【夏季限定】特別セール開催のお知らせ",
-  "audienceId": "aud_abc123-def456-ghi789",  // ← aud_ で始まる
+  "audienceId": "seg_abc123-def456-ghi789",  // ← seg_ で始まる、またはUUID形式
   "sentAt": null
 }
 ```
+
+⚠️ **注意**: フィールド名は `audienceId` ですが、値はSegment IDを設定します。
 
 ---
 
@@ -641,7 +727,7 @@ sentAt: Expected string, received null
 ```json
 {
   "subject": "【夏季限定】特別セール開催のお知らせ",
-  "audienceId": "aud_abc123-def456-ghi789",
+  "audienceId": "seg_abc123-def456-ghi789",
   "sentAt": "2024-05-20T10:30:00.000Z"  // ← ISO 8601形式
 }
 ```
@@ -690,4 +776,4 @@ mainブランチに直接pushすることでStaging Workflowをスキップで�
 
 ---
 
-最終更新日: 2025-12-19
+最終更新日: 2025-12-29

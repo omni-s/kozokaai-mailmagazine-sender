@@ -17,7 +17,6 @@ import { checkAudienceExists } from '../lib/resend';
  */
 
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
-const ARCHIVES_DIR = path.join(PROJECT_ROOT, 'public/archives');
 
 interface ValidationError {
   type: string;

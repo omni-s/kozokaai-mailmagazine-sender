@@ -85,7 +85,7 @@
 
 ---
 
-### タスク4: CLIツール実装（npm run commit）
+### タスク4: CLIツール実装（pnpm run commit）
 
 **目的:** ローカル制作完了後の自動アーカイブ・コミット
 **依存関係:** タスク2, タスク3
@@ -190,16 +190,16 @@
 
 - [x] `.github/workflows/check.yml` 作成
   - [x] Trigger: push to main, feature/**
-  - [x] Jobs: Setup Node.js, npm ci, lint, type-check, build, validate-archive
+  - [x] Jobs: Setup Node.js, pnpm install --frozen-lockfile, lint, type-check, build, validate-archive
   - [x] 環境変数: RESEND_API_KEY
 - [x] `.github/workflows/staging.yml` 作成
   - [x] Trigger: pull_request (opened, synchronize)
-  - [x] Jobs: Setup Node.js, npm ci, upload-to-s3, send-test-email
+  - [x] Jobs: Setup Node.js, pnpm install --frozen-lockfile, upload-to-s3, send-test-email
   - [x] 環境変数: AWS_*, S3_*, RESEND_API_KEY, REVIEWER_EMAIL
 - [x] `.github/workflows/production.yml` 作成
   - [x] Trigger: push to main（マージ後）
   - [x] Environment: production（Protection Rules設定）
-  - [x] Jobs: Manual Approval待機, Setup Node.js, npm ci, send-production-email
+  - [x] Jobs: Manual Approval待機, Setup Node.js, pnpm install --frozen-lockfile, send-production-email
   - [x] 環境変数: Staging同様
 - [x] `package.json` の `scripts` に追加
   - [x] `lint`: `next lint`
@@ -234,7 +234,7 @@
 - [x] `README.md` 更新
   - [x] プロジェクト概要
   - [x] セットアップ手順
-  - [x] 使い方（npm run dev, npm run commit）
+  - [x] 使い方（pnpm run dev, pnpm run commit）
 
 **成果物:** `task.md`, `INDEX.md`（更新）, `README.md`（更新）
 

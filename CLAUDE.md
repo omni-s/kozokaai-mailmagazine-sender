@@ -46,7 +46,7 @@ Resend メール配信システム。Next.js + React Email + Resend API + AWS S3
 
 ```bash
 # 開発サーバー起動（Hot Reload有効）
-npm run dev
+pnpm run dev
 
 # ブラウザで http://localhost:3000 を開く
 # メール制作は http://localhost:3000/draft
@@ -56,20 +56,20 @@ npm run dev
 
 ```bash
 # Next.jsビルド
-npm run build
+pnpm run build
 
 # ESLint実行
-npm run lint
+pnpm run lint
 
 # TypeScript型チェック
-npm run type-check
+pnpm run type-check
 ```
 
 ### メール配信フロー
 
 ```bash
 # ローカル制作完了後のアーカイブ・コミット
-npm run commit
+pnpm run commit
 ```
 
 対話形式で以下を入力:
@@ -112,7 +112,7 @@ kozokaai-mailmagazine-sender/
 │   │   ├── config-schema.ts    # Zodスキーマ（config.json検証）
 │   │   └── utils.ts            # Tailwind utilities
 │   └── scripts/                # CLI・自動化スクリプト
-│       ├── commit.ts           # npm run commit
+│       ├── commit.ts           # pnpm run commit
 │       ├── validate-archive.ts # GitHub Actions: バリデーション
 │       ├── upload-to-s3.ts     # GitHub Actions: S3アップロード
 │       ├── send-test-email.ts  # GitHub Actions: テスト送信
@@ -154,7 +154,7 @@ kozokaai-mailmagazine-sender/
 ```
 ローカル制作（src/app/draft/page.tsx）
   ↓
-npm run commit（アーカイブ作成）
+pnpm run commit（アーカイブ作成）
   ↓
 Git push
   ↓
@@ -404,7 +404,7 @@ CHORE: Add devcontainer configuration
 
 ## トラブルシューティング
 
-### npm run commit エラー
+### pnpm run commit エラー
 
 **症状**: `draft/page.tsx が見つかりません`
 
@@ -417,8 +417,8 @@ CHORE: Add devcontainer configuration
 ### GitHub Actions エラー
 
 **Check Workflow失敗**:
-- ESLint: `npm run lint` でローカル確認
-- TypeScript: `npm run type-check` でローカル確認
+- ESLint: `pnpm run lint` でローカル確認
+- TypeScript: `pnpm run type-check` でローカル確認
 - Validation: `config.json` の形式、Audience ID確認
 
 **Staging Workflow失敗**:

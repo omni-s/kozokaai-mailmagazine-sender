@@ -68,7 +68,7 @@ kozokaai-mailmagazine-sender/
 │   │   ├── config-schema.ts    # config.json Zodスキーマ
 │   │   └── utils.ts            # Tailwind utilities
 │   └── scripts/                # CLI・自動化スクリプト
-│       ├── commit.ts           # npm run commit
+│       ├── commit.ts           # pnpm run commit
 │       ├── validate-archive.ts # GitHub Actions: バリデーション
 │       ├── upload-to-s3.ts     # GitHub Actions: S3アップロード
 │       ├── send-test-email.ts  # GitHub Actions: テスト送信
@@ -129,7 +129,7 @@ kozokaai-mailmagazine-sender/
 
 5. **開発サーバー起動**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
    - ブラウザで http://localhost:3000 を開く
 
@@ -142,7 +142,7 @@ kozokaai-mailmagazine-sender/
 #### 1. 依存関係インストール
 
 ```bash
-npm install
+pnpm install
 ```
 
 #### 2. 環境変数設定
@@ -174,7 +174,7 @@ REVIEWER_EMAIL=reviewer@example.com
 #### 3. 開発サーバー起動
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ブラウザで http://localhost:3000 を開いてください。
@@ -189,7 +189,7 @@ npm run dev
 4. 完成したら以下のコマンドを実行
 
 ```bash
-npm run commit
+pnpm run commit
 ```
 
 対話形式で以下を入力します:
@@ -304,7 +304,7 @@ npm run commit
 ```
 ローカル制作
     ↓
-npm run commit（アーカイブ・Git push）
+pnpm run commit（アーカイブ・Git push）
     ↓
 PR作成（任意）
     ↓

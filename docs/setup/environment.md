@@ -19,11 +19,23 @@
 2. **S3** サービスに移動
 3. **バケットを作成** ボタンをクリック
 
-**設定項目**:
+**基本設定**:
 - **バケット名**: 任意（例: `kozokaai-mail-assets`）
 - **リージョン**: `ap-northeast-1`（東京）推奨
+- **バケットタイプ**: **General purpose**（汎用）
+
+**オブジェクト所有者（ACL設定）**:
+- **ACL 有効** を選択
+- ⚠️ AWS は ACL の代わりにバケットポリシーを推奨していますが、本プロジェクトでは `s3:PutObjectAcl` を使用するため ACL を有効化します
+
+**パブリックアクセス設定**:
 - **パブリックアクセスのブロック**: **全てのチェックを外す**（画像公開用）
-- 他の設定はデフォルトのまま
+
+**その他の設定**:
+- **バケットのバージョニング**: 無効（デフォルト）
+- **タグ**: オプション（例: `Project=kozokaai-mailmagazine`, `Environment=production`）
+- **デフォルトの暗号化**: **SSE-S3**（Amazon S3 マネージドキー）推奨
+- **オブジェクトロック**: 無効（デフォルト）
 
 4. **バケットを作成** をクリック
 
@@ -151,15 +163,19 @@ S3バケットのURLを確認します。
 
 ⚠️ **注意**: APIキーは再表示できないため、必ずコピーして保管してください。
 
-### 2.3. Audience（配信リスト）作成
+### 2.3. Segment（配信リスト）作成
 
-1. Resend Dashboard → **Audiences** → **Create Audience** をクリック
+1. Resend Dashboard → **Segments** → **Create Segment** をクリック
 2. **Name**: 任意（例: `Newsletter Subscribers`）
 3. **Description**: オプション（例: `メールマガジン購読者リスト`）
 4. **Create** をクリック
-5. 作成されたAudienceの **Audience ID** をコピー（形式: `aud_{uuid}`）
+5. 作成されたSegmentの **Segment ID** をコピー
 
-**例**: `aud_abc123-def456-ghi789`
+**Segment ID 形式**:
+- `seg_{uuid}` 形式（例: `seg_abc123-def456-ghi789`）
+- または単純なUUID形式（例: `a355a0bd-32fa-4ef4-b6d5-7341f702d35b`）
+
+⚠️ **注意**: Resend APIの内部ではSegmentとして管理されますが、一部のAPIパラメータ名（`audienceId`等）は互換性のため従来の名称を維持しています。
 
 ### 2.4. From Email検証
 
@@ -274,7 +290,7 @@ cd {repo}
 ### 5.2. 依存関係インストール
 
 ```bash
-npm install
+pnpm install
 ```
 
 **推奨Node.jsバージョン**: 20.x以上（22.x対応）
@@ -308,7 +324,7 @@ REVIEWER_EMAIL=reviewer@example.com
 ### 5.5. 開発サーバー起動確認
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ブラウザで http://localhost:3000 を開き、Next.jsアプリが起動することを確認してください。
@@ -321,13 +337,13 @@ npm run dev
 
 ```bash
 # TypeScript型チェック
-npm run type-check
+pnpm run type-check
 
 # ESLint
-npm run lint
+pnpm run lint
 
 # ビルド
-npm run build
+pnpm run build
 ```
 
 すべてエラーなく完了すればOKです。
@@ -373,12 +389,17 @@ npx tsx src/scripts/send-test-email.ts
 
 #### エラー: `The bucket does not allow ACLs`
 
-**原因**: S3バケットのACL設定が無効化されている
+**原因**: S3バケットのACL設定が無効化されている（本プロジェクトでは`s3:PutObjectAcl`を使用するためACL必須）
 
 **対処**:
-1. S3バケット → **アクセス許可** → **Object Ownership** → **編集**
-2. **ACL enabled** を選択
-3. **変更を保存**
+1. S3バケット → **アクセス許可** タブ
+2. **オブジェクト所有者** セクション → **編集** をクリック
+3. **ACL enabled（ACL 有効）** を選択
+4. オブジェクト所有権: **Bucket owner preferred**（バケット所有者優先）を選択
+5. **変更を保存**
+6. 確認ダイアログで警告を読み、**承認** をクリック
+
+⚠️ **AWS警告について**: AWS は ACL の代わりにバケットポリシーを推奨していますが、本プロジェクトのアップロードスクリプト（`src/lib/s3.ts`）は `ACL: 'public-read'` を使用しているため、ACL有効化が必要です。
 
 ### Resend API関連
 
@@ -390,13 +411,14 @@ npx tsx src/scripts/send-test-email.ts
 1. Resend Dashboard で新しいAPIキーを発行
 2. GitHub Secrets を更新
 
-#### エラー: `Audience not found`
+#### エラー: `Segment not found`
 
-**原因**: Audience IDが存在しない
+**原因**: Segment IDが存在しない、または形式が不正
 
 **対処**:
-1. Resend Dashboard → **Audiences** で Audience ID を確認
-2. `config.json` の `audienceId` を修正
+1. Resend Dashboard → **Segments** で Segment ID を確認
+2. `config.json` の `audienceId` フィールドに正しいSegment IDを設定
+3. Segment ID形式: `seg_{uuid}` または UUID形式
 
 #### エラー: `From email is not verified`
 
@@ -453,4 +475,4 @@ npx tsx src/scripts/send-test-email.ts
 
 ---
 
-最終更新日: 2025-12-19
+最終更新日: 2025-12-29

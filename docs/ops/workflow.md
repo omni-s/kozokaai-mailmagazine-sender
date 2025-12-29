@@ -39,7 +39,7 @@
 ### 1.1. 開発サーバー起動
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ブラウザで http://localhost:3000 を開くと、ホーム画面が表示されます。
@@ -123,12 +123,12 @@ http://localhost:3000/draft にアクセスし、メールのプレビューを�
 
 ## ステップ2: アーカイブ & コミット
 
-### 2.1. npm run commit 実行
+### 2.1. pnpm run commit 実行
 
 制作が完了したら、以下のコマンドを実行します。
 
 ```bash
-npm run commit
+pnpm run commit
 ```
 
 ### 2.2. 対話型入力
@@ -430,7 +430,7 @@ cat public/archives/2024/05/20-summer-sale/config.json
 
 **フロー**:
 1. feature ブランチ作成（例: `feature/summer-sale`）
-2. `npm run commit` 実行
+2. `pnpm run commit` 実行
 3. Git push → Check Workflow 実行
 4. PR作成 → Staging Workflow 実行（テスト送信）
 5. PR承認・マージ → Production Workflow 実行（Manual Approval → 本番送信）
@@ -527,7 +527,7 @@ cat public/archives/2024/05/20-summer-sale/config.json
 
 ### ローカル制作時
 
-- [ ] `npm run dev` で開発サーバー起動
+- [ ] `pnpm run dev` で開発サーバー起動
 - [ ] `src/app/draft/page.tsx` 編集
 - [ ] 画像を `public/mail-assets/` に配置
 - [ ] http://localhost:3000/draft でプレビュー確認
@@ -535,7 +535,7 @@ cat public/archives/2024/05/20-summer-sale/config.json
 
 ### アーカイブ時
 
-- [ ] `npm run commit` 実行
+- [ ] `pnpm run commit` 実行
 - [ ] コミットメッセージ入力（英数字・ハイフン）
 - [ ] メール件名入力（空文字不可）
 - [ ] Resend Audience ID 入力（`aud_` で始まる）

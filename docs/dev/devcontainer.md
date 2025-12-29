@@ -49,7 +49,7 @@ Dev Containerは、Docker コンテナを開発環境として利用する仕組
    - または、Command Palette（`Cmd+Shift+P` / `Ctrl+Shift+P`）→ **「Dev Containers: Reopen in Container」** を実行
 
 3. **コンテナビルド完了を待つ**
-   - 初回は5〜10分程度（イメージダウンロード + `npm install`）
+   - 初回は5〜10分程度（イメージダウンロード + `pnpm install`）
    - ターミナルに `Done. Press any key to close the terminal.` が表示されたら完了
 
 4. **環境変数ファイル作成**
@@ -60,7 +60,7 @@ Dev Containerは、Docker コンテナを開発環境として利用する仕組
 
 5. **開発サーバー起動**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
    - ブラウザで http://localhost:3000 を開く
 
@@ -88,13 +88,13 @@ npm --version
 ### ESLint / TypeScript 確認
 
 ```bash
-npm run lint
+pnpm run lint
 # ✔ No ESLint warnings or errors
 
-npm run type-check
+pnpm run type-check
 # tsc --noEmit (エラーなし)
 
-npm run build
+pnpm run build
 # ✓ Compiled successfully
 ```
 
@@ -126,7 +126,7 @@ Error: listen EADDRINUSE: address already in use :::3000
 lsof -i :3000
 
 # プロセスを停止、または別ポートで起動
-PORT=3001 npm run dev
+PORT=3001 pnpm run dev
 ```
 
 ### 2. Git 認証エラー
@@ -171,8 +171,8 @@ code .env
 
 **対応:**
 ```bash
-# 手動で npm install
-npm install
+# 手動で pnpm install
+pnpm install
 
 # または、コンテナをリビルド
 # Command Palette → "Dev Containers: Rebuild Container"
@@ -276,11 +276,11 @@ npm install
 
 | コマンド | 説明 |
 |---------|------|
-| `npm run dev` | 開発サーバー起動 |
-| `npm run build` | Next.jsビルド |
-| `npm run lint` | ESLint実行 |
-| `npm run type-check` | TypeScript型チェック |
-| `npm run commit` | メールアーカイブ作成（カスタムCLI） |
+| `pnpm run dev` | 開発サーバー起動 |
+| `pnpm run build` | Next.jsビルド |
+| `pnpm run lint` | ESLint実行 |
+| `pnpm run type-check` | TypeScript型チェック |
+| `pnpm run commit` | メールアーカイブ作成（カスタムCLI） |
 
 ## 参考リンク
 

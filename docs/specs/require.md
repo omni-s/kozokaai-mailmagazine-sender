@@ -17,14 +17,14 @@
 
 #### 編集
 
-- Next.js開発サーバー (`npm run dev`) を起動。
+- Next.js開発サーバー (`pnpm run dev`) を起動。
 - `src/app/draft/page.tsx` (仮称: 作業用ファイル) を編集。
 - 画像は `public/mail-assets/` に配置し、コード内では `/mail-assets/image.png` と指定。
 - ブラウザでプレビューを確認しながらデザインを調整。
 
 #### コミット & アーカイブ
 
-編集完了後、`npm run commit` コマンドを実行。
+編集完了後、`pnpm run commit` コマンドを実行。
 
 **対話形式の入力:**
 
@@ -102,7 +102,7 @@ public/
 
 ### 3.3. 宛先管理 (config.json)
 
-`npm run commit` 時に生成される設定ファイル。
+`pnpm run commit` 時に生成される設定ファイル。
 
 ```json
 {
@@ -119,7 +119,7 @@ GitHub Environments機能を使用。`production` 環境を作成し、Protectio
 ## 4. 今後のTODO / 実装ステップ
 
 - **Next.js環境構築**: ShadcnUI, Resend SDKの導入。
-- **CLIツール開発**: `npm run commit` で動く対話型スクリプトの実装 (Node.js script)。
+- **CLIツール開発**: `pnpm run commit` で動く対話型スクリプトの実装 (Node.js script)。
 - **CI/CD構築:**
   - Lint/TypeCheckワークフロー
   - S3 Upload & Test Sendワークフロー
