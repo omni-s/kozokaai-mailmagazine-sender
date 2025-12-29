@@ -100,7 +100,7 @@ export function EmailWrapper({
                       <p style={{ margin: '0 0 8px 0' }}>
                         このメールは [会社名] からお送りしています
                       </p>
-                      <p style={{ margin: 0 }}>
+                      <p style={{ margin: 0 }} suppressHydrationWarning>
                         © {new Date().getFullYear()} [会社名]. All rights
                         reserved.
                       </p>
