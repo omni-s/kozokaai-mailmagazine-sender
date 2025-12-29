@@ -784,8 +784,17 @@ if (!result.success) {
 
 ### GitHub Actions 最適化
 
-- **pnpm install --frozen-lockfile**: `package-lock.json` 使用（依存関係の固定）
-- **Node.js cache**: `actions/setup-node@v4` の `cache: 'npm'` 使用
+- **pnpm/action-setup**: v4 使用（pnpm version 10 指定）
+- **pnpm install --frozen-lockfile**: `pnpm-lock.yaml` 使用（依存関係の固定）
+- **Node.js cache**: `actions/setup-node@v4` の `cache: 'pnpm'` 使用
+
+**設定例**（`.github/workflows/staging.yml` L19-21）:
+```yaml
+- name: Setup pnpm
+  uses: pnpm/action-setup@v4
+  with:
+    version: 10
+```
 
 ---
 
@@ -800,4 +809,4 @@ if (!result.success) {
 
 ---
 
-最終更新日: 2025-12-22
+最終更新日: 2025-12-29

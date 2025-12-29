@@ -21,7 +21,8 @@ docs/
 │   ├── workflow.md      # 日常的な配信フロー
 │   ├── troubleshooting.md  # トラブルシューティング
 │   ├── security-updates.md # セキュリティアップデート手順
-│   └── todo.md          # 本番環境設定チェックリスト
+│   ├── todo.md          # 本番環境設定チェックリスト
+│   └── actual-configuration.md  # 実際の設定値（.gitignore対象、テンプレート用）
 └── specs/            # 仕様関連ドキュメント
     ├── require.md       # 要件定義書
     ├── task.md          # 実装タスクリスト
@@ -80,6 +81,14 @@ docs/
   - 初回配信（メールマガジン第1号制作、レビュー、Manual Approval）
   - 運用開始後の定期メンテナンス
 
+- **[actual-configuration.md](./ops/actual-configuration.md)** - 実際の設定値管理（テンプレート）
+  - AWS S3設定（バケット名、リージョン、IAMユーザー名）
+  - Resend API設定（Segment ID、From Email、検証済みドメイン、Reviewer Email）
+  - GitHub Secrets一覧とEnvironments設定
+  - pnpm設定（version、pnpm/action-setup version）
+  - 次回配信時のチェックリスト
+  - ⚠️ 注意: 本ファイルは `.gitignore` で管理対象外（機密情報保護のため）
+
 ### 仕様関連（specs/）
 
 - **[require.md](./specs/require.md)** - Resendメール配信システム要件定義書
@@ -112,4 +121,4 @@ docs/
 
 ---
 
-最終更新日: 2025-12-22
+最終更新日: 2025-12-29
