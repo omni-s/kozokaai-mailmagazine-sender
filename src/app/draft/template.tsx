@@ -17,7 +17,7 @@ export default function DraftEmail() {
       {/* ヘッダー画像 */}
       <div style={{ marginBottom: '32px' }}>
         <Img
-          src="/mail-assets/header-placeholder.jpg"
+          src="/mail-assets/placeholder.webp"
           alt="ヘッダー画像"
           width="520"
           style={{
@@ -85,7 +85,7 @@ export default function DraftEmail() {
 
         <div style={{ marginBottom: '16px' }}>
           <Img
-            src="/mail-assets/placeholder.jpg"
+            src="/mail-assets/placeholder.webp"
             alt="サンプル画像"
             width="520"
             style={{
