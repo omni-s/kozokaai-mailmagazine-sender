@@ -7,6 +7,8 @@
 このプロジェクトは、ノーコード/ローコード時代において、マーケティング担当者が技術的な知識がなくてもメールマガジンを作成・配信できることを目指しています。
 
 ### 主な機能
+![kai-cicd-mail-flow](https://github.com/user-attachments/assets/54a1dda2-71e8-420d-bca6-c01b1001ab0f)
+![kai-cicd-mail-flow-draft](https://github.com/user-attachments/assets/faf0f980-8e44-4f49-b55f-21b33166af63)
 
 - **ローカル編集**: Next.jsの開発サーバーでリアルタイムプレビューしながらメールをデザイン
 - **GitOps配信**: GitHub PRベースのレビューフローで安全に本番配信
