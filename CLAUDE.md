@@ -255,6 +255,34 @@ module.exports = {
 - `@tailwindcss/postcss`: 必須依存
 - `tailwindcss`: 4.1.18（devDependencies）
 
+### 5. EmailWrapper の preview モード
+
+**問題**: ブラウザプレビュー（Next.js）とメール配信（Resend）で必要なHTML構造が異なる。
+
+**解決策**: `preview` prop で切り替え。
+
+**実装**:
+- `preview={true}`: `<table>` のみ返却（Next.js App Router用、`<html>`, `<body>` なし）
+- `preview={false}`（デフォルト）: `<html>`, `<body>` を含むフルHTML（メール配信用）
+
+**使用例**:
+```typescript
+// ブラウザプレビュー（src/app/draft/page.tsx）
+<EmailWrapper preview={true} previewText="...">
+  {children}
+</EmailWrapper>
+
+// メール配信（src/scripts/send-test-email.ts）
+<EmailWrapper previewText="...">
+  {children}
+</EmailWrapper>
+```
+
+**背景**:
+- Next.js App Router では `layout.tsx` が `<html>`, `<body>` を提供
+- EmailWrapper が同じタグを出力すると hydration error が発生
+- `preview={true}` でブラウザプレビュー時のみテーブルレイアウトを返却
+
 ---
 
 ## GitHub Actions Workflows
