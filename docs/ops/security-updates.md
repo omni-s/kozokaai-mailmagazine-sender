@@ -337,6 +337,26 @@ npm outdated <package-name>
 - **トラブルシューティング**: 初回ビルドエラー → `.next` 削除でクリーンビルド成功
 - **参考**: Next.js 16 Upgrade Guide - https://nextjs.org/docs/app/guides/upgrading/version-16
 
+### 2025-12-29: React2Shell 最新パッチ検証（CVE-2025-66478）
+
+- **脆弱性**: CVE-2025-66478（Critical CVSS 10.0）、CVE-2025-55184/55183/67779
+  - リモートコード実行（RCE）via crafted RSC payload
+  - DoS via malicious HTTP request causing server hang
+  - Compiled Server Action source code exposure
+  - Incomplete DoS fix (infinite loop)
+- **検証ツール**: `npx fix-react2shell-next`（Vercel公式）
+- **検証結果**: ✅ **安全確認済み**
+  - Next.js 16.1.0 は全4件のCVEに対して脆弱性なし
+  - 2025年12月11日のセキュリティパッチ適用済みバージョン
+- **検証項目**:
+  - TypeScript型チェック: 成功
+  - ESLint: 成功
+  - Next.jsビルド: 成功（Turbopack 1351.8ms、11 workers並列処理）
+- **対応**: バージョン更新不要（現行バージョンで問題なし）
+- **参考**:
+  - Next.js Security Update (2025-12-11) - https://nextjs.org/blog/security-update-2025-12-11
+  - React2Shell Security Bulletin - https://vercel.com/kb/bulletin/react2shell
+
 ---
 
-最終更新日: 2025-12-22
+最終更新日: 2025-12-29
