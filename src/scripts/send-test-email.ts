@@ -37,13 +37,33 @@ interface ArchiveMetadata {
  */
 function detectNewArchiveDirectories(): string[] {
   try {
-    // git diff で前回のコミットとの差分を取得
-    const diff = execSync('git diff --name-only HEAD^ HEAD', {
+    // git diff で前回のコミットとの差分を取得（ステータス付き）
+    const diff = execSync('git diff --name-status HEAD^ HEAD', {
       cwd: PROJECT_ROOT,
       encoding: 'utf-8',
     });
 
-    const changedFiles = diff.split('\n').filter(Boolean);
+    const changedLines = diff.split('\n').filter(Boolean);
+
+    // 削除操作（D）を除外し、追加/変更されたファイルのみを抽出
+    const changedFiles: string[] = [];
+    changedLines.forEach((line) => {
+      // フォーマット: "A\tpublic/archives/2025/01/05-test/mail.tsx"
+      // または: "M\tpublic/archives/2025/01/05-test/config.json"
+      // または: "D\tpublic/archives/2024/12/25-old/mail.tsx" (これを除外)
+      const parts = line.split('\t');
+      if (parts.length < 2) return;
+
+      const status = parts[0];
+      const file = parts[1];
+
+      // 削除操作（D）は除外
+      if (status.startsWith('D')) {
+        return;
+      }
+
+      changedFiles.push(file);
+    });
 
     // public/archives/ 配下のディレクトリを抽出
     const archiveDirs = new Set<string>();
