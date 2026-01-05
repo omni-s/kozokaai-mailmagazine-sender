@@ -2,7 +2,12 @@ import typescriptEslint from "typescript-eslint";
 
 export default [
   {
-    ignores: [".next/**", "node_modules/**", "dist/**"],
+    ignores: [
+      ".next/**",
+      "node_modules/**",
+      "dist/**",
+      "scripts/fix-lightningcss.js",
+    ],
   },
   ...typescriptEslint.configs.recommended,
   {
