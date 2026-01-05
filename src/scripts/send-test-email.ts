@@ -148,7 +148,8 @@ function replaceImagePaths(
   mm: string,
   ddMsg: string
 ): string {
-  const pattern = /<Img[^>]*src=['"]\/mail-assets\/([^'"]+)['"]/g;
+  // <Img> と <img> の両方に対応（大文字小文字不問）
+  const pattern = /<[Ii]mg[^>]*src=['"]\/mail-assets\/([^'"]+)['"]/g;
 
   return html.replace(pattern, (match, filename) => {
     const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
@@ -267,7 +268,8 @@ async function main() {
     process.exit(1);
   }
 
-  const s3BaseUrl = process.env.S3_BUCKET_URL;
+  // 末尾スラッシュを削除して正規化
+  const s3BaseUrl = (process.env.S3_BUCKET_URL || '').replace(/\/$/, '');
 
   // 新規archiveディレクトリを検出
   const archiveDirs = detectNewArchiveDirectories();

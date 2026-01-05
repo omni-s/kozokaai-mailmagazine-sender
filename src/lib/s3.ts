@@ -39,6 +39,8 @@ const MIME_TYPES: Record<string, string> = {
   '.gif': 'image/gif',
   '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
+  '.tsx': 'text/plain',
+  '.json': 'application/json',
 };
 
 /**
@@ -171,4 +173,49 @@ export async function uploadDirectoryToS3(
     console.error('Directory Upload Error:', error);
     return results;
   }
+}
+
+/**
+ * アーカイブメタデータ（mail.tsx, config.json）をS3にアップロード
+ * @param archiveDir - アーカイブディレクトリ（public/archives/YYYY/MM/DD-MSG）
+ * @param s3Prefix - S3プレフィックス（archives/YYYY/MM/DD-MSG）
+ * @param bucketName - S3バケット名（環境変数から取得）
+ * @returns アップロード結果のリスト
+ */
+export async function uploadArchiveMetadataToS3(
+  archiveDir: string,
+  s3Prefix: string,
+  bucketName?: string
+): Promise<
+  Array<{
+    file: string;
+    success: boolean;
+    url?: string;
+    error?: string;
+  }>
+> {
+  const results: Array<{
+    file: string;
+    success: boolean;
+    url?: string;
+    error?: string;
+  }> = [];
+
+  // mail.tsx をアップロード
+  const mailTsxPath = path.join(archiveDir, 'mail.tsx');
+  if (fs.existsSync(mailTsxPath)) {
+    const s3Key = `${s3Prefix}/mail.tsx`;
+    const result = await uploadFileToS3(mailTsxPath, s3Key, bucketName);
+    results.push({ file: 'mail.tsx', ...result });
+  }
+
+  // config.json をアップロード
+  const configPath = path.join(archiveDir, 'config.json');
+  if (fs.existsSync(configPath)) {
+    const s3Key = `${s3Prefix}/config.json`;
+    const result = await uploadFileToS3(configPath, s3Key, bucketName);
+    results.push({ file: 'config.json', ...result });
+  }
+
+  return results;
 }
