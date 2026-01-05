@@ -28,7 +28,7 @@ export default function DraftEmail() {
         }}
       >
         <Img
-          src="/mail-assets/kai-cicd-mail-flow.jpg"
+          src="/mail-assets/_.jpeg"
           alt="ヘッダー画像"
           width="520"
           style={{
