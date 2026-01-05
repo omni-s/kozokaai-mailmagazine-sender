@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { uploadDirectoryToS3 } from '../lib/s3';
+import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from '../lib/s3';
 
 /**
  * GitHub Actions Staging Workflow用S3アップロードスクリプト
@@ -119,8 +119,19 @@ async function main() {
     const s3Prefix = archiveDir.replace('public/', '') + '/assets';
 
     try {
-      // S3へアップロード
-      const results = await uploadDirectoryToS3(assetsDir, s3Prefix);
+      // 画像をS3にアップロード
+      console.log(chalk.cyan('  画像をS3にアップロード中...'));
+      const imageResults = await uploadDirectoryToS3(assetsDir, s3Prefix);
+
+      // メタデータをS3にアップロード
+      console.log(chalk.cyan('  メタデータ（mail.tsx, config.json）をS3にアップロード中...'));
+      const metadataResults = await uploadArchiveMetadataToS3(
+        path.join(PROJECT_ROOT, archiveDir),
+        archiveDir.replace('public/', '')
+      );
+
+      // 結果を統合
+      const results = [...imageResults, ...metadataResults];
 
       if (results.length === 0) {
         console.log(chalk.yellow('  警告: アップロード対象のファイルがありません'));
