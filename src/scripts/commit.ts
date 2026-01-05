@@ -15,7 +15,7 @@ import chalk from "chalk";
 
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
 const DRAFT_FILE = path.join(PROJECT_ROOT, "src/app/draft/page.tsx");
-const TEMPLATE_FILE = path.join(PROJECT_ROOT, "src/app/draft/template.tsx");
+const TEMPLATE_FILE = path.join(PROJECT_ROOT, "src/app/draft/template.txt");
 const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, "public/mail-assets");
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, "public/archives");
 
@@ -79,7 +79,7 @@ interface Step {
 const STEPS: Step[] = [
   {
     id: "check-files",
-    name: "事前チェック（draft/page.tsx, template.tsx）",
+    name: "事前チェック（draft/page.tsx, template.txt）",
     status: "pending",
   },
   {
@@ -517,11 +517,11 @@ async function main() {
     updateStepStatus(
       "check-files",
       "failed",
-      "src/app/draft/template.tsx が見つかりません"
+      "src/app/draft/template.txt が見つかりません"
     );
     displayProgress();
     console.error(
-      chalk.red("エラー: src/app/draft/template.tsx が見つかりません")
+      chalk.red("エラー: src/app/draft/template.txt が見つかりません")
     );
     console.error(
       chalk.yellow("ヒント: 初期テンプレートファイルを作成してください")
@@ -530,7 +530,7 @@ async function main() {
   }
 
   updateStepStatus("check-files", "success");
-  console.log(chalk.green("✓ 事前チェック（draft/page.tsx, template.tsx）"));
+  console.log(chalk.green("✓ 事前チェック（draft/page.tsx, template.txt）"));
 
   // 2. ユーザー入力
   updateStepStatus("input", "running");
@@ -686,7 +686,7 @@ async function main() {
   // 9. draft/page.tsx リセット
   updateStepStatus("reset-draft", "running");
 
-  console.log(chalk.cyan("draft/page.tsx を初期テンプレートにリセット中..."));
+  console.log(chalk.cyan("draft/page.tsx を初期テンプレート（template.txt）からリセット中..."));
   fs.copyFileSync(TEMPLATE_FILE, DRAFT_FILE);
 
   updateStepStatus("reset-draft", "success");

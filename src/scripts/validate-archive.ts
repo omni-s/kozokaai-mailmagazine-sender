@@ -126,6 +126,21 @@ async function validateConfigJson(
 }
 
 /**
+ * TypeScript/JSXコメントを除去
+ * - 複数行コメント (slash-asterisk から asterisk-slash)
+ * - 単一行コメント (double-slash)
+ */
+function removeComments(code: string): string {
+  // 複数行コメント /\* ... *\/ を除去
+  code = code.replace(/\/\*[\s\S]*?\*\//g, '');
+
+  // 単一行コメント // ... を除去
+  code = code.replace(/\/\/.*$/gm, '');
+
+  return code;
+}
+
+/**
  * 画像パスの検証
  */
 function validateImagePaths(archiveDir: string): ValidationError | null {
@@ -142,7 +157,10 @@ function validateImagePaths(archiveDir: string): ValidationError | null {
   }
 
   // mail.tsx を読み込み
-  const mailContent = fs.readFileSync(mailPath, 'utf-8');
+  let mailContent = fs.readFileSync(mailPath, 'utf-8');
+
+  // コメントを除去してからパターンマッチング
+  mailContent = removeComments(mailContent);
 
   // <Img src="/mail-assets/..." /> のパターンを抽出
   const imgPattern = /<Img[^>]*src=["']\/mail-assets\/([^"']+)["']/g;

@@ -28,7 +28,7 @@ export default function DraftEmail() {
         }}
       >
         <Img
-          src="/mail-assets/kai-cicd-mail-flow.jpg"
+          src="/mail-assets/p.jpg"
           alt="ヘッダー画像"
           width="520"
           style={{
@@ -117,27 +117,6 @@ export default function DraftEmail() {
         >
           画像は以下のように使用できます：
         </p>
-
-        {/* <div
-          style={{
-            marginTop: "16px",
-            borderRadius: "6px",
-            overflow: "hidden",
-            border: "1px solid #e2e8f0",
-            backgroundColor: "#ffffff",
-          }}
-        >
-          <Img
-            src="/mail-assets/placeholder.webp"
-            alt="サンプル画像"
-            width="520"
-            style={{
-              width: "100%",
-              height: "auto",
-              display: "block",
-            }}
-          />
-        </div> */}
       </div>
 
       {/* CTA ボタン */}
