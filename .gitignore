@@ -57,3 +57,4 @@ Thumbs.db
 
 # Actual configuration (project-specific, not committed)
 docs/ops/actual-configuration.md
+.pnpm-store/
