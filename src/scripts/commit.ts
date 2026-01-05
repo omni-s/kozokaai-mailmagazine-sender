@@ -606,19 +606,30 @@ async function main() {
   updateStepStatus('create-dir', 'running');
 
   if (fs.existsSync(archiveDir)) {
-    updateStepStatus(
-      'create-dir',
-      'failed',
-      'アーカイブディレクトリが既に存在します'
+    console.log(
+      chalk.yellow(`\n既に存在するディレクトリです: ${archiveDir}`)
     );
-    displayProgress();
-    console.error(
-      chalk.red(`\nエラー: アーカイブディレクトリが既に存在します: ${archiveDir}`)
-    );
-    console.error(
-      chalk.yellow('ヒント: 異なるコミットメッセージを使用してください')
-    );
-    process.exit(1);
+
+    const overwriteAnswer = await inquirer.prompt<{ overwrite: boolean }>([
+      {
+        type: 'confirm',
+        name: 'overwrite',
+        message: '上書きしますか？',
+        default: false,
+      },
+    ]);
+
+    if (!overwriteAnswer.overwrite) {
+      updateStepStatus('create-dir', 'failed', 'ユーザーがキャンセルしました');
+      displayProgress();
+      console.log(chalk.yellow('\n操作がキャンセルされました'));
+      process.exit(0);
+    }
+
+    // 既存ディレクトリを削除
+    console.log(chalk.cyan('既存のディレクトリを削除中...'));
+    fs.rmSync(archiveDir, { recursive: true, force: true });
+    console.log(chalk.green('✓ 既存のディレクトリを削除しました'));
   }
 
   console.log(chalk.cyan('アーカイブディレクトリを作成中...'));
