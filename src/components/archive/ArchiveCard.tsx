@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import type { MailArchive } from '@/lib/archive-loader';
 
 interface ArchiveCardProps {
@@ -31,15 +32,9 @@ export function ArchiveCard({ archive }: ArchiveCardProps) {
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
             <CardTitle className="text-lg flex-1">{archive.subject}</CardTitle>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                isSent
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
+            <Badge variant={isSent ? 'default' : 'secondary'}>
               {isSent ? '送信済み' : '未送信'}
-            </span>
+            </Badge>
           </div>
           <CardDescription>
             作成日: {formatDate(archive.createdAt)}

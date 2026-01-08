@@ -1,40 +1,41 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import { Button as MantineButton, ButtonProps as MantineButtonProps } from '@mantine/core';
+import { forwardRef } from 'react';
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'default' | 'outline' | 'ghost';
-  size?: 'default' | 'sm' | 'lg';
+export interface ButtonProps extends Omit<MantineButtonProps, 'color'> {
+  variant?: 'filled' | 'light' | 'outline' | 'subtle' | 'default' | 'destructive' | 'secondary' | 'ghost';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', ...props }, ref) => {
-    const variantStyles = {
-      default: 'bg-blue-600 text-white hover:bg-blue-700',
-      outline: 'border border-gray-300 bg-transparent hover:bg-gray-100',
-      ghost: 'bg-transparent hover:bg-gray-100',
-    };
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = 'default', size = 'md', ...props }, ref) => {
+    // variantマッピング
+    let mantineVariant: MantineButtonProps['variant'] = 'filled';
+    let mantineColor: string | undefined = undefined;
 
-    const sizeStyles = {
-      default: 'h-10 px-4 py-2',
-      sm: 'h-9 px-3',
-      lg: 'h-11 px-8',
-    };
+    if (variant === 'default' || variant === 'filled') {
+      mantineVariant = 'filled';
+      mantineColor = 'blue';
+    } else if (variant === 'destructive') {
+      mantineVariant = 'filled';
+      mantineColor = 'red';
+    } else if (variant === 'outline') {
+      mantineVariant = 'outline';
+    } else if (variant === 'secondary' || variant === 'light') {
+      mantineVariant = 'light';
+    } else if (variant === 'ghost' || variant === 'subtle') {
+      mantineVariant = 'subtle';
+    }
 
     return (
-      <button
-        className={cn(
-          'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-          variantStyles[variant],
-          sizeStyles[size],
-          className
-        )}
+      <MantineButton
         ref={ref}
+        variant={mantineVariant}
+        color={mantineColor}
+        size={size}
         {...props}
       />
     );
   }
 );
-Button.displayName = 'Button';
 
-export { Button };
+Button.displayName = 'Button';

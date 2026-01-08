@@ -13,32 +13,34 @@ export default async function ArchivesPage() {
   const archives = await getArchiveList();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">メール配信履歴</h1>
-            <p className="text-gray-600 mt-2">
-              過去に送信したメールマガジン {archives.length}件
-            </p>
-          </div>
-          <Link href="/">
-            <Button variant="outline">ホームへ戻る</Button>
-          </Link>
+    <div className="container max-w-6xl py-12">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">メール配信履歴</h1>
+          <p className="text-muted-foreground mt-2">
+            過去に送信したメールマガジン {archives.length}件
+          </p>
         </div>
-
-        <Suspense
-          fallback={<div className="text-center py-12">読み込み中...</div>}
-        >
-          {archives.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              メールアーカイブが見つかりませんでした
-            </div>
-          ) : (
-            <ArchiveListClient archives={archives} />
-          )}
-        </Suspense>
+        <Button asChild variant="outline">
+          <Link href="/">ホームへ戻る</Link>
+        </Button>
       </div>
+
+      <Suspense
+        fallback={
+          <div className="text-center py-12 text-muted-foreground">
+            読み込み中...
+          </div>
+        }
+      >
+        {archives.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground">
+            メールアーカイブが見つかりませんでした
+          </div>
+        ) : (
+          <ArchiveListClient archives={archives} />
+        )}
+      </Suspense>
     </div>
   );
 }

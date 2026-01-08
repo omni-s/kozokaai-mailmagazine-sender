@@ -16,11 +16,11 @@ export function ArchiveListClient({ archives }: ArchiveListClientProps) {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     status: 'all',
+    sortOrder: 'desc',
   });
 
   const filteredArchives = useMemo(() => {
-    return archives.filter((archive) => {
-      // 件名検索
+    const result = archives.filter((archive) => {
       if (
         filters.search &&
         !archive.subject.toLowerCase().includes(filters.search.toLowerCase())
@@ -28,12 +28,21 @@ export function ArchiveListClient({ archives }: ArchiveListClientProps) {
         return false;
       }
 
-      // 送信状態フィルタ
       if (filters.status === 'sent' && !archive.sentAt) return false;
       if (filters.status === 'unsent' && archive.sentAt) return false;
 
       return true;
     });
+
+    result.sort((a, b) => {
+      const aDate = a.sentAt ? new Date(a.sentAt) : a.createdAt;
+      const bDate = b.sentAt ? new Date(b.sentAt) : b.createdAt;
+      return filters.sortOrder === 'desc'
+        ? bDate.getTime() - aDate.getTime()
+        : aDate.getTime() - bDate.getTime();
+    });
+
+    return result;
   }, [archives, filters]);
 
   return (
@@ -42,7 +51,7 @@ export function ArchiveListClient({ archives }: ArchiveListClientProps) {
 
       <div className="space-y-4">
         {filteredArchives.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-muted-foreground">
             該当するメールが見つかりませんでした
           </div>
         ) : (
