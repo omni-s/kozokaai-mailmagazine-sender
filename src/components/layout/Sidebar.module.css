@@ -3,6 +3,39 @@
   border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
 }
 
+.header {
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--mantine-radius-md);
+  background: linear-gradient(135deg, var(--mantine-color-blue-6), var(--mantine-color-cyan-6));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoIcon {
+  color: white;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.version {
+  font-size: 10px;
+  color: var(--mantine-color-dimmed);
+  line-height: 1;
+}
+
 .footer {
   padding: var(--mantine-spacing-md);
   border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));

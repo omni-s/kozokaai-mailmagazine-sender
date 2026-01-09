@@ -1,6 +1,7 @@
 'use client';
 
-import { Stack, Box, Text } from '@mantine/core';
+import { Stack, Box, Text, Group, Burger, ActionIcon, useMantineColorScheme } from '@mantine/core';
+import { IconSun, IconMoon } from '@tabler/icons-react';
 import { SidebarNav } from './SidebarNav';
 import { ArchiveAccordion } from './ArchiveAccordion';
 import type { MailArchive } from '@/lib/archive-loader';
@@ -8,11 +9,45 @@ import styles from './Sidebar.module.css';
 
 interface SidebarProps {
   archives: MailArchive[];
+  mobileOpened: boolean;
+  toggleMobile: () => void;
 }
 
-export function Sidebar({ archives }: SidebarProps) {
+export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) {
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   return (
     <Stack gap={0} h="100%" className={styles.sidebar}>
+      {/* ヘッダーセクション（旧SidebarHeader統合） */}
+      <Box className={styles.header} p="md">
+        <Group justify="space-between" wrap="nowrap">
+          <Group gap="sm">
+            <Burger
+              opened={mobileOpened}
+              onClick={toggleMobile}
+              hiddenFrom="sm"
+              size="sm"
+            />
+            <div className={styles.logo}>
+              <span className={styles.logoIcon}>R</span>
+            </div>
+            <div>
+              <div className={styles.title}>Resend Mail</div>
+              <div className={styles.version}>v0.1.0</div>
+            </div>
+          </Group>
+
+          <ActionIcon
+            variant="default"
+            onClick={() => toggleColorScheme()}
+            size="lg"
+            aria-label="Toggle color scheme"
+          >
+            {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+          </ActionIcon>
+        </Group>
+      </Box>
+
+      {/* ナビゲーション・アーカイブセクション */}
       <Box style={{ flex: 1, overflowY: 'auto' }}>
         <SidebarNav />
         <Box mt="xl" px="sm">
@@ -23,6 +58,7 @@ export function Sidebar({ archives }: SidebarProps) {
         </Box>
       </Box>
 
+      {/* フッター */}
       <Box className={styles.footer}>
         <Text size="xs" c="dimmed">© 2026 Resend Mail</Text>
       </Box>

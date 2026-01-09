@@ -2,7 +2,6 @@
 
 import { AppShell } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { SidebarHeader } from './SidebarHeader';
 import { Sidebar } from './Sidebar';
 import type { MailArchive } from '@/lib/archive-loader';
 
@@ -13,11 +12,10 @@ export interface AppShellLayoutProps {
 
 export function AppShellLayout({ archives, children }: AppShellLayoutProps) {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
-  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
+  const [desktopOpened] = useDisclosure(true);
 
   return (
     <AppShell
-      header={{ height: 60 }}
       navbar={{
         width: 280,
         breakpoint: 'sm',
@@ -25,15 +23,12 @@ export function AppShellLayout({ archives, children }: AppShellLayoutProps) {
       }}
       padding="md"
     >
-      <AppShell.Header>
-        <SidebarHeader
+      <AppShell.Navbar>
+        <Sidebar
+          archives={archives}
           mobileOpened={mobileOpened}
           toggleMobile={toggleMobile}
         />
-      </AppShell.Header>
-
-      <AppShell.Navbar>
-        <Sidebar archives={archives} />
       </AppShell.Navbar>
 
       <AppShell.Main>{children}</AppShell.Main>
