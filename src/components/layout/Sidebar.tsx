@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Stack, Box, Text, Group, Burger, ActionIcon, useMantineColorScheme } from '@mantine/core';
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { SidebarNav } from './SidebarNav';
@@ -15,6 +16,13 @@ interface SidebarProps {
 
 export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const [mounted, setMounted] = useState(false);
+
+  // クライアントサイドマウント後にのみアイコンを表示（Hydration Error回避）
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <Stack gap={0} h="100%" className={styles.sidebar}>
       {/* ヘッダーセクション（旧SidebarHeader統合） */}
@@ -42,7 +50,11 @@ export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) 
             size="lg"
             aria-label="Toggle color scheme"
           >
-            {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+            {mounted ? (
+              colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />
+            ) : (
+              <Box style={{ width: 18, height: 18 }} />
+            )}
           </ActionIcon>
         </Group>
       </Box>

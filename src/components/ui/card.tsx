@@ -26,6 +26,7 @@ const CardTitle = React.forwardRef<
   HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >((props, ref) => (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   <Title order={3} ref={ref as any} {...props} />
 ));
 CardTitle.displayName = 'CardTitle';
@@ -34,6 +35,7 @@ const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >((props, ref) => (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   <Text size="sm" c="dimmed" ref={ref as any} {...props} />
 ));
 CardDescription.displayName = 'CardDescription';

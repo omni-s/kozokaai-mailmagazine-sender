@@ -48,9 +48,9 @@ function detectNewArchiveDirectories(): string[] {
     // 削除操作（D）を除外し、追加/変更されたファイルのみを抽出
     const changedFiles: string[] = [];
     changedLines.forEach((line) => {
-      // フォーマット: "A\tpublic/archives/2025/01/05-test/mail.tsx"
-      // または: "M\tpublic/archives/2025/01/05-test/config.json"
-      // または: "D\tpublic/archives/2024/12/25-old/mail.tsx" (これを除外)
+      // フォーマット: "A\tsrc/archives/2025/01/05-test/mail.tsx"
+      // または: "M\tsrc/archives/2025/01/05-test/config.json"
+      // または: "D\tsrc/archives/2024/12/25-old/mail.tsx" (これを除外)
       const parts = line.split('\t');
       if (parts.length < 2) return;
 
@@ -65,12 +65,12 @@ function detectNewArchiveDirectories(): string[] {
       changedFiles.push(file);
     });
 
-    // public/archives/ 配下のディレクトリを抽出
+    // src/archives/ 配下のディレクトリを抽出
     const archiveDirs = new Set<string>();
     changedFiles.forEach((file) => {
-      if (file.startsWith('public/archives/')) {
-        // public/archives/2024/05/20-summer-sale/mail.tsx
-        // → public/archives/2024/05/20-summer-sale
+      if (file.startsWith('src/archives/')) {
+        // src/archives/2024/05/20-summer-sale/mail.tsx
+        // → src/archives/2024/05/20-summer-sale
         const parts = file.split('/');
         if (parts.length >= 5) {
           const archiveDir = parts.slice(0, 5).join('/');
