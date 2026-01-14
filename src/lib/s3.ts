@@ -4,30 +4,44 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * S3 Client初期化
+ * S3 Client（遅延初期化）
  *
  * 必要な環境変数:
  * - AWS_ACCESS_KEY_ID
  * - AWS_SECRET_ACCESS_KEY
  * - AWS_REGION
  */
-if (!process.env.AWS_ACCESS_KEY_ID) {
-  throw new Error('AWS_ACCESS_KEY_ID environment variable is not set');
-}
-if (!process.env.AWS_SECRET_ACCESS_KEY) {
-  throw new Error('AWS_SECRET_ACCESS_KEY environment variable is not set');
-}
-if (!process.env.AWS_REGION) {
-  throw new Error('AWS_REGION environment variable is not set');
-}
+let s3ClientInstance: S3Client | null = null;
 
-export const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
+/**
+ * S3 Clientを取得（初回呼び出し時に初期化）
+ */
+function getS3Client(): S3Client {
+  if (s3ClientInstance) {
+    return s3ClientInstance;
+  }
+
+  // 環境変数チェック（初回のみ）
+  if (!process.env.AWS_ACCESS_KEY_ID) {
+    throw new Error('AWS_ACCESS_KEY_ID environment variable is not set');
+  }
+  if (!process.env.AWS_SECRET_ACCESS_KEY) {
+    throw new Error('AWS_SECRET_ACCESS_KEY environment variable is not set');
+  }
+  if (!process.env.AWS_REGION) {
+    throw new Error('AWS_REGION environment variable is not set');
+  }
+
+  s3ClientInstance = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  });
+
+  return s3ClientInstance;
+}
 
 /**
  * MIME typeマップ
@@ -40,6 +54,7 @@ const MIME_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
   '.svg': 'image/svg+xml',
   '.tsx': 'text/plain',
+  '.html': 'text/html',
   '.json': 'application/json',
 };
 
@@ -85,7 +100,7 @@ export async function uploadFileToS3(
 
     // S3アップロード
     const upload = new Upload({
-      client: s3Client,
+      client: getS3Client(),
       params: {
         Bucket: bucket,
         Key: s3Key,
@@ -176,8 +191,8 @@ export async function uploadDirectoryToS3(
 }
 
 /**
- * アーカイブメタデータ（mail.tsx, config.json）をS3にアップロード
- * @param archiveDir - アーカイブディレクトリ（public/archives/YYYY/MM/DD-MSG）
+ * アーカイブメタデータ（mail.tsx, mail.html, config.json）をS3にアップロード
+ * @param archiveDir - アーカイブディレクトリ（src/archives/YYYY/MM/DD-MSG）
  * @param s3Prefix - S3プレフィックス（archives/YYYY/MM/DD-MSG）
  * @param bucketName - S3バケット名（環境変数から取得）
  * @returns アップロード結果のリスト
@@ -207,6 +222,14 @@ export async function uploadArchiveMetadataToS3(
     const s3Key = `${s3Prefix}/mail.tsx`;
     const result = await uploadFileToS3(mailTsxPath, s3Key, bucketName);
     results.push({ file: 'mail.tsx', ...result });
+  }
+
+  // mail.html をアップロード
+  const mailHtmlPath = path.join(archiveDir, 'mail.html');
+  if (fs.existsSync(mailHtmlPath)) {
+    const s3Key = `${s3Prefix}/mail.html`;
+    const result = await uploadFileToS3(mailHtmlPath, s3Key, bucketName);
+    results.push({ file: 'mail.html', ...result });
   }
 
   // config.json をアップロード

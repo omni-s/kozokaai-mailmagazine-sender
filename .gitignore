@@ -55,6 +55,9 @@ next-env.d.ts
 # OS
 Thumbs.db
 
+# Archives (stored in S3, not in repository)
+src/archives/
+
 # Actual configuration (project-specific, not committed)
 docs/ops/actual-configuration.md
 .pnpm-store/

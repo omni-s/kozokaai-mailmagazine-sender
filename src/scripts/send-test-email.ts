@@ -1,24 +1,36 @@
 #!/usr/bin/env node
 
-import * as fs from 'fs';
-import * as path from 'path';
-import { pathToFileURL } from 'url';
+import 'dotenv/config';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { render } from '@react-email/render';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { resend } from '../lib/resend';
 import { validateConfig, type Config } from '../lib/config-schema';
+import { format } from 'date-fns';
 
 /**
  * GitHub Actions Staging Workflow用テストメール送信スクリプト
  *
- * 新規追加されたarchiveディレクトリを検出し、以下を実行:
- * 1. React → HTML変換
+ * 最新コミットのメッセージから対象archiveを特定し、以下を実行:
+ * 1. S3からmail.htmlとconfig.jsonを取得
  * 2. 画像パス置換（/mail-assets/ → S3 URL）
  * 3. Resend APIでテストメール送信
  */
 
-const PROJECT_ROOT = path.resolve(__dirname, '../..');
+const PROJECT_ROOT = process.cwd();
+
+/**
+ * S3 Client初期化
+ */
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'ap-northeast-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME!;
 
 interface TestEmailError {
   type: string;
@@ -33,108 +45,76 @@ interface ArchiveMetadata {
 }
 
 /**
- * 新規archiveディレクトリを検出
+ * 最新コミットメッセージから対象archiveディレクトリ名を抽出
  */
-function detectNewArchiveDirectories(): string[] {
+function getTargetArchiveFromCommit(): string | null {
   try {
-    // git diff で前回のコミットとの差分を取得（ステータス付き）
-    const diff = execSync('git diff --name-status HEAD^ HEAD', {
+    // 最新コミットメッセージを取得
+    const commitMessage = execSync('git log -1 --format=%s', {
       cwd: PROJECT_ROOT,
       encoding: 'utf-8',
-    });
+    }).trim();
 
-    const changedLines = diff.split('\n').filter(Boolean);
+    console.log(chalk.cyan(`最新コミット: ${commitMessage}`));
 
-    // 削除操作（D）を除外し、追加/変更されたファイルのみを抽出
-    const changedFiles: string[] = [];
-    changedLines.forEach((line) => {
-      // フォーマット: "A\tsrc/archives/2025/01/05-test/mail.tsx"
-      // または: "M\tsrc/archives/2025/01/05-test/config.json"
-      // または: "D\tsrc/archives/2024/12/25-old/mail.tsx" (これを除外)
-      const parts = line.split('\t');
-      if (parts.length < 2) return;
+    // "MAIL: {directory-name}" 形式からディレクトリ名を抽出
+    const match = commitMessage.match(/^MAIL:\s*(.+)$/);
+    if (!match) {
+      return null;
+    }
 
-      const status = parts[0];
-      const file = parts[1];
+    const directoryName = match[1].trim();
+    console.log(chalk.cyan(`検出されたディレクトリ名: ${directoryName}`));
 
-      // 削除操作（D）は除外
-      if (status.startsWith('D')) {
-        return;
-      }
-
-      changedFiles.push(file);
-    });
-
-    // src/archives/ 配下のディレクトリを抽出
-    const archiveDirs = new Set<string>();
-    changedFiles.forEach((file) => {
-      if (file.startsWith('src/archives/')) {
-        // src/archives/2024/05/20-summer-sale/mail.tsx
-        // → src/archives/2024/05/20-summer-sale
-        const parts = file.split('/');
-        if (parts.length >= 5) {
-          const archiveDir = parts.slice(0, 5).join('/');
-          archiveDirs.add(archiveDir);
-        }
-      }
-    });
-
-    return Array.from(archiveDirs);
+    return directoryName;
   } catch (error) {
-    console.error(chalk.red('エラー: git diff の実行に失敗しました'));
+    console.error(chalk.red('エラー: git log の実行に失敗しました'));
     console.error(error);
-    return [];
+    return null;
   }
 }
 
 /**
- * アーカイブディレクトリパスからメタデータを抽出
+ * ディレクトリ名から完全なアーカイブパスを構築
  */
-function extractArchiveMetadata(
-  archiveDir: string
-): ArchiveMetadata | null {
-  const match = archiveDir.match(/archives\/(\d{4})\/(\d{2})\/([\w-]+)$/);
-  if (!match) {
-    return null;
+function buildArchivePath(directoryName: string): ArchiveMetadata {
+  // 現在の日付を取得
+  const now = new Date();
+  const yyyy = format(now, 'yyyy');
+  const mm = format(now, 'MM');
+
+  // directoryNameが既に "DD-message" 形式の場合はそのまま使用
+  // そうでない場合は、今日の日付を使用
+  let ddMsg = directoryName;
+  if (!/^\d{2}-/.test(directoryName)) {
+    const dd = format(now, 'dd');
+    ddMsg = `${dd}-${directoryName}`;
   }
-  const [, yyyy, mm, ddMsg] = match;
+
   return { yyyy, mm, ddMsg };
 }
 
 /**
- * React コンポーネントをHTML に変換
+ * S3からオブジェクトを取得
  */
-async function renderMailComponent(
-  mailPath: string
-): Promise<{ html: string } | { error: string }> {
-  if (!fs.existsSync(mailPath)) {
-    return {
-      error: `mail.tsx が見つかりません: ${mailPath}`,
-    };
-  }
-
+async function getS3Object(key: string): Promise<string | null> {
   try {
-    // 動的インポート（pathToFileURL でクロスプラットフォーム対応）
-    const moduleUrl = pathToFileURL(mailPath).href;
-    const module = await import(moduleUrl);
-    const Component = module.default;
+    const command = new GetObjectCommand({
+      Bucket: S3_BUCKET_NAME,
+      Key: key,
+    });
 
-    // コンポーネントの型チェック
-    if (typeof Component !== 'function') {
-      throw new Error('Default export is not a React component');
+    const response = await s3Client.send(command);
+
+    if (!response.Body) {
+      return null;
     }
 
-    // React → HTML 変換
-    const html = await render(Component(), { plainText: false });
-
-    return { html };
+    const bodyContents = await response.Body.transformToString();
+    return bodyContents;
   } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'React コンポーネントのレンダリングに失敗しました',
-    };
+    console.error(`Failed to get S3 object: ${key}`, error);
+    return null;
   }
 }
 
@@ -148,7 +128,6 @@ function replaceImagePaths(
   mm: string,
   ddMsg: string
 ): string {
-  // <Img> と <img> の両方に対応（大文字小文字不問）
   const pattern = /<[Ii]mg[^>]*src=['"]\/mail-assets\/([^'"]+)['"]/g;
 
   return html.replace(pattern, (match, filename) => {
@@ -158,21 +137,23 @@ function replaceImagePaths(
 }
 
 /**
- * config.json を読み込み・検証
+ * S3からconfig.jsonを取得
  */
-async function loadConfig(
-  archiveDir: string
+async function loadConfigFromS3(
+  yyyy: string,
+  mm: string,
+  ddMsg: string
 ): Promise<Config | { error: string }> {
-  const configPath = path.join(PROJECT_ROOT, archiveDir, 'config.json');
-
-  if (!fs.existsSync(configPath)) {
-    return {
-      error: `config.json が見つかりません: ${configPath}`,
-    };
-  }
+  const configKey = `archives/${yyyy}/${mm}/${ddMsg}/config.json`;
 
   try {
-    const configContent = fs.readFileSync(configPath, 'utf-8');
+    const configContent = await getS3Object(configKey);
+    if (!configContent) {
+      return {
+        error: `config.json が見つかりません: ${configKey}`,
+      };
+    }
+
     const configData = JSON.parse(configContent);
 
     // Zodスキーマでバリデーション
@@ -198,41 +179,57 @@ async function loadConfig(
 }
 
 /**
+ * S3からmail.htmlを取得
+ */
+async function loadMailHtmlFromS3(
+  yyyy: string,
+  mm: string,
+  ddMsg: string
+): Promise<{ html: string } | { error: string }> {
+  const htmlKey = `archives/${yyyy}/${mm}/${ddMsg}/mail.html`;
+
+  try {
+    const htmlContent = await getS3Object(htmlKey);
+    if (!htmlContent) {
+      return {
+        error: `mail.html が見つかりません: ${htmlKey}`,
+      };
+    }
+
+    return { html: htmlContent };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : 'mail.html の読み込みに失敗しました',
+    };
+  }
+}
+
+/**
  * Resend API でテストメール送信
  */
 async function sendTestEmail(
   html: string,
-  subject: string
+  subject: string,
+  recipientEmail: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
-  const reviewerEmail = process.env.REVIEWER_EMAIL;
-  if (!reviewerEmail) {
-    return {
-      success: false,
-      error: 'REVIEWER_EMAIL 環境変数が設定されていません',
-    };
-  }
-
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
   try {
     const { data, error } = await resend.emails.send({
       from: fromEmail,
-      to: reviewerEmail,
+      to: recipientEmail,
       subject: `[TEST] ${subject}`,
       html,
     });
 
     if (error) {
-      return {
-        success: false,
-        error: error.message || 'Resend API エラー',
-      };
+      return { success: false, error: error.message };
     }
 
-    return {
-      success: true,
-      id: data?.id,
-    };
+    return { success: true, id: data?.id };
   } catch (error) {
     return {
       success: false,
@@ -250,17 +247,10 @@ async function sendTestEmail(
 async function main() {
   console.log(chalk.blue.bold('\n========================================'));
   console.log(chalk.blue.bold('  Resend メール配信システム'));
-  console.log(chalk.blue.bold('  テスト送信'));
+  console.log(chalk.blue.bold('  テストメール送信'));
   console.log(chalk.blue.bold('========================================\n'));
 
   // 環境変数チェック
-  if (!process.env.REVIEWER_EMAIL) {
-    console.error(
-      chalk.red('エラー: REVIEWER_EMAIL 環境変数が設定されていません')
-    );
-    process.exit(1);
-  }
-
   if (!process.env.S3_BUCKET_URL) {
     console.error(
       chalk.red('エラー: S3_BUCKET_URL 環境変数が設定されていません')
@@ -268,128 +258,132 @@ async function main() {
     process.exit(1);
   }
 
+  if (!process.env.REVIEWER_EMAIL) {
+    console.error(
+      chalk.red('エラー: REVIEWER_EMAIL 環境変数が設定されていません')
+    );
+    process.exit(1);
+  }
+
   // 末尾スラッシュを削除して正規化
   const s3BaseUrl = (process.env.S3_BUCKET_URL || '').replace(/\/$/, '');
+  const reviewerEmail = process.env.REVIEWER_EMAIL;
 
-  // 新規archiveディレクトリを検出
-  const archiveDirs = detectNewArchiveDirectories();
+  // 最新コミットから対象archiveを特定
+  const directoryName = getTargetArchiveFromCommit();
 
-  if (archiveDirs.length === 0) {
+  if (!directoryName) {
     console.log(
-      chalk.yellow('新規archiveディレクトリが見つかりませんでした')
+      chalk.yellow('コミットメッセージから対象archiveが見つかりませんでした')
     );
-    console.log(chalk.green('✓ テスト送信完了（対象なし）\n'));
+    console.log(chalk.green('✓ テストメール送信完了（対象なし）\n'));
     process.exit(0);
   }
 
-  console.log(chalk.cyan(`検出されたarchiveディレクトリ: ${archiveDirs.length}件\n`));
+  // アーカイブパスを構築
+  const { yyyy, mm, ddMsg } = buildArchivePath(directoryName);
+  const archivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
+
+  console.log(chalk.cyan(`対象アーカイブ: ${archivePath}\n`));
 
   let hasError = false;
-  const errors: Array<{ dir: string; error: TestEmailError }> = [];
+  const errors: TestEmailError[] = [];
 
-  // 各archiveディレクトリを処理
-  for (const archiveDir of archiveDirs) {
-    console.log(chalk.cyan(`処理中: ${archiveDir}`));
+  // 1. S3からconfig.jsonを取得
+  console.log(chalk.cyan('config.jsonを取得中...'));
+  const configResult = await loadConfigFromS3(yyyy, mm, ddMsg);
 
-    // 1. アーカイブメタデータ抽出
-    const metadata = extractArchiveMetadata(archiveDir);
-    if (!metadata) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: 'パス',
-          message: 'アーカイブディレクトリパスが不正です',
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    const { yyyy, mm, ddMsg } = metadata;
-
-    // 2. React → HTML 変換
-    const mailPath = path.join(PROJECT_ROOT, archiveDir, 'mail.tsx');
-    const renderResult = await renderMailComponent(mailPath);
-
-    if ('error' in renderResult) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: 'レンダリング',
-          message: 'React コンポーネントのレンダリングに失敗しました',
-          details: renderResult.error,
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    console.log(chalk.green('  ✓ React → HTML 変換'));
-
-    // 3. 画像パス置換
-    let html = renderResult.html;
-    html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, ddMsg);
-    console.log(chalk.green('  ✓ 画像パス置換'));
-
-    // 4. config.json 読み込み
-    const configResult = await loadConfig(archiveDir);
-
-    if ('error' in configResult) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: 'config.json',
-          message: 'config.json の読み込みに失敗しました',
-          details: configResult.error,
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    const config = configResult;
-    console.log(chalk.green('  ✓ config.json 読み込み'));
-
-    // 5. テストメール送信
-    const sendResult = await sendTestEmail(html, config.subject);
-
-    if (!sendResult.success) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: 'テスト送信',
-          message: 'テストメール送信に失敗しました',
-          details: sendResult.error,
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    console.log(chalk.green('  ✓ テストメール送信'));
-    console.log(chalk.gray(`    送信ID: ${sendResult.id}`));
-    console.log(chalk.gray(`    宛先: ${process.env.REVIEWER_EMAIL}`));
-    console.log(chalk.gray(`    件名: [TEST] ${config.subject}`));
-    console.log();
+  if ('error' in configResult) {
+    errors.push({
+      type: 'config.json',
+      message: 'config.json の読み込みに失敗しました',
+      details: configResult.error,
+    });
+    hasError = true;
   }
 
-  // 結果表示
   if (hasError) {
-    console.log(chalk.red.bold('\n✗ テスト送信でエラーが発生しました\n'));
-    errors.forEach(({ dir, error }) => {
-      console.log(chalk.red(`[${dir}]`));
-      console.log(chalk.red(`  タイプ: ${error.type}`));
-      console.log(chalk.red(`  メッセージ: ${error.message}`));
-      if (error.details) {
-        console.log(chalk.red(`  詳細: ${error.details}`));
+    console.log(chalk.red.bold('\n✗ テストメール送信でエラーが発生しました\n'));
+    errors.forEach(({ type, message, details }) => {
+      console.log(chalk.red(`タイプ: ${type}`));
+      console.log(chalk.red(`メッセージ: ${message}`));
+      if (details) {
+        console.log(chalk.red(`詳細: ${details}`));
       }
       console.log();
     });
     process.exit(1);
-  } else {
-    console.log(chalk.green.bold('✓ すべてのテストメール送信に成功しました\n'));
-    process.exit(0);
   }
+
+  const config = configResult as Config;
+  console.log(chalk.green('✓ config.json 読み込み'));
+
+  // 2. S3からmail.htmlを取得
+  console.log(chalk.cyan('mail.htmlを取得中...'));
+  const htmlResult = await loadMailHtmlFromS3(yyyy, mm, ddMsg);
+
+  if ('error' in htmlResult) {
+    errors.push({
+      type: 'mail.html',
+      message: 'mail.html の読み込みに失敗しました',
+      details: htmlResult.error,
+    });
+    hasError = true;
+  }
+
+  if (hasError) {
+    console.log(chalk.red.bold('\n✗ テストメール送信でエラーが発生しました\n'));
+    errors.forEach(({ type, message, details }) => {
+      console.log(chalk.red(`タイプ: ${type}`));
+      console.log(chalk.red(`メッセージ: ${message}`));
+      if (details) {
+        console.log(chalk.red(`詳細: ${details}`));
+      }
+      console.log();
+    });
+    process.exit(1);
+  }
+
+  let html = (htmlResult as { html: string }).html;
+  console.log(chalk.green('✓ mail.html 読み込み'));
+
+  // 3. 画像パス置換
+  html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, ddMsg);
+  console.log(chalk.green('✓ 画像パス置換'));
+
+  // 4. テストメール送信
+  console.log(chalk.cyan('テストメールを送信中...'));
+  const sendResult = await sendTestEmail(html, config.subject, reviewerEmail);
+
+  if (!sendResult.success) {
+    errors.push({
+      type: 'テストメール送信',
+      message: 'テストメール送信に失敗しました',
+      details: sendResult.error,
+    });
+    hasError = true;
+  }
+
+  if (hasError) {
+    console.log(chalk.red.bold('\n✗ テストメール送信でエラーが発生しました\n'));
+    errors.forEach(({ type, message, details }) => {
+      console.log(chalk.red(`タイプ: ${type}`));
+      console.log(chalk.red(`メッセージ: ${message}`));
+      if (details) {
+        console.log(chalk.red(`詳細: ${details}`));
+      }
+      console.log();
+    });
+    process.exit(1);
+  }
+
+  console.log(chalk.green('✓ テストメール送信'));
+  console.log(chalk.gray(`  送信ID: ${sendResult.id}`));
+  console.log(chalk.gray(`  送信先: ${reviewerEmail}`));
+  console.log(chalk.gray(`  件名: [TEST] ${config.subject}`));
+
+  console.log(chalk.green.bold('\n✓ テストメール送信が完了しました\n'));
+  process.exit(0);
 }
 
 // スクリプト実行

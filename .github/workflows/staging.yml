@@ -6,7 +6,7 @@ on:
 
 jobs:
   staging:
-    name: Upload to S3 & Send Test Email
+    name: Send Test Email
     runs-on: ubuntu-latest
 
     steps:
@@ -29,15 +29,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Upload images to S3
-        run: npx tsx src/scripts/upload-to-s3.ts
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-          S3_BUCKET_URL: ${{ secrets.S3_BUCKET_URL }}
-
       - name: Send test email
         run: npx tsx src/scripts/send-test-email.ts
         env:
@@ -45,3 +36,7 @@ jobs:
           RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
           REVIEWER_EMAIL: ${{ secrets.REVIEWER_EMAIL }}
           S3_BUCKET_URL: ${{ secrets.S3_BUCKET_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}

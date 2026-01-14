@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as path from 'path';
-import * as fs from 'fs';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+
+/**
+ * S3 Client初期化
+ */
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'ap-northeast-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME!;
+const S3_BASE_URL = process.env.S3_BUCKET_URL!;
 
 // 画像パス置換関数
 function replaceImagePaths(
@@ -24,23 +37,26 @@ export async function GET(
   try {
     const { yyyy, mm, ddMsg } = await params;
 
-    // HTMLファイルを直接読み込み（mail.html は pnpm run commit 時に生成済み）
-    const htmlPath = path.join(process.cwd(), 'src', 'archives', yyyy, mm, ddMsg, 'mail.html');
+    // S3からmail.htmlを取得
+    const htmlKey = `archives/${yyyy}/${mm}/${ddMsg}/mail.html`;
+    const command = new GetObjectCommand({
+      Bucket: S3_BUCKET_NAME,
+      Key: htmlKey,
+    });
 
-    if (!fs.existsSync(htmlPath)) {
+    const response = await s3Client.send(command);
+
+    if (!response.Body) {
       return NextResponse.json(
-        { error: 'mail.html が見つかりません。pnpm run commit を実行してアーカイブを作成してください。' },
+        { error: `mail.html が見つかりません: ${htmlKey}` },
         { status: 404 }
       );
     }
 
-    let html = fs.readFileSync(htmlPath, 'utf-8');
+    let html = await response.Body.transformToString();
 
     // 画像パス置換（S3 URL）
-    const s3BaseUrl = process.env.S3_BUCKET_URL;
-    if (s3BaseUrl) {
-      html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, ddMsg);
-    }
+    html = replaceImagePaths(html, S3_BASE_URL, yyyy, mm, ddMsg);
 
     return new NextResponse(html, {
       status: 200,
@@ -50,7 +66,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Failed to render mail component:', error);
+    console.error('Failed to render mail component from S3:', error);
     return NextResponse.json(
       { error: 'メールのレンダリングに失敗しました' },
       { status: 500 }

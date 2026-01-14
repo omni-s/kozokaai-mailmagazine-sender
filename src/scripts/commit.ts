@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
+import 'dotenv/config';
 import inquirer from "inquirer";
 import { format } from "date-fns";
 import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
 import chalk from "chalk";
+import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from "../lib/s3";
 
 /**
  * pnpm run commit メインスクリプト
@@ -98,6 +100,11 @@ const STEPS: Step[] = [
   {
     id: "reset-draft",
     name: "page.tsx リセット",
+    status: "pending",
+  },
+  {
+    id: "s3-upload",
+    name: "S3アップロード",
     status: "pending",
   },
   { id: "git-add", name: "git add", status: "pending" },
@@ -723,8 +730,99 @@ async function main() {
   updateStepStatus("reset-draft", "success");
   console.log(chalk.green("✓ page.tsx リセット"));
 
-  // 10. Git操作
-  console.log(chalk.cyan("\nGit操作を実行中...\n"));
+  // 10. S3アップロード
+  updateStepStatus("s3-upload", "running");
+
+  console.log(chalk.cyan("\nS3へアップロード中...\n"));
+
+  try {
+    // S3プレフィックスを構築
+    // src/archives/2026/01/14-test → archives/2026/01/14-test
+    const s3Prefix = archiveDir.replace(`${PROJECT_ROOT}/src/`, "");
+
+    // 画像をS3にアップロード
+    const assetsResults: Array<{
+      file: string;
+      success: boolean;
+      url?: string;
+      error?: string;
+    }> = [];
+
+    if (fs.existsSync(assetsDir)) {
+      const files = fs.readdirSync(assetsDir);
+      if (files.length > 0) {
+        console.log(chalk.cyan(`  画像をS3にアップロード中... (${files.length}件)`));
+        const uploadResults = await uploadDirectoryToS3(
+          assetsDir,
+          `${s3Prefix}/assets`
+        );
+        assetsResults.push(...uploadResults);
+      } else {
+        console.log(chalk.yellow("  警告: assetsディレクトリに画像がありません"));
+      }
+    }
+
+    // メタデータ（mail.tsx, mail.html, config.json）をS3にアップロード
+    console.log(chalk.cyan("  メタデータをS3にアップロード中..."));
+    const metadataResults = await uploadArchiveMetadataToS3(
+      archiveDir,
+      s3Prefix
+    );
+
+    // 結果を統合
+    const allResults = [...assetsResults, ...metadataResults];
+
+    // 結果を表示
+    let uploadSuccess = 0;
+    let uploadFailed = 0;
+
+    allResults.forEach((result) => {
+      if (result.success) {
+        console.log(chalk.green(`  ✓ ${result.file}`));
+        uploadSuccess++;
+      } else {
+        console.log(
+          chalk.red(`  × ${result.file}: ${result.error || "Unknown error"}`)
+        );
+        uploadFailed++;
+      }
+    });
+
+    if (uploadFailed > 0) {
+      updateStepStatus(
+        "s3-upload",
+        "failed",
+        `${uploadFailed}件のアップロードに失敗しました`
+      );
+      displayProgress();
+      console.log(
+        chalk.red.bold(
+          `\n✗ S3アップロードでエラーが発生しました (${uploadFailed}/${allResults.length}件)\n`
+        )
+      );
+      process.exit(1);
+    }
+
+    updateStepStatus("s3-upload", "success");
+    console.log(
+      chalk.green(
+        `\n✓ S3アップロード完了 (${uploadSuccess}/${allResults.length}件)\n`
+      )
+    );
+  } catch (error) {
+    updateStepStatus(
+      "s3-upload",
+      "failed",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    displayProgress();
+    console.log(chalk.red.bold("\n✗ S3アップロードでエラーが発生しました\n"));
+    console.error(error);
+    process.exit(1);
+  }
+
+  // 11. Git操作
+  console.log(chalk.cyan("Git操作を実行中...\n"));
 
   // git add
   updateStepStatus("git-add", "running");

@@ -1,5 +1,4 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { S3Client, ListObjectsV2Command, GetObjectCommand } from '@aws-sdk/client-s3';
 import { validateConfig } from './config-schema';
 
 /**
@@ -18,92 +17,142 @@ export interface MailArchive {
 }
 
 /**
+ * S3 Client初期化
+ *
+ * 必要な環境変数:
+ * - AWS_ACCESS_KEY_ID
+ * - AWS_SECRET_ACCESS_KEY
+ * - AWS_REGION
+ * - S3_BUCKET_NAME
+ */
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'ap-northeast-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+
+const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME!;
+
+/**
+ * S3からオブジェクトを取得（ヘルパー関数）
+ *
+ * @param key - S3オブジェクトキー
+ * @returns オブジェクトの内容（文字列）、取得失敗時はnull
+ */
+async function getS3Object(key: string): Promise<string | null> {
+  try {
+    const command = new GetObjectCommand({
+      Bucket: S3_BUCKET_NAME,
+      Key: key,
+    });
+
+    const response = await s3Client.send(command);
+
+    if (!response.Body) {
+      return null;
+    }
+
+    // StreamをStringに変換
+    const bodyContents = await response.Body.transformToString();
+    return bodyContents;
+  } catch (error) {
+    console.warn(`Failed to get S3 object: ${key}`, error);
+    return null;
+  }
+}
+
+/**
  * アーカイブ一覧を取得
  *
- * public/archives/ ディレクトリを再帰的に走査し、
+ * S3の archives/ ディレクトリを走査し、
  * 各アーカイブの config.json を読み込んでMailArchive[]を返却
  *
  * @returns MailArchive[] - 日付降順でソート済み
  */
 export async function getArchiveList(): Promise<MailArchive[]> {
-  const archivesDir = path.join(process.cwd(), 'src', 'archives');
+  try {
+    // S3から archives/ 配下のすべてのオブジェクトを取得
+    const command = new ListObjectsV2Command({
+      Bucket: S3_BUCKET_NAME,
+      Prefix: 'archives/',
+    });
 
-  if (!fs.existsSync(archivesDir)) {
-    return [];
-  }
+    const response = await s3Client.send(command);
 
-  const archives: MailArchive[] = [];
+    if (!response.Contents) {
+      return [];
+    }
 
-  // YYYY → MM → DD-MSG の3階層走査
-  const years = fs
-    .readdirSync(archivesDir, { withFileTypes: true })
-    .filter((d) => d.isDirectory());
+    // config.jsonのみをフィルタリング
+    const configKeys = response.Contents
+      .filter((obj) => obj.Key?.endsWith('config.json'))
+      .map((obj) => obj.Key!);
 
-  for (const yearDirent of years) {
-    const yyyy = yearDirent.name;
-    const yearDir = path.join(archivesDir, yyyy);
+    // 各config.jsonを取得してMailArchiveに変換
+    const archives: MailArchive[] = [];
 
-    const months = fs
-      .readdirSync(yearDir, { withFileTypes: true })
-      .filter((d) => d.isDirectory());
+    for (const key of configKeys) {
+      const configResult = await getS3Object(key);
+      if (!configResult) continue;
 
-    for (const monthDirent of months) {
-      const mm = monthDirent.name;
-      const monthDir = path.join(yearDir, mm);
+      try {
+        const configData = JSON.parse(configResult);
 
-      const days = fs
-        .readdirSync(monthDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory());
-
-      for (const dayDirent of days) {
-        const ddMsg = dayDirent.name;
-        const archiveDir = path.join(monthDir, ddMsg);
-        const configPath = path.join(archiveDir, 'config.json');
-
-        if (!fs.existsSync(configPath)) {
-          console.warn(`config.json not found: ${archiveDir}`);
+        // Zodスキーマでバリデーション
+        const result = validateConfig(configData);
+        if (!result.success) {
+          console.warn(`Invalid config.json: ${key}`);
           continue;
         }
 
-        try {
-          const configContent = fs.readFileSync(configPath, 'utf-8');
-          const configData = JSON.parse(configContent);
-          const result = validateConfig(configData);
+        const config = result.data!;
 
-          if (!result.success) {
-            console.warn(`Invalid config.json: ${archiveDir}`);
-            continue;
-          }
-
-          const config = result.data!;
-          const stats = fs.statSync(archiveDir);
-
-          archives.push({
-            yyyy,
-            mm,
-            ddMsg,
-            subject: config.subject,
-            segmentId: config.segmentId,
-            audienceId: config.audienceId,
-            sentAt: config.sentAt,
-            path: `${yyyy}/${mm}/${ddMsg}`,
-            createdAt: stats.birthtime,
-          });
-        } catch (error) {
-          console.warn(`Failed to load archive: ${archiveDir}`, error);
+        // パスからYYYY/MM/DD-MSGを抽出
+        // archives/2026/01/05-test/config.json → 2026, 01, 05-test
+        const pathParts = key.split('/');
+        if (pathParts.length < 5) {
+          console.warn(`Invalid path format: ${key}`);
+          continue;
         }
+
+        const yyyy = pathParts[1];
+        const mm = pathParts[2];
+        const ddMsg = pathParts[3];
+
+        // S3のLastModifiedを使用（createdAt代替）
+        const s3Object = response.Contents.find((obj) => obj.Key === key);
+        const createdAt = s3Object?.LastModified || new Date();
+
+        archives.push({
+          yyyy,
+          mm,
+          ddMsg,
+          subject: config.subject,
+          segmentId: config.segmentId,
+          audienceId: config.audienceId,
+          sentAt: config.sentAt,
+          path: `${yyyy}/${mm}/${ddMsg}`,
+          createdAt,
+        });
+      } catch (error) {
+        console.warn(`Failed to parse config.json: ${key}`, error);
       }
     }
+
+    // 日付降順ソート（送信日優先、未送信は作成日でソート）
+    archives.sort((a, b) => {
+      const aDate = a.sentAt ? new Date(a.sentAt) : a.createdAt;
+      const bDate = b.sentAt ? new Date(b.sentAt) : b.createdAt;
+      return bDate.getTime() - aDate.getTime();
+    });
+
+    return archives;
+  } catch (error) {
+    console.error('Failed to fetch archive list from S3:', error);
+    return [];
   }
-
-  // 日付降順ソート（送信日優先、未送信は作成日でソート）
-  archives.sort((a, b) => {
-    const aDate = a.sentAt ? new Date(a.sentAt) : a.createdAt;
-    const bDate = b.sentAt ? new Date(b.sentAt) : b.createdAt;
-    return bDate.getTime() - aDate.getTime();
-  });
-
-  return archives;
 }
 
 /**
@@ -124,43 +173,49 @@ export async function getArchive(
   if (!/^\d{2}$/.test(mm)) return null;
   if (!/^[\w-]+$/.test(ddMsg)) return null;
 
-  const archiveDir = path.join(
-    process.cwd(),
-    'src',
-    'archives',
-    yyyy,
-    mm,
-    ddMsg
-  );
-  const configPath = path.join(archiveDir, 'config.json');
-
-  if (!fs.existsSync(configPath)) {
-    return null;
-  }
-
   try {
-    const configContent = fs.readFileSync(configPath, 'utf-8');
-    const configData = JSON.parse(configContent);
-    const result = validateConfig(configData);
+    // S3からconfig.jsonを取得
+    const configKey = `archives/${yyyy}/${mm}/${ddMsg}/config.json`;
+    const configResult = await getS3Object(configKey);
 
+    if (!configResult) {
+      return null;
+    }
+
+    const configData = JSON.parse(configResult);
+
+    // Zodスキーマでバリデーション
+    const result = validateConfig(configData);
     if (!result.success) {
       return null;
     }
 
     const config = result.data!;
-    const stats = fs.statSync(archiveDir);
+
+    // S3のオブジェクトメタデータを取得してcreatedAtを設定
+    const command = new ListObjectsV2Command({
+      Bucket: S3_BUCKET_NAME,
+      Prefix: configKey,
+      MaxKeys: 1,
+    });
+
+    const response = await s3Client.send(command);
+    const s3Object = response.Contents?.[0];
+    const createdAt = s3Object?.LastModified || new Date();
 
     return {
       yyyy,
       mm,
       ddMsg,
       subject: config.subject,
+      segmentId: config.segmentId,
       audienceId: config.audienceId,
       sentAt: config.sentAt,
       path: `${yyyy}/${mm}/${ddMsg}`,
-      createdAt: stats.birthtime,
+      createdAt,
     };
-  } catch {
+  } catch (error) {
+    console.error(`Failed to fetch archive ${yyyy}/${mm}/${ddMsg} from S3:`, error);
     return null;
   }
 }
