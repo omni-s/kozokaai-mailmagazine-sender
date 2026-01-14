@@ -276,36 +276,37 @@ function updateConfigSentAt(archiveDir: string): void {
 
 /**
  * config.json の更新を Git commit & push
+ * 注: production.ymlで一括処理するため、この関数は使用しない
  */
-function commitAndPushConfig(archiveDir: string, ddMsg: string): void {
-  try {
-    const configPath = path.join(archiveDir, 'config.json');
-
-    // git add
-    execSync(`git add "${configPath}"`, {
-      cwd: PROJECT_ROOT,
-      stdio: 'inherit',
-    });
-
-    // git commit
-    const commitMsg = `MAIL: Update sentAt for ${ddMsg}`;
-    execSync(`git commit -m "${commitMsg}"`, {
-      cwd: PROJECT_ROOT,
-      stdio: 'inherit',
-    });
-
-    // git push
-    execSync('git push', {
-      cwd: PROJECT_ROOT,
-      stdio: 'inherit',
-    });
-
-    console.log(chalk.gray('  Git commit & push 完了'));
-  } catch (error) {
-    console.error(chalk.yellow('  警告: Git操作に失敗しました'));
-    console.error(error);
-  }
-}
+// function commitAndPushConfig(archiveDir: string, ddMsg: string): void {
+//   try {
+//     const configPath = path.join(archiveDir, 'config.json');
+//
+//     // git add
+//     execSync(`git add "${configPath}"`, {
+//       cwd: PROJECT_ROOT,
+//       stdio: 'inherit',
+//     });
+//
+//     // git commit
+//     const commitMsg = `MAIL: Update sentAt for ${ddMsg}`;
+//     execSync(`git commit -m "${commitMsg}"`, {
+//       cwd: PROJECT_ROOT,
+//       stdio: 'inherit',
+//     });
+//
+//     // git push
+//     execSync('git push', {
+//       cwd: PROJECT_ROOT,
+//       stdio: 'inherit',
+//     });
+//
+//     console.log(chalk.gray('  Git commit & push 完了'));
+//   } catch (error) {
+//     console.error(chalk.yellow('  警告: Git操作に失敗しました'));
+//     console.error(error);
+//   }
+// }
 
 /**
  * メイン処理
@@ -344,6 +345,7 @@ async function main() {
   const errors: Array<{ dir: string; error: ProductionEmailError }> = [];
 
   // 各archiveディレクトリを処理
+  let processedCount = 0;
   for (const archiveDir of archiveDirs) {
     console.log(chalk.cyan(`処理中: ${archiveDir}`));
 
@@ -435,9 +437,16 @@ async function main() {
     updateConfigSentAt(archiveDir);
     console.log(chalk.green('  ✓ sentAt 更新'));
 
-    // 7. Git commit & push
-    commitAndPushConfig(archiveDir, ddMsg);
-    console.log(chalk.green('  ✓ Git commit & push'));
+    // 7. Git commit & push（production.ymlで一括処理）
+    // commitAndPushConfig(archiveDir, ddMsg);
+    // console.log(chalk.green('  ✓ Git commit & push'));
+
+    // レート制限対策: 次のディレクトリ処理前に待機
+    processedCount++;
+    if (processedCount < archiveDirs.length) {
+      console.log(chalk.gray('  レート制限対策: 1秒待機中...'));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
 
     console.log();
   }

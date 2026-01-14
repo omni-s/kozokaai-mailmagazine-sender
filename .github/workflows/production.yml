@@ -32,6 +32,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
       - name: Send production email
         run: npx tsx src/scripts/send-production-email.ts
         env:
@@ -39,17 +44,12 @@ jobs:
           RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
           S3_BUCKET_URL: ${{ secrets.S3_BUCKET_URL }}
 
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
       - name: Push config.json updates
         run: |
           if git diff --quiet; then
             echo "No changes to commit"
           else
-            git add public/archives/**/config.json
+            git add src/archives/**/config.json
             git commit -m "MAIL: Update sentAt timestamps" || echo "No changes to commit"
             git push
           fi
