@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Container, Group, Button, Badge, Card, Title, Text, Stack } from '@mantine/core';
 import { getArchive } from '@/lib/archive-loader';
-import { renderMailToHtml } from '@/lib/mail-renderer';
 
 interface PageProps {
   params: Promise<{
@@ -38,79 +37,78 @@ export default async function ArchiveDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // HTML変換
-  const s3BaseUrl = process.env.S3_BUCKET_URL;
-  const result = await renderMailToHtml({
-    yyyy,
-    mm,
-    ddMsg,
-    s3BaseUrl,
-  });
+  try {
+    // API Route経由でHTMLを取得
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/archives/${yyyy}/${mm}/${ddMsg}/render`,
+      {
+        cache: 'force-cache', // Next.js Data Cache使用
+      }
+    );
 
-  if ('error' in result) {
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`);
+    }
+
+    const finalHtml = await response.text();
+    const isSent = archive.sentAt !== null;
+
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-6">
-            <Link href="/archives">
+      <Container size="xl" py="xl" style={{ minHeight: '100vh', backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))' }}>
+        <Stack gap="md">
+          <Group justify="space-between">
+            <Link href="/archives" style={{ textDecoration: 'none' }}>
               <Button variant="outline">← 一覧へ戻る</Button>
             </Link>
-          </div>
-          <div className="bg-white rounded-lg shadow p-8">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">
-              エラーが発生しました
-            </h1>
-            <p className="text-gray-700">{result.error}</p>
-          </div>
-        </div>
-      </div>
+            <Badge variant={isSent ? 'filled' : 'light'} color={isSent ? 'green' : 'gray'}>
+              {isSent ? '送信済み' : '未送信'}
+            </Badge>
+          </Group>
+
+          <Card withBorder shadow="sm" radius="md">
+            <Title order={2} mb="xs">{archive.subject}</Title>
+            <Stack gap="xs">
+              <Text size="sm" c="dimmed">
+                作成日: {archive.createdAt.toLocaleDateString('ja-JP')}
+              </Text>
+              {archive.sentAt && (
+                <Text size="sm" c="dimmed">
+                  送信日: {new Date(archive.sentAt).toLocaleDateString('ja-JP')}
+                </Text>
+              )}
+              <Text size="sm" c="dimmed">
+                Audience ID: {archive.audienceId}
+              </Text>
+            </Stack>
+          </Card>
+
+          <Card withBorder shadow="sm" radius="md">
+            <Title order={3} mb="md">メールプレビュー</Title>
+            <iframe
+              srcDoc={finalHtml}
+              style={{ width: '100%', height: '800px', border: 0, borderRadius: 'var(--mantine-radius-md)' }}
+              sandbox="allow-same-origin"
+              title="メールプレビュー"
+            />
+          </Card>
+        </Stack>
+      </Container>
     );
-  }
-
-  const isSent = archive.sentAt !== null;
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6 flex items-center justify-between">
-          <Link href="/archives">
+  } catch (error) {
+    return (
+      <Container size="xl" py="xl" style={{ minHeight: '100vh', backgroundColor: 'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))' }}>
+        <Stack gap="md">
+          <Link href="/archives" style={{ textDecoration: 'none' }}>
             <Button variant="outline">← 一覧へ戻る</Button>
           </Link>
-          <div className="flex items-center gap-4">
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${
-                isSent
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {isSent ? '送信済み' : '未送信'}
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow mb-6 p-6">
-          <h1 className="text-2xl font-bold mb-2">{archive.subject}</h1>
-          <div className="text-sm text-gray-600">
-            <p>作成日: {archive.createdAt.toLocaleDateString('ja-JP')}</p>
-            {archive.sentAt && (
-              <p>送信日: {new Date(archive.sentAt).toLocaleDateString('ja-JP')}</p>
-            )}
-            <p>Audience ID: {archive.audienceId}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-4">
-          <h2 className="text-lg font-semibold mb-4">メールプレビュー</h2>
-          <iframe
-            srcDoc={result.html}
-            className="w-full border-0 rounded"
-            style={{ height: '800px' }}
-            sandbox="allow-same-origin"
-            title="メールプレビュー"
-          />
-        </div>
-      </div>
-    </div>
-  );
+          <Card withBorder shadow="sm" radius="md">
+            <Title order={2} c="red" mb="md">
+              エラーが発生しました
+            </Title>
+            <Text>{error instanceof Error ? error.message : 'メールのレンダリングに失敗しました'}</Text>
+          </Card>
+        </Stack>
+      </Container>
+    );
+  }
 }

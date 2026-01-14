@@ -26,7 +26,7 @@ export interface MailArchive {
  * @returns MailArchive[] - 日付降順でソート済み
  */
 export async function getArchiveList(): Promise<MailArchive[]> {
-  const archivesDir = path.join(process.cwd(), 'public', 'archives');
+  const archivesDir = path.join(process.cwd(), 'src', 'archives');
 
   if (!fs.existsSync(archivesDir)) {
     return [];
@@ -126,7 +126,7 @@ export async function getArchive(
 
   const archiveDir = path.join(
     process.cwd(),
-    'public',
+    'src',
     'archives',
     yyyy,
     mm,

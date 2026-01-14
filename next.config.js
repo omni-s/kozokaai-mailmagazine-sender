@@ -4,9 +4,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  eslint: {
-    dirs: ['src'],
-  },
 };
 
 module.exports = nextConfig;

@@ -14,10 +14,10 @@ import chalk from "chalk";
  */
 
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
-const DRAFT_FILE = path.join(PROJECT_ROOT, "src/app/draft/page.tsx");
+const DRAFT_FILE = path.join(PROJECT_ROOT, "src/app/page.tsx");
 const TEMPLATE_FILE = path.join(PROJECT_ROOT, "src/app/draft/template.txt");
 const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, "public/mail-assets");
-const ARCHIVES_DIR = path.join(PROJECT_ROOT, "public/archives");
+const ARCHIVES_DIR = path.join(PROJECT_ROOT, "src/archives");
 
 interface CommitAnswers {
   commitMessage: string;
@@ -79,7 +79,7 @@ interface Step {
 const STEPS: Step[] = [
   {
     id: "check-files",
-    name: "事前チェック（draft/page.tsx, template.txt）",
+    name: "事前チェック（page.tsx, template.txt）",
     status: "pending",
   },
   {
@@ -97,7 +97,7 @@ const STEPS: Step[] = [
   { id: "create-config", name: "config.json 生成", status: "pending" },
   {
     id: "reset-draft",
-    name: "draft/page.tsx リセット",
+    name: "page.tsx リセット",
     status: "pending",
   },
   { id: "git-add", name: "git add", status: "pending" },
@@ -499,17 +499,17 @@ async function main() {
   console.log(chalk.blue.bold("  アーカイブ & コミットツール"));
   console.log(chalk.blue.bold("========================================\n"));
 
-  // 1. 事前チェック（draft/page.tsx, template.tsx）
+  // 1. 事前チェック（page.tsx, template.txt）
   updateStepStatus("check-files", "running");
 
   if (!fs.existsSync(DRAFT_FILE)) {
     updateStepStatus(
       "check-files",
       "failed",
-      "src/app/draft/page.tsx が見つかりません"
+      "src/app/page.tsx が見つかりません"
     );
     displayProgress();
-    console.error(chalk.red("エラー: src/app/draft/page.tsx が見つかりません"));
+    console.error(chalk.red("エラー: src/app/page.tsx が見つかりません"));
     process.exit(1);
   }
 
@@ -530,7 +530,7 @@ async function main() {
   }
 
   updateStepStatus("check-files", "success");
-  console.log(chalk.green("✓ 事前チェック（draft/page.tsx, template.txt）"));
+  console.log(chalk.green("✓ 事前チェック（page.tsx, template.txt）"));
 
   // 2. ユーザー入力
   updateStepStatus("input", "running");
@@ -640,11 +640,42 @@ async function main() {
   updateStepStatus("move-mail", "running");
 
   const mailFile = path.join(archiveDir, "mail.tsx");
-  console.log(chalk.cyan("draft/page.tsx を mail.tsx へ移動中..."));
+  console.log(chalk.cyan("page.tsx を mail.tsx へ移動中..."));
   fs.copyFileSync(DRAFT_FILE, mailFile);
 
   updateStepStatus("move-mail", "success");
   console.log(chalk.green("✓ mail.tsx 移動"));
+
+  // 6.5. mail.tsx → mail.html 変換（Turbopack制限回避）
+  console.log(chalk.cyan("mail.tsx を HTML に変換中..."));
+  try {
+    // esbuild-register を使用して TypeScript を実行時にコンパイル
+    const { register } = await import("esbuild-register/dist/node");
+    register({ target: "node18", format: "cjs" });
+
+    // mail.tsx を require で読み込み
+    // requireのキャッシュをクリア
+    delete require.cache[require.resolve(mailFile)];
+
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const MailComponent = require(mailFile).default;
+
+    // @react-email/render で HTML に変換
+    const { render } = await import("@react-email/render");
+    const html = await render(MailComponent(), { plainText: false });
+
+    // mail.html として保存
+    const htmlFile = path.join(archiveDir, "mail.html");
+    fs.writeFileSync(htmlFile, html, "utf-8");
+
+    console.log(chalk.green("✓ mail.html 生成"));
+  } catch (error) {
+    console.error(
+      chalk.red("エラー: mail.tsx の HTML 変換に失敗しました"),
+      error
+    );
+    process.exit(1);
+  }
 
   // 7. 画像ファイル移動
   updateStepStatus("move-assets", "running");
@@ -683,14 +714,14 @@ async function main() {
   updateStepStatus("create-config", "success");
   console.log(chalk.green("✓ config.json 生成"));
 
-  // 9. draft/page.tsx リセット
+  // 9. page.tsx リセット
   updateStepStatus("reset-draft", "running");
 
-  console.log(chalk.cyan("draft/page.tsx を初期テンプレート（template.txt）からリセット中..."));
+  console.log(chalk.cyan("page.tsx を初期テンプレート（template.txt）からリセット中..."));
   fs.copyFileSync(TEMPLATE_FILE, DRAFT_FILE);
 
   updateStepStatus("reset-draft", "success");
-  console.log(chalk.green("✓ draft/page.tsx リセット"));
+  console.log(chalk.green("✓ page.tsx リセット"));
 
   // 10. Git操作
   console.log(chalk.cyan("\nGit操作を実行中...\n"));

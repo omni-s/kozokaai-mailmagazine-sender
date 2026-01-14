@@ -1,86 +1,112 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import React from 'react';
+import { EmailWrapper } from '@/components/email/EmailWrapper';
+import { EmailSection } from '@/components/email/EmailSection';
+import { EmailCard } from '@/components/email/EmailCard';
+import { EmailButton } from '@/components/email/EmailButton';
+import { EmailHeading } from '@/components/email/EmailHeading';
+import { EmailText } from '@/components/email/EmailText';
+import { EmailDivider } from '@/components/email/EmailDivider';
+import { Img } from '@/components/email/Img';
 
+/**
+ * メールテンプレート作業用ファイル
+ *
+ * このファイルを編集してメールをデザインします。
+ * `pnpm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
+ *
+ * 画像は public/mail-assets/ に配置してください。
+ * 例: <Img src="/mail-assets/hero.jpg" alt="Hero Image" width="600" />
+ */
 export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <Card className="max-w-2xl w-full">
-        <CardHeader>
-          <CardTitle className="text-3xl">
-            Resend メール配信システム
-          </CardTitle>
-          <CardDescription>
-            メールマガジンをデザイン・配信するためのシステムです。
-          </CardDescription>
-        </CardHeader>
+    <EmailWrapper
+      preview={true}
+      previewText="サンプルメールマガジンのプレビューテキストです"
+    >
+      {/* ヘッダー画像 */}
+      <EmailSection>
+        <EmailCard backgroundColor="#ffffff" padding="0">
+          <Img
+            src="/mail-assets/placeholder.webp"
+            alt="ヘッダー画像"
+            width="520"
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: 'block',
+              borderRadius: '8px',
+            }}
+          />
+        </EmailCard>
+      </EmailSection>
 
-        <CardContent className="space-y-6">
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-            <h2 className="text-lg font-semibold mb-3">使い方</h2>
-            <ol className="list-decimal list-inside space-y-2 text-sm text-gray-700">
-              <li>
-                <Link
-                  href="/draft"
-                  className="text-blue-600 hover:underline font-medium"
-                >
-                  メール編集画面
-                </Link>
-                でメールをデザイン
-              </li>
-              <li>
-                画像は <code className="bg-gray-200 px-1 rounded">public/mail-assets/</code> に配置
-              </li>
-              <li>
-                完成したら <code className="bg-gray-200 px-1 rounded">pnpm run commit</code> を実行
-              </li>
-              <li>PRを作成して上長にレビュー依頼 → マージで本番配信</li>
-            </ol>
-          </div>
+      {/* タイトルセクション */}
+      <EmailSection>
+        <EmailHeading level={1}>サンプルメールマガジン</EmailHeading>
+        <EmailText variant="muted">
+          このテンプレートを編集して、あなたのメールマガジンをデザインしてください。
+        </EmailText>
+      </EmailSection>
 
-          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded">
-            <h3 className="text-md font-semibold mb-2">ワークフロー</h3>
-            <div className="space-y-2 text-sm text-gray-700">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">1. ローカル制作:</span>
-                <span>メールをデザイン → pnpm run commit</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">2. レビュー:</span>
-                <span>PR作成 → テストメール確認</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">3. 配信:</span>
-                <span>マージ → 承認 → 本番送信</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
+      {/* コンテンツカード */}
+      <EmailSection>
+        <EmailCard>
+          <EmailText margin="0 0 16px 0">
+            このファイルは作業用のテンプレートです。以下の手順でメールマガジンを作成できます：
+          </EmailText>
 
-        <CardFooter className="flex gap-3">
-          <Link href="/draft">
-            <Button size="lg">メール編集画面へ</Button>
-          </Link>
-          <Link href="/archives">
-            <Button size="lg" variant="outline">配信履歴を見る</Button>
-          </Link>
-          <a
-            href="https://github.com/anthropics/claude-code"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-gray-300 bg-transparent hover:bg-gray-100 h-11 px-8"
+          <ol
+            style={{
+              margin: '0 0 16px 0',
+              paddingLeft: '24px',
+              fontSize: '15px',
+              color: '#1e293b',
+              lineHeight: '1.8',
+            }}
           >
-            ドキュメント
-          </a>
-        </CardFooter>
-      </Card>
-    </div>
+            <li style={{ marginBottom: '8px' }}>
+              このファイル (src/app/page.tsx) を編集
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              画像を public/mail-assets/ に配置
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              pnpm run dev でプレビュー確認
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              完成したら pnpm run commit を実行
+            </li>
+          </ol>
+
+          <EmailText margin="0">画像は以下のように使用できます：</EmailText>
+        </EmailCard>
+      </EmailSection>
+
+      {/* CTA ボタン */}
+      <EmailSection>
+        <div style={{ textAlign: 'center' }}>
+          <EmailButton href="https://example.com">詳細を見る</EmailButton>
+        </div>
+      </EmailSection>
+
+      {/* 区切り線 */}
+      <EmailDivider />
+
+      {/* フッター情報 */}
+      <EmailText variant="muted">
+        ご質問やお問い合わせは
+        <a
+          href="mailto:info@example.com"
+          style={{
+            color: '#2563eb',
+            textDecoration: 'none',
+            fontWeight: 500,
+          }}
+        >
+          info@example.com
+        </a>
+        までご連絡ください。
+      </EmailText>
+    </EmailWrapper>
   );
 }

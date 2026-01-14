@@ -1,77 +1,58 @@
 import * as React from 'react';
-import { cn } from '@/lib/utils';
+import { Card as MantineCard, CardProps as MantineCardProps, Title, Text } from '@mantine/core';
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'rounded-lg border bg-white text-gray-950 shadow-sm',
-      className
-    )}
-    {...props}
-  />
-));
+const Card = React.forwardRef<HTMLDivElement, MantineCardProps>(
+  (props, ref) => (
+    <MantineCard
+      ref={ref}
+      withBorder
+      shadow="sm"
+      radius="md"
+      {...props}
+    />
+  )
+);
 Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('flex flex-col space-y-1.5 p-6', className)}
-    {...props}
-  />
+>((props, ref) => (
+  <MantineCard.Section p="lg" ref={ref} {...props} />
 ));
 CardHeader.displayName = 'CardHeader';
 
 const CardTitle = React.forwardRef<
-  HTMLParagraphElement,
+  HTMLHeadingElement,
   React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
-  <h3
-    ref={ref}
-    className={cn(
-      'text-2xl font-semibold leading-none tracking-tight',
-      className
-    )}
-    {...props}
-  />
+>((props, ref) => (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  <Title order={3} ref={ref as any} {...props} />
 ));
 CardTitle.displayName = 'CardTitle';
 
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
-    className={cn('text-sm text-gray-500', className)}
-    {...props}
-  />
+>((props, ref) => (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  <Text size="sm" c="dimmed" ref={ref as any} {...props} />
 ));
 CardDescription.displayName = 'CardDescription';
 
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+>((props, ref) => (
+  <MantineCard.Section p="lg" ref={ref} {...props} />
 ));
 CardContent.displayName = 'CardContent';
 
 const CardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn('flex items-center p-6 pt-0', className)}
-    {...props}
-  />
+>((props, ref) => (
+  <MantineCard.Section p="lg" style={{ display: 'flex', alignItems: 'center' }} ref={ref} {...props} />
 ));
 CardFooter.displayName = 'CardFooter';
 

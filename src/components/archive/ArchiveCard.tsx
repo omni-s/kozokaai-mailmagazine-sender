@@ -1,13 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, Title, Text, Badge, Group } from '@mantine/core';
 import type { MailArchive } from '@/lib/archive-loader';
+import styles from './ArchiveCard.module.css';
 
 interface ArchiveCardProps {
   archive: MailArchive;
@@ -26,28 +22,20 @@ export function ArchiveCard({ archive }: ArchiveCardProps) {
   const isSent = archive.sentAt !== null;
 
   return (
-    <Link href={`/archives/${archive.path}`}>
-      <Card className="hover:shadow-md transition-shadow cursor-pointer">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <CardTitle className="text-lg flex-1">{archive.subject}</CardTitle>
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                isSent
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-            >
-              {isSent ? '送信済み' : '未送信'}
-            </span>
-          </div>
-          <CardDescription>
-            作成日: {formatDate(archive.createdAt)}
-            {isSent && archive.sentAt && (
-              <> / 送信日: {formatDate(archive.sentAt)}</>
-            )}
-          </CardDescription>
-        </CardHeader>
+    <Link href={`/archives/${archive.path}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Card withBorder shadow="sm" radius="md" className={styles.card}>
+        <Group justify="space-between" align="flex-start" mb="xs">
+          <Title order={4} style={{ flex: 1 }}>{archive.subject}</Title>
+          <Badge variant={isSent ? 'filled' : 'light'} color={isSent ? 'blue' : 'gray'}>
+            {isSent ? '送信済み' : '未送信'}
+          </Badge>
+        </Group>
+        <Text size="sm" c="dimmed">
+          作成日: {formatDate(archive.createdAt)}
+          {isSent && archive.sentAt && (
+            <> / 送信日: {formatDate(archive.sentAt)}</>
+          )}
+        </Text>
       </Card>
     </Link>
   );
