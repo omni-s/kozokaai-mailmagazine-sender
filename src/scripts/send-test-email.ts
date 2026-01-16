@@ -7,7 +7,6 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getLatestArchiveFromS3 } from '../lib/s3';
 import { resend } from '../lib/resend';
 import { validateConfig, type Config } from '../lib/config-schema';
-import { format } from 'date-fns';
 
 /**
  * GitHub Actions Staging Workflow用テストメール送信スクリプト
@@ -73,26 +72,6 @@ function getTargetArchiveFromCommit(): string | null {
     console.error(error);
     return null;
   }
-}
-
-/**
- * ディレクトリ名から完全なアーカイブパスを構築
- */
-function buildArchivePath(directoryName: string): ArchiveMetadata {
-  // 現在の日付を取得
-  const now = new Date();
-  const yyyy = format(now, 'yyyy');
-  const mm = format(now, 'MM');
-
-  // directoryNameが既に "DD-message" 形式の場合はそのまま使用
-  // そうでない場合は、今日の日付を使用
-  let ddMsg = directoryName;
-  if (!/^\d{2}-/.test(directoryName)) {
-    const dd = format(now, 'dd');
-    ddMsg = `${dd}-${directoryName}`;
-  }
-
-  return { yyyy, mm, ddMsg };
 }
 
 /**

@@ -27,7 +27,7 @@ export default function Home() {
       <EmailSection>
         <EmailCard backgroundColor="#ffffff" padding="0">
           <Img
-            src="/mail-assets/placeholder.webp"
+            src="/mail-assets/fax-installation-schedule.webp"
             alt="ヘッダー画像"
             width="520"
             style={{
