@@ -13,11 +13,9 @@ interface SidebarProps {
   archives: MailArchive[];
   mobileOpened: boolean;
   toggleMobile: () => void;
-  desktopOpened: boolean;
-  toggleDesktop: () => void;
 }
 
-export function Sidebar({ archives, mobileOpened, toggleMobile, desktopOpened, toggleDesktop }: SidebarProps) {
+export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [mounted, setMounted] = useState(false);
 
