@@ -42,7 +42,7 @@ export default function Home() {
 
       {/* タイトルセクション */}
       <EmailSection>
-        <EmailHeading level={1}>テストです。（0116 11:57）</EmailHeading>
+        <EmailHeading level={1}>テストです。（0116 11）</EmailHeading>
         <EmailText variant="muted">
           このテンプレートを編集して、あなたのメールマガジンをデザインしてください。
         </EmailText>

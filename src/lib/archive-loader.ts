@@ -160,7 +160,7 @@ export async function getArchiveList(): Promise<MailArchive[]> {
  *
  * @param yyyy - 年（4桁の数字）
  * @param mm - 月（2桁の数字）
- * @param ddMsg - 日付とメッセージ名（DD-MSG 形式、日本語可）
+ * @param ddMsg - 日付とメッセージ名（DD-MSG 形式、日本語可、URLエンコード済みも可）
  * @returns MailArchive | null
  */
 export async function getArchive(
@@ -168,19 +168,28 @@ export async function getArchive(
   mm: string,
   ddMsg: string
 ): Promise<MailArchive | null> {
+  // URLエンコードされている可能性があるためデコード
+  let decodedDdMsg: string;
+  try {
+    decodedDdMsg = decodeURIComponent(ddMsg);
+  } catch {
+    // デコード失敗時はそのまま使用
+    decodedDdMsg = ddMsg;
+  }
+
   // パスインジェクション対策
   // yyyy: 4桁の数字のみ
   if (!/^\d{4}$/.test(yyyy)) return null;
   // mm: 2桁の数字のみ
   if (!/^\d{2}$/.test(mm)) return null;
   // ddMsg: 危険なパス操作文字（.., /, \, null byte）を禁止し、日本語を含む一般的な文字を許可
-  if (!ddMsg || ddMsg.includes('..') || ddMsg.includes('/') || ddMsg.includes('\\') || ddMsg.includes('\0')) {
+  if (!decodedDdMsg || decodedDdMsg.includes('..') || decodedDdMsg.includes('/') || decodedDdMsg.includes('\\') || decodedDdMsg.includes('\0')) {
     return null;
   }
 
   try {
     // S3からconfig.jsonを取得
-    const configKey = `archives/${yyyy}/${mm}/${ddMsg}/config.json`;
+    const configKey = `archives/${yyyy}/${mm}/${decodedDdMsg}/config.json`;
     const configResult = await getS3Object(configKey);
 
     if (!configResult) {
