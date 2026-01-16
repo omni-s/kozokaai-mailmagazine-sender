@@ -220,16 +220,16 @@ export async function getArchive(
     return {
       yyyy,
       mm,
-      ddMsg,
+      ddMsg: decodedDdMsg,
       subject: config.subject,
       segmentId: config.segmentId,
       audienceId: config.audienceId,
       sentAt: config.sentAt,
-      path: `${yyyy}/${mm}/${ddMsg}`,
+      path: `${yyyy}/${mm}/${decodedDdMsg}`,
       createdAt,
     };
   } catch (error) {
-    console.error(`Failed to fetch archive ${yyyy}/${mm}/${ddMsg} from S3:`, error);
+    console.error(`Failed to fetch archive ${yyyy}/${mm}/${decodedDdMsg} from S3:`, error);
     return null;
   }
 }

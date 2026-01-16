@@ -37,8 +37,16 @@ export async function GET(
   try {
     const { yyyy, mm, ddMsg } = await params;
 
+    // URLエンコードされている可能性があるためデコード
+    let decodedDdMsg: string;
+    try {
+      decodedDdMsg = decodeURIComponent(ddMsg);
+    } catch {
+      decodedDdMsg = ddMsg;
+    }
+
     // S3からmail.htmlを取得
-    const htmlKey = `archives/${yyyy}/${mm}/${ddMsg}/mail.html`;
+    const htmlKey = `archives/${yyyy}/${mm}/${decodedDdMsg}/mail.html`;
     const command = new GetObjectCommand({
       Bucket: S3_BUCKET_NAME,
       Key: htmlKey,
@@ -55,8 +63,8 @@ export async function GET(
 
     let html = await response.Body.transformToString();
 
-    // 画像パス置換（S3 URL）
-    html = replaceImagePaths(html, S3_BASE_URL, yyyy, mm, ddMsg);
+    // 画像パス置換（S3 URL）- URLエンコードしてブラウザからのアクセスを確保
+    html = replaceImagePaths(html, S3_BASE_URL, yyyy, mm, encodeURIComponent(decodedDdMsg));
 
     return new NextResponse(html, {
       status: 200,
