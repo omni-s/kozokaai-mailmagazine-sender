@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Stack, Box, Text, Group, Burger, ActionIcon, useMantineColorScheme } from '@mantine/core';
 import { IconSun, IconMoon } from '@tabler/icons-react';
 import { SidebarNav } from './SidebarNav';
@@ -12,9 +13,11 @@ interface SidebarProps {
   archives: MailArchive[];
   mobileOpened: boolean;
   toggleMobile: () => void;
+  desktopOpened: boolean;
+  toggleDesktop: () => void;
 }
 
-export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) {
+export function Sidebar({ archives, mobileOpened, toggleMobile, desktopOpened, toggleDesktop }: SidebarProps) {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const [mounted, setMounted] = useState(false);
 
@@ -36,10 +39,20 @@ export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) 
               size="sm"
             />
             <div className={styles.logo}>
-              <span className={styles.logoIcon}>R</span>
+              <Image
+                src="/icon.webp"
+                alt="kozokaAI Logo"
+                width={32}
+                height={32}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
             </div>
             <div>
-              <div className={styles.title}>Resend Mail</div>
+              <div className={styles.title}>kozokaAI メールデザインシステム</div>
               <div className={styles.version}>v0.1.0</div>
             </div>
           </Group>
@@ -72,7 +85,7 @@ export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) 
 
       {/* フッター */}
       <Box className={styles.footer}>
-        <Text size="xs" c="dimmed">© 2026 Resend Mail</Text>
+        <Text size="xs" c="dimmed">© 2026 kozokaAI</Text>
       </Box>
     </Stack>
   );

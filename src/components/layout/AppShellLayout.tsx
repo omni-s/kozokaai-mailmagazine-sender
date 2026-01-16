@@ -12,7 +12,7 @@ export interface AppShellLayoutProps {
 
 export function AppShellLayout({ archives, children }: AppShellLayoutProps) {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
-  const [desktopOpened] = useDisclosure(true);
+  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
 
   return (
     <AppShell
@@ -28,6 +28,8 @@ export function AppShellLayout({ archives, children }: AppShellLayoutProps) {
           archives={archives}
           mobileOpened={mobileOpened}
           toggleMobile={toggleMobile}
+          desktopOpened={desktopOpened}
+          toggleDesktop={toggleDesktop}
         />
       </AppShell.Navbar>
 

@@ -303,7 +303,9 @@ module.exports = {
 - 新規追加されたarchiveディレクトリを検出
 - 画像をS3へアップロード（public-read）
 - React → HTML変換
-- テストメール送信（`REVIEWER_EMAIL` へ、件名: `[TEST] {subject}`）
+- テストメール送信
+  - `TEST_SEGMENT_ID` 設定時: Segment一斉送信（件名: `[TEST] {subject}`）
+  - 未設定時: `REVIEWER_EMAIL` へ個別送信（件名: `[TEST] {subject}`）
 
 ### production.yml
 **Trigger**: `main` へのマージ
@@ -334,6 +336,11 @@ S3_BUCKET_URL=https://your_bucket_name.s3.ap-northeast-1.amazonaws.com
 
 # Test Email
 REVIEWER_EMAIL=reviewer@example.com
+
+# Test Email - Segment送信（オプション）
+# TEST_SEGMENT_IDが設定されている場合、Segment一斉送信でテストメール送信
+# 未設定の場合、REVIEWER_EMAILに個別送信
+TEST_SEGMENT_ID=your_test_segment_id
 ```
 
 ### GitHub Actions用（GitHub Secrets）
