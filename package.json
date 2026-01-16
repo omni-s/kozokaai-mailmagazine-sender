@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "commit": "tsx src/scripts/commit.ts",
+    "reset-draft": "tsx src/scripts/reset-draft.ts",
     "postinstall": "node scripts/fix-lightningcss.js"
   },
   "dependencies": {

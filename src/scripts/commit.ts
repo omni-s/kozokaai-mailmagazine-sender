@@ -17,7 +17,6 @@ import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from "../lib/s3";
 
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
 const DRAFT_FILE = path.join(PROJECT_ROOT, "src/app/page.tsx");
-const TEMPLATE_FILE = path.join(PROJECT_ROOT, "src/app/draft/template.txt");
 const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, "public/mail-assets");
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, "src/archives");
 
@@ -82,7 +81,7 @@ interface Step {
 const STEPS: Step[] = [
   {
     id: "check-files",
-    name: "事前チェック（page.tsx, template.txt）",
+    name: "事前チェック（page.tsx）",
     status: "pending",
   },
   {
@@ -98,11 +97,6 @@ const STEPS: Step[] = [
   { id: "move-mail", name: "mail.tsx 移動", status: "pending" },
   { id: "move-assets", name: "画像ファイル移動", status: "pending" },
   { id: "create-config", name: "config.json 生成", status: "pending" },
-  {
-    id: "reset-draft",
-    name: "page.tsx リセット",
-    status: "pending",
-  },
   {
     id: "s3-upload",
     name: "S3アップロード",
@@ -529,7 +523,7 @@ async function main() {
   console.log(chalk.blue.bold("  アーカイブ & コミットツール"));
   console.log(chalk.blue.bold("========================================\n"));
 
-  // 1. 事前チェック（page.tsx, template.txt）
+  // 1. 事前チェック（page.tsx）
   updateStepStatus("check-files", "running");
 
   if (!fs.existsSync(DRAFT_FILE)) {
@@ -543,24 +537,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (!fs.existsSync(TEMPLATE_FILE)) {
-    updateStepStatus(
-      "check-files",
-      "failed",
-      "src/app/draft/template.txt が見つかりません"
-    );
-    displayProgress();
-    console.error(
-      chalk.red("エラー: src/app/draft/template.txt が見つかりません")
-    );
-    console.error(
-      chalk.yellow("ヒント: 初期テンプレートファイルを作成してください")
-    );
-    process.exit(1);
-  }
-
   updateStepStatus("check-files", "success");
-  console.log(chalk.green("✓ 事前チェック（page.tsx, template.txt）"));
+  console.log(chalk.green("✓ 事前チェック（page.tsx）"));
 
   // 2. ユーザー入力
   updateStepStatus("input", "running");
@@ -596,14 +574,17 @@ async function main() {
       type: "input",
       name: "segmentId",
       message: "Resend Segment ID (例: a355a0bd-32fa-4ef4-b6d5-7341f702d35b):",
+      default: "a355a0bd-32fa-4ef4-b6d5-7341f702d35b",
       validate: (input: string) => {
-        if (!input || input.trim().length === 0) {
-          return "Segment IDは必須です";
+        // 空文字の場合はデフォルト値を使用するため、バリデーションをスキップ
+        const value = input.trim();
+        if (value.length === 0) {
+          return true;
         }
         // UUID v4 形式
         if (
           !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-            input
+            value
           )
         ) {
           return "Segment IDの形式が不正です（UUID形式で入力してください）";
@@ -612,6 +593,11 @@ async function main() {
       },
     },
   ]);
+
+  // 空文字の場合はデフォルト値を使用
+  if (!answers.segmentId || answers.segmentId.trim().length === 0) {
+    answers.segmentId = "a355a0bd-32fa-4ef4-b6d5-7341f702d35b";
+  }
 
   updateStepStatus("input", "success");
   console.log(
@@ -744,16 +730,7 @@ async function main() {
   updateStepStatus("create-config", "success");
   console.log(chalk.green("✓ config.json 生成"));
 
-  // 9. page.tsx リセット
-  updateStepStatus("reset-draft", "running");
-
-  console.log(chalk.cyan("page.tsx を初期テンプレート（template.txt）からリセット中..."));
-  fs.copyFileSync(TEMPLATE_FILE, DRAFT_FILE);
-
-  updateStepStatus("reset-draft", "success");
-  console.log(chalk.green("✓ page.tsx リセット"));
-
-  // 10. S3アップロード
+  // 9. S3アップロード
   updateStepStatus("s3-upload", "running");
 
   console.log(chalk.cyan("\nS3へアップロード中...\n"));
@@ -891,7 +868,8 @@ async function main() {
     console.log(chalk.green.bold("✓ S3アップロードが完了しました！\n"));
     console.log(chalk.blue("アーカイブは S3 に保存されています:"));
     console.log(chalk.blue(`  archives/${year}/${month}/${dirName}/\n`));
-    console.log(chalk.yellow("注意: src/archives/ は .gitignore で除外されているため、Gitにはコミットされません\n"));
+    console.log(chalk.yellow("注意: src/archives/ は .gitignore で除外されているため、Gitにはコミットされません"));
+    console.log(chalk.yellow("注意: page.tsx は初期化されていません（初期化する場合は pnpm run reset-draft を実行）\n"));
 
     process.exit(0);
   }
@@ -933,7 +911,8 @@ async function main() {
   console.log(chalk.blue("次のステップ:"));
   console.log(chalk.blue("  1. PRを作成してレビュー依頼"));
   console.log(chalk.blue("  2. 上長がテストメールを確認"));
-  console.log(chalk.blue("  3. 承認後にマージして本番配信\n"));
+  console.log(chalk.blue("  3. 承認後にマージして本番配信"));
+  console.log(chalk.blue("  4. 次のメールを作成する場合は pnpm run reset-draft を実行\n"));
 }
 
 // スクリプト実行

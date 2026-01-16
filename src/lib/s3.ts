@@ -1,4 +1,4 @@
-import { S3Client } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -241,4 +241,105 @@ export async function uploadArchiveMetadataToS3(
   }
 
   return results;
+}
+
+/**
+ * S3から最新のアーカイブを取得
+ *
+ * @param directoryName - ディレクトリ名でフィルタ（末尾一致）
+ * @param bucketName - S3バケット名（環境変数から取得）
+ * @returns アーカイブメタデータまたはエラー
+ */
+export async function getLatestArchiveFromS3(
+  directoryName?: string,
+  bucketName?: string
+): Promise<
+  | { success: true; yyyy: string; mm: string; ddMsg: string; lastModified: Date }
+  | { success: false; error: string }
+> {
+  const bucket = bucketName || process.env.S3_BUCKET_NAME;
+
+  if (!bucket) {
+    return { success: false, error: 'S3_BUCKET_NAME is not set' };
+  }
+
+  try {
+    // S3から archives/ プレフィックスのオブジェクト一覧を取得
+    const command = new ListObjectsV2Command({
+      Bucket: bucket,
+      Prefix: 'archives/',
+      MaxKeys: 1000,
+    });
+
+    const response = await getS3Client().send(command);
+
+    if (!response.Contents || response.Contents.length === 0) {
+      return { success: false, error: 'No archives found in S3' };
+    }
+
+    // config.json で終わるキーのみをフィルタリング
+    const configFiles = response.Contents.filter(
+      (obj) => obj.Key && obj.Key.endsWith('/config.json')
+    );
+
+    if (configFiles.length === 0) {
+      return { success: false, error: 'No config.json files found in archives/' };
+    }
+
+    // LastModified で降順ソート（最新が先頭）
+    configFiles.sort((a, b) => {
+      const dateA = a.LastModified?.getTime() || 0;
+      const dateB = b.LastModified?.getTime() || 0;
+      return dateB - dateA;
+    });
+
+    // 最新のアーカイブからメタデータを抽出
+    for (const file of configFiles) {
+      if (!file.Key) continue;
+
+      // 正規表現でパスをパース: archives/YYYY/MM/DD-MSG/config.json
+      let pattern: RegExp;
+      if (directoryName) {
+        // directoryName が指定された場合、末尾一致でフィルタ
+        // 例: "summer-sale" → archives/2026/01/14-summer-sale/config.json
+        // 正規表現をエスケープ
+        const escaped = directoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        pattern = new RegExp(`^archives\\/(\\d{4})\\/(\\d{2})\\/([\\w-]*${escaped})\\/config\\.json$`);
+      } else {
+        // directoryName が指定されない場合、すべてを対象
+        pattern = /^archives\/(\d{4})\/(\d{2})\/([\w-]+)\/config\.json$/;
+      }
+
+      const match = file.Key.match(pattern);
+
+      if (match) {
+        return {
+          success: true,
+          yyyy: match[1],
+          mm: match[2],
+          ddMsg: match[3],
+          lastModified: file.LastModified || new Date(),
+        };
+      }
+
+      // パスが不正またはマッチしない場合は次を試す
+      if (!directoryName) {
+        console.warn(`警告: 不正なアーカイブパス: ${file.Key}`);
+      }
+    }
+
+    if (directoryName) {
+      return { success: false, error: `No archives found matching: ${directoryName}` };
+    }
+
+    return { success: false, error: 'No valid archive paths found' };
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.name === 'AccessDenied') {
+        return { success: false, error: 'S3 Access Denied. Check AWS credentials.' };
+      }
+      return { success: false, error: `S3 API error: ${error.message}` };
+    }
+    return { success: false, error: 'Unknown S3 error' };
+  }
 }

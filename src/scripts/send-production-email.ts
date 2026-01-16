@@ -9,6 +9,7 @@ import chalk from 'chalk';
 import { render } from '@react-email/render';
 import { resend } from '../lib/resend';
 import { validateConfig, type Config } from '../lib/config-schema';
+import { getLatestArchiveFromS3 } from '../lib/s3';
 
 /**
  * GitHub Actions Production Workflow用本番配信スクリプト
@@ -35,72 +36,52 @@ interface ArchiveMetadata {
 }
 
 /**
- * 新規archiveディレクトリを検出
+ * 最新コミットメッセージから対象archiveディレクトリ名を抽出
  */
-function detectNewArchiveDirectories(): string[] {
+function getTargetArchiveFromCommit(): string | null {
   try {
-    // git diff で前回のコミットとの差分を取得（ステータス付き）
-    const diff = execSync('git diff --name-status HEAD^ HEAD', {
+    const commitMessage = execSync('git log -1 --format=%s', {
       cwd: PROJECT_ROOT,
       encoding: 'utf-8',
-    });
+    }).trim();
 
-    const changedLines = diff.split('\n').filter(Boolean);
+    console.log(chalk.cyan(`最新コミット: ${commitMessage}`));
 
-    // 削除操作（D）を除外し、追加/変更されたファイルのみを抽出
-    const changedFiles: string[] = [];
-    changedLines.forEach((line) => {
-      // フォーマット: "A\tsrc/archives/2025/01/05-test/mail.tsx"
-      // または: "M\tsrc/archives/2025/01/05-test/config.json"
-      // または: "D\tsrc/archives/2024/12/25-old/mail.tsx" (これを除外)
-      const parts = line.split('\t');
-      if (parts.length < 2) return;
+    const match = commitMessage.match(/^MAIL:\s*(.+)$/);
+    if (!match) {
+      return null;
+    }
 
-      const status = parts[0];
-      const file = parts[1];
+    const directoryName = match[1].trim();
+    console.log(chalk.cyan(`検出されたディレクトリ名: ${directoryName}`));
 
-      // 削除操作（D）は除外
-      if (status.startsWith('D')) {
-        return;
-      }
-
-      changedFiles.push(file);
-    });
-
-    // src/archives/ 配下のディレクトリを抽出
-    const archiveDirs = new Set<string>();
-    changedFiles.forEach((file) => {
-      if (file.startsWith('src/archives/')) {
-        // src/archives/2024/05/20-summer-sale/mail.tsx
-        // → src/archives/2024/05/20-summer-sale
-        const parts = file.split('/');
-        if (parts.length >= 5) {
-          const archiveDir = parts.slice(0, 5).join('/');
-          archiveDirs.add(archiveDir);
-        }
-      }
-    });
-
-    return Array.from(archiveDirs);
+    return directoryName;
   } catch (error) {
-    console.error(chalk.red('エラー: git diff の実行に失敗しました'));
+    console.error(chalk.red('エラー: git log の実行に失敗しました'));
     console.error(error);
-    return [];
+    return null;
   }
 }
 
 /**
- * アーカイブディレクトリパスからメタデータを抽出
+ * S3から最新のアーカイブを取得してArchiveMetadataを返す
  */
-function extractArchiveMetadata(
-  archiveDir: string
-): ArchiveMetadata | null {
-  const match = archiveDir.match(/archives\/(\d{4})\/(\d{2})\/([\w-]+)$/);
-  if (!match) {
+async function getTargetArchiveFromS3(directoryName?: string): Promise<ArchiveMetadata | null> {
+  const result = await getLatestArchiveFromS3(directoryName);
+
+  if (!result.success) {
+    console.error(chalk.red(`S3エラー: ${result.error}`));
     return null;
   }
-  const [, yyyy, mm, ddMsg] = match;
-  return { yyyy, mm, ddMsg };
+
+  console.log(chalk.green('✓ S3から最新アーカイブを検出しました'));
+  console.log(chalk.gray(`  LastModified: ${result.lastModified.toISOString()}`));
+
+  return {
+    yyyy: result.yyyy,
+    mm: result.mm,
+    ddMsg: result.ddMsg,
+  };
 }
 
 /**
@@ -329,146 +310,148 @@ async function main() {
   // 末尾スラッシュを削除して正規化
   const s3BaseUrl = (process.env.S3_BUCKET_URL || '').replace(/\/$/, '');
 
-  // 新規archiveディレクトリを検出
-  const archiveDirs = detectNewArchiveDirectories();
+  // 最新コミットから対象archiveを特定（send-test-email.ts と同じロジック）
+  const directoryName = getTargetArchiveFromCommit();
 
-  if (archiveDirs.length === 0) {
-    console.log(
-      chalk.yellow('新規archiveディレクトリが見つかりませんでした')
-    );
-    console.log(chalk.green('✓ 本番配信完了（対象なし）\n'));
-    process.exit(0);
+  let archiveMetadata: ArchiveMetadata | null = null;
+
+  if (directoryName) {
+    console.log(chalk.cyan('検出方法: Gitコミットメッセージ'));
+    console.log(chalk.cyan('S3でディレクトリ名を検索中...\n'));
+
+    archiveMetadata = await getTargetArchiveFromS3(directoryName);
+
+    if (!archiveMetadata) {
+      console.log(chalk.red(`エラー: "${directoryName}" に一致するアーカイブが見つかりませんでした`));
+      console.log(chalk.green('✓ 本番配信完了（対象なし）\n'));
+      process.exit(0);
+    }
+  } else {
+    console.log(chalk.yellow('Gitコミットから検出できませんでした'));
+    console.log(chalk.cyan('S3から最新アーカイブを取得中...\n'));
+
+    archiveMetadata = await getTargetArchiveFromS3();
+
+    if (!archiveMetadata) {
+      console.log(chalk.yellow('S3からもアーカイブを取得できませんでした'));
+      console.log(chalk.green('✓ 本番配信完了（対象なし）\n'));
+      process.exit(0);
+    }
   }
 
-  console.log(chalk.cyan(`検出されたarchiveディレクトリ: ${archiveDirs.length}件\n`));
+  const { yyyy, mm, ddMsg } = archiveMetadata;
+  const archivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
+  const archiveDir = `src/${archivePath}`;
+
+  console.log(chalk.cyan(`対象アーカイブ: ${archivePath}\n`));
 
   let hasError = false;
-  const errors: Array<{ dir: string; error: ProductionEmailError }> = [];
+  const errors: ProductionEmailError[] = [];
 
-  // 各archiveディレクトリを処理
-  let processedCount = 0;
-  for (const archiveDir of archiveDirs) {
-    console.log(chalk.cyan(`処理中: ${archiveDir}`));
+  // 1. React → HTML 変換
+  console.log(chalk.cyan('React → HTML 変換中...'));
+  const mailPath = path.join(PROJECT_ROOT, archiveDir, 'mail.tsx');
+  const renderResult = await renderMailComponent(mailPath);
 
-    // 1. アーカイブメタデータ抽出
-    const metadata = extractArchiveMetadata(archiveDir);
-    if (!metadata) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: 'パス',
-          message: 'アーカイブディレクトリパスが不正です',
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    const { yyyy, mm, ddMsg } = metadata;
-
-    // 2. React → HTML 変換
-    const mailPath = path.join(PROJECT_ROOT, archiveDir, 'mail.tsx');
-    const renderResult = await renderMailComponent(mailPath);
-
-    if ('error' in renderResult) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: 'レンダリング',
-          message: 'React コンポーネントのレンダリングに失敗しました',
-          details: renderResult.error,
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    console.log(chalk.green('  ✓ React → HTML 変換'));
-
-    // 3. 画像パス置換
-    let html = renderResult.html;
-    html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, ddMsg);
-    console.log(chalk.green('  ✓ 画像パス置換'));
-
-    // 4. config.json 読み込み
-    const configResult = await loadConfig(archiveDir);
-
-    if ('error' in configResult) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: 'config.json',
-          message: 'config.json の読み込みに失敗しました',
-          details: configResult.error,
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    const config = configResult;
-    console.log(chalk.green('  ✓ config.json 読み込み'));
-
-    // 5. 本番配信
-    const sendResult = await sendProductionEmail(
-      html,
-      config.subject,
-      config.segmentId || config.audienceId!
-    );
-
-    if (!sendResult.success) {
-      errors.push({
-        dir: archiveDir,
-        error: {
-          type: '本番配信',
-          message: '本番メール配信に失敗しました',
-          details: sendResult.error,
-        },
-      });
-      hasError = true;
-      continue;
-    }
-
-    console.log(chalk.green('  ✓ 本番メール配信'));
-    console.log(chalk.gray(`    送信ID: ${sendResult.id}`));
-    console.log(chalk.gray(`    Segment ID: ${config.segmentId || config.audienceId}`));
-    console.log(chalk.gray(`    件名: ${config.subject}`));
-
-    // 6. config.json の sentAt を更新
-    updateConfigSentAt(archiveDir);
-    console.log(chalk.green('  ✓ sentAt 更新'));
-
-    // 7. Git commit & push（production.ymlで一括処理）
-    // commitAndPushConfig(archiveDir, ddMsg);
-    // console.log(chalk.green('  ✓ Git commit & push'));
-
-    // レート制限対策: 次のディレクトリ処理前に待機
-    processedCount++;
-    if (processedCount < archiveDirs.length) {
-      console.log(chalk.gray('  レート制限対策: 1秒待機中...'));
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    console.log();
+  if ('error' in renderResult) {
+    errors.push({
+      type: 'レンダリング',
+      message: 'React コンポーネントのレンダリングに失敗しました',
+      details: renderResult.error,
+    });
+    hasError = true;
   }
 
-  // 結果表示
   if (hasError) {
     console.log(chalk.red.bold('\n✗ 本番配信でエラーが発生しました\n'));
-    errors.forEach(({ dir, error }) => {
-      console.log(chalk.red(`[${dir}]`));
-      console.log(chalk.red(`  タイプ: ${error.type}`));
-      console.log(chalk.red(`  メッセージ: ${error.message}`));
-      if (error.details) {
-        console.log(chalk.red(`  詳細: ${error.details}`));
+    errors.forEach(({ type, message, details }) => {
+      console.log(chalk.red(`タイプ: ${type}`));
+      console.log(chalk.red(`メッセージ: ${message}`));
+      if (details) {
+        console.log(chalk.red(`詳細: ${details}`));
       }
       console.log();
     });
     process.exit(1);
-  } else {
-    console.log(chalk.green.bold('✓ すべての本番メール配信に成功しました\n'));
-    process.exit(0);
   }
+
+  let html = (renderResult as { html: string }).html;
+  console.log(chalk.green('✓ React → HTML 変換'));
+
+  // 2. 画像パス置換
+  html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, ddMsg);
+  console.log(chalk.green('✓ 画像パス置換'));
+
+  // 3. config.json 読み込み
+  console.log(chalk.cyan('config.jsonを取得中...'));
+  const configResult = await loadConfig(archiveDir);
+
+  if ('error' in configResult) {
+    errors.push({
+      type: 'config.json',
+      message: 'config.json の読み込みに失敗しました',
+      details: configResult.error,
+    });
+    hasError = true;
+  }
+
+  if (hasError) {
+    console.log(chalk.red.bold('\n✗ 本番配信でエラーが発生しました\n'));
+    errors.forEach(({ type, message, details }) => {
+      console.log(chalk.red(`タイプ: ${type}`));
+      console.log(chalk.red(`メッセージ: ${message}`));
+      if (details) {
+        console.log(chalk.red(`詳細: ${details}`));
+      }
+      console.log();
+    });
+    process.exit(1);
+  }
+
+  const config = configResult as Config;
+  console.log(chalk.green('✓ config.json 読み込み'));
+
+  // 4. 本番配信
+  console.log(chalk.cyan('本番メールを送信中...'));
+  const sendResult = await sendProductionEmail(
+    html,
+    config.subject,
+    config.segmentId || config.audienceId!
+  );
+
+  if (!sendResult.success) {
+    errors.push({
+      type: '本番配信',
+      message: '本番メール配信に失敗しました',
+      details: sendResult.error,
+    });
+    hasError = true;
+  }
+
+  if (hasError) {
+    console.log(chalk.red.bold('\n✗ 本番配信でエラーが発生しました\n'));
+    errors.forEach(({ type, message, details }) => {
+      console.log(chalk.red(`タイプ: ${type}`));
+      console.log(chalk.red(`メッセージ: ${message}`));
+      if (details) {
+        console.log(chalk.red(`詳細: ${details}`));
+      }
+      console.log();
+    });
+    process.exit(1);
+  }
+
+  console.log(chalk.green('✓ 本番メール配信'));
+  console.log(chalk.gray(`  送信ID: ${sendResult.id}`));
+  console.log(chalk.gray(`  Segment ID: ${config.segmentId || config.audienceId}`));
+  console.log(chalk.gray(`  件名: ${config.subject}`));
+
+  // 5. config.json の sentAt を更新
+  updateConfigSentAt(archiveDir);
+  console.log(chalk.green('✓ sentAt 更新'));
+
+  console.log(chalk.green.bold('\n✓ 本番メール配信が完了しました\n'));
+  process.exit(0);
 }
 
 // スクリプト実行
