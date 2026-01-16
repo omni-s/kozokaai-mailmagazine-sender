@@ -160,7 +160,7 @@ export async function getArchiveList(): Promise<MailArchive[]> {
  *
  * @param yyyy - 年（4桁の数字）
  * @param mm - 月（2桁の数字）
- * @param ddMsg - 日付とメッセージ名（DD-MSG 形式）
+ * @param ddMsg - 日付とメッセージ名（DD-MSG 形式、日本語可）
  * @returns MailArchive | null
  */
 export async function getArchive(
@@ -169,9 +169,14 @@ export async function getArchive(
   ddMsg: string
 ): Promise<MailArchive | null> {
   // パスインジェクション対策
+  // yyyy: 4桁の数字のみ
   if (!/^\d{4}$/.test(yyyy)) return null;
+  // mm: 2桁の数字のみ
   if (!/^\d{2}$/.test(mm)) return null;
-  if (!/^[\w-]+$/.test(ddMsg)) return null;
+  // ddMsg: 危険なパス操作文字（.., /, \, null byte）を禁止し、日本語を含む一般的な文字を許可
+  if (!ddMsg || ddMsg.includes('..') || ddMsg.includes('/') || ddMsg.includes('\\') || ddMsg.includes('\0')) {
+    return null;
+  }
 
   try {
     // S3からconfig.jsonを取得
