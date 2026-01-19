@@ -19,6 +19,10 @@ Resend メール配信システム。Next.js + React Email + Resend API + AWS S3
 
 ## 技術スタック
 
+### ランタイム
+- **Node.js**: 20.20.0（LTS、セキュリティ修正済み）
+  - 脆弱性対応: CVE-2025-55131, CVE-2025-55130, CVE-2025-59465 他
+
 ### コア技術
 - **Next.js**: 16.1.0 (App Router, Turbopack)
 - **React**: 19.2.3
@@ -489,6 +493,27 @@ CHORE: Add devcontainer configuration
 - Next.js/React: 現状維持（既にCVE対応済み）
 
 **参考**: `docs/ops/security-updates.md`
+
+### Node.js セキュリティアップデート
+
+**対応日**: 2026-01-19
+
+**脆弱性**: Node.js December 2025 Security Releases
+
+**対応内容**:
+- Node.js 20.x → 20.20.0
+- すべてのGitHub Actionsワークフローを更新（check.yml, staging.yml, production.yml, scheduled-email-delivery.yml）
+- .nvmrc ファイルを作成（ローカル開発環境の一貫性確保）
+
+**修正された脆弱性**:
+- CVE-2025-55131: Timeout-based race conditions（High）
+- CVE-2025-55130: ファイルシステム権限バイパス（High）
+- CVE-2025-59465: HTTP/2サーバークラッシュ（High）
+- CVE-2025-59466: async_hooksスタックオーバーフロー（Medium）
+- CVE-2026-21637: TLSコールバック例外（Medium）
+- CVE-2025-55132: fs.futimes()権限バイパス（Low）
+
+**参考**: https://nodejs.org/en/blog/vulnerability/december-2025-security-releases
 
 ---
 

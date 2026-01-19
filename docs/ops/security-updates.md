@@ -357,6 +357,27 @@ npm outdated <package-name>
   - Next.js Security Update (2025-12-11) - https://nextjs.org/blog/security-update-2025-12-11
   - React2Shell Security Bulletin - https://vercel.com/kb/bulletin/react2shell
 
+### 2026-01-19: Node.js セキュリティアップデート（December 2025 Security Releases）
+
+- **脆弱性**: CVE-2025-55131（High）、CVE-2025-55130（High）、CVE-2025-59465（High）他
+  - CVE-2025-55131: Timeout-based race conditions make Uint8Array/Buffer.alloc non-zerofilled
+  - CVE-2025-55130: Bypass File System Permissions using crafted symlinks
+  - CVE-2025-59465: HTTP/2 server crashes with malformed HEADERS frame
+  - CVE-2025-59466: Uncatchable "Maximum call stack size exceeded" via async_hooks（Medium）
+  - CVE-2026-21637: TLS PSK/ALPN Callback Exceptions bypass error handlers（Medium）
+  - CVE-2025-55132: fs.futimes() bypasses read-only permission model（Low）
+- **対応**:
+  - Node.js 20.x → 20.20.0（LTS、セキュリティ修正版）
+  - GitHub Actionsワークフロー4件を更新（check.yml, staging.yml, production.yml, scheduled-email-delivery.yml）
+  - .nvmrc ファイルを作成（ローカル開発環境の一貫性確保）
+- **影響範囲**:
+  - HTTP/2サーバークラッシュ（CVE-2025-59465）: Next.jsがHTTP/2をサポートしており、DoS攻撃リスクあり
+  - メモリ漏洩（CVE-2025-55131）: APIキー、AWS認証情報などの機密情報漏洩リスク
+  - TLSコールバック例外（CVE-2026-21637）: Resend API、S3通信に影響
+- **検証**: GitHub Actions Check Workflowで自動検証
+- **破壊的変更**: なし（マイナーバージョンアップデート）
+- **参考**: https://nodejs.org/en/blog/vulnerability/december-2025-security-releases
+
 ---
 
-最終更新日: 2025-12-29
+最終更新日: 2026-01-19
