@@ -706,12 +706,18 @@ async function main() {
     const { register } = await import("esbuild-register/dist/node");
     register({ target: "node18", format: "cjs" });
 
-    // mail.tsx を require で読み込み
+    // mail.tsx を require で読み込み（MailContent 名前付きエクスポートを使用）
     // requireのキャッシュをクリア
     delete require.cache[require.resolve(mailFile)];
 
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const MailComponent = require(mailFile).default;
+    const { MailContent } = require(mailFile);
+
+    if (!MailContent) {
+      throw new Error('MailContent コンポーネントが見つかりません。export function MailContent() を確認してください。');
+    }
+
+    const MailComponent = MailContent;
 
     // @react-email/render で HTML に変換
     const { render } = await import("@react-email/render");
