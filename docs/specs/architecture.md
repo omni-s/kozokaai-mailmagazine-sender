@@ -798,6 +798,209 @@ if (!result.success) {
 
 ---
 
+## 配信停止メカニズム
+
+### 実装
+
+**Resend Broadcast APIによる自動配信停止管理**
+
+Resend APIは、マーケティングメールに必須の配信停止機能を完全サポートしています。本プロジェクトでは、`EmailWrapper.tsx`に配信停止リンクを含めることで、FTC（米国）およびGDPR（欧州）の法的要件に準拠しています。
+
+### 動作フロー
+
+```
+1. メール本文に {{{RESEND_UNSUBSCRIBE_URL}}} プレースホルダーを含める
+   ↓
+2. Resendが各受信者専用の配信停止URLを生成
+   （例: https://resend.com/unsubscribe/{token}）
+   ↓
+3. 受信者が配信停止リンクをクリック
+   ↓
+4. Resend Dashboard → Contacts で配信停止状態（unsubscribed: true）に更新
+   ↓
+5. 次回のBroadcast送信時、配信停止ユーザーを自動的にスキップ
+```
+
+### 実装詳細
+
+#### EmailWrapper.tsx（`src/components/email/EmailWrapper.tsx` L108-120）
+
+```tsx
+{/* 配信停止リンク */}
+<p style={{ margin: '12px 0 0 0' }}>
+  <a
+    href="{{{RESEND_UNSUBSCRIBE_URL}}}"
+    style={{
+      color: '#94a3b8',
+      textDecoration: 'underline',
+      fontSize: '12px',
+    }}
+  >
+    配信停止 / Unsubscribe
+  </a>
+</p>
+```
+
+**重要なポイント**:
+- `{{{RESEND_UNSUBSCRIBE_URL}}}` はResendが各受信者専用のURLに自動置換
+- インラインスタイルを使用（メールクライアント互換性）
+- 色は `#94a3b8`（既存のフッターと同じ）で統一
+- `preview` プロパティの分岐処理は不要（プレースホルダーはブラウザでもそのまま表示される）
+
+#### 配信停止処理のメカニズム
+
+| 段階 | 処理内容 | 担当 |
+|------|---------|------|
+| **1. リンク埋め込み** | `{{{RESEND_UNSUBSCRIBE_URL}}}` をメール本文に含める | EmailWrapper.tsx |
+| **2. URL生成** | 各受信者専用の配信停止URLを生成 | Resend API（自動） |
+| **3. クリック** | 受信者が配信停止リンクをクリック | ユーザー |
+| **4. 状態更新** | Contacts の `unsubscribed: true` に更新 | Resend API（自動） |
+| **5. スキップ** | 次回Broadcast送信時に自動的にスキップ | Resend API（自動） |
+
+### 重複送信防止
+
+- 配信停止したユーザーは `resend.broadcasts.send()` で自動的にスキップされる
+- 手動でContactsから削除する必要はない
+- GitHub Actions → Scheduled Email Delivery のログで「配信停止ユーザーをスキップ」と記録される
+
+**実装例**（`send-production-email.ts`）:
+
+```typescript
+// Broadcast送信時、Resendが自動的に配信停止ユーザーをスキップ
+const { data: sendData, error: sendError } = await resend.broadcasts.send(createData.id);
+```
+
+### 配信停止状態の確認方法
+
+#### 1. Resend Dashboard
+
+**Resend Dashboard → Audiences → Contacts**
+
+- `unsubscribed: true` のContactsを確認
+- フィルター機能で配信停止ユーザーのみ表示可能
+
+#### 2. Resend Contacts API
+
+**コマンド例**:
+
+```bash
+# Contact情報を取得
+curl -X GET 'https://api.resend.com/contacts?email=test@example.com' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  | jq '.data[] | {email: .email, unsubscribed: .unsubscribed}'
+```
+
+**期待される出力**:
+
+```json
+{
+  "email": "test@example.com",
+  "unsubscribed": true
+}
+```
+
+#### 3. 配信ログ
+
+**GitHub Actions → Scheduled Email Delivery → Logs**
+
+```
+✓ 本番メール配信
+  送信ID: {UUID}
+  配信対象: 100件
+  配信停止ユーザー: 5件（スキップ）
+  実際の配信数: 95件
+```
+
+### 法的コンプライアンス
+
+#### FTC要件（米国連邦取引委員会）
+
+**CAN-SPAM Act**:
+- マーケティングメールには配信停止オプションが必須
+- 配信停止リクエストを10営業日以内に処理（Resendが自動処理）
+- 配信停止手段は明確で、簡単にアクセス可能であること
+- 配信停止後の再購読は任意
+
+**本実装での対応**:
+- ✅ メール本文に明確な配信停止リンクを含める
+- ✅ Resendが自動的に配信停止を処理（即座に反映）
+- ✅ 配信停止ユーザーは次回配信で自動的にスキップされる
+
+#### GDPR要件（欧州一般データ保護規則）
+
+**個人データの削除権（Right to be forgotten）**:
+- ユーザーは個人データの削除を要求できる
+- 配信停止は「削除」ではなく「マーケティング同意の撤回」として扱われる
+
+**本実装での対応**:
+- ✅ 明確な配信停止リンクの表示
+- ⚠️ 完全な個人データ削除が必要な場合、Resend Contacts APIで手動削除が必要
+
+**削除手順（オプション）**:
+
+```bash
+# Contact削除
+curl -X DELETE 'https://api.resend.com/contacts/{contact_id}' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+```
+
+#### トランザクションメール vs マーケティングメール
+
+| メール種別 | 配信停止リンク | 例 |
+|----------|---------------|---|
+| **マーケティングメール** | **必須** | ニュースレター、セール情報、キャンペーン |
+| **トランザクションメール** | 不要 | パスワードリセット、注文確認、領収書 |
+
+**本プロジェクトの対象**: マーケティングメール（メールマガジン配信）
+
+### カスタマイズオプション
+
+#### 1. Resend Dashboard での配信停止ページカスタマイズ
+
+**設定場所**: [Resend Dashboard](https://resend.com/settings/unsubscribe-page) → Settings → Unsubscribe Page
+
+**カスタマイズ内容**:
+- ロゴ: プロジェクトのロゴをアップロード
+- 背景色: `#f1f5f9`（EmailWrapperの背景色と統一）
+- テキスト色: `#1e293b`（メール本文の色と統一）
+- 配信停止確認メッセージ: 日本語化（例: 「配信停止が完了しました。今後メールは送信されません。」）
+- 再購読リンク: 「再購読する場合はこちら」
+
+**注意**: この設定は全てのBroadcastに適用される
+
+#### 2. Topics機能（将来拡張案）
+
+**概要**: 配信の種類ごとに配信停止を設定可能にする
+
+**実装内容**:
+- Resend Topics APIを使用
+- 例: "ニュースレター", "セール情報", "システム通知"
+- ユーザーが興味のある配信のみを受信できる
+
+**参考**: [Resend Topics ドキュメント](https://resend.com/blog/unsubscribe-topics)
+
+#### 3. カスタム配信停止ページ（将来拡張案）
+
+**概要**: Next.jsアプリ内に配信停止ページを実装
+
+**実装内容**:
+- より詳細な配信停止理由の収集（アンケート形式）
+- 配信頻度の調整オプション（毎日 → 週1回など）
+- 再購読リンクの提供
+
+**実装場所**: `src/app/unsubscribe/page.tsx`
+
+### 参考リンク
+
+- [Resend - Should I add an unsubscribe link?](https://resend.com/docs/knowledge-base/should-i-add-an-unsubscribe-link)
+- [Resend - Broadcast API](https://resend.com/docs/api-reference/broadcasts/create-broadcast)
+- [Resend - Custom Unsubscribe](https://resend.com/changelog/custom-unsubscribe)
+- [Resend - Unsubscribe Topics](https://resend.com/blog/unsubscribe-topics)
+- [FTC - CAN-SPAM Act](https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business)
+- [GDPR - Right to be forgotten](https://gdpr-info.eu/art-17-gdpr/)
+
+---
+
 ## 関連ドキュメント
 
 - **要件定義書**: [docs/specs/require.md](./require.md)
@@ -809,4 +1012,4 @@ if (!result.success) {
 
 ---
 
-最終更新日: 2025-12-29
+最終更新日: 2026-01-20

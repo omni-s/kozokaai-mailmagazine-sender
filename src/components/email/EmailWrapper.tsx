@@ -104,6 +104,20 @@ export function EmailWrapper({
                         © {new Date().getFullYear()} [会社名]. All rights
                         reserved.
                       </p>
+
+                      {/* 配信停止リンク */}
+                      <p style={{ margin: '12px 0 0 0' }}>
+                        <a
+                          href="{{{RESEND_UNSUBSCRIBE_URL}}}"
+                          style={{
+                            color: '#94a3b8',
+                            textDecoration: 'underline',
+                            fontSize: '12px',
+                          }}
+                        >
+                          配信停止 / Unsubscribe
+                        </a>
+                      </p>
                     </td>
                   </tr>
                 </tbody>

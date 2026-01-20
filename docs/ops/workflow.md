@@ -114,6 +114,7 @@ http://localhost:3000/draft にアクセスし、メールのプレビューを�
 - 画像が正しく表示されているか
 - リンクが機能するか
 - フォント・色が意図通りか
+- 配信停止リンクがフッターに表示されているか（`{{{RESEND_UNSUBSCRIBE_URL}}}` プレースホルダー）
 
 ### 1.5. Next.js Hot Reloadの活用
 
@@ -523,6 +524,151 @@ cat public/archives/2024/05/20-summer-sale/config.json
 
 ---
 
+## 配信停止機能
+
+### 概要
+
+本プロジェクトでは、Resend Broadcast APIの配信停止機能を使用しています。すべてのメールには自動的に配信停止リンクが含まれ、受信者が配信停止を選択した場合、次回以降の配信から自動的に除外されます。
+
+**法的要件**: FTC（米国）およびGDPR（欧州）の要件により、マーケティングメールには配信停止オプションが必須です。
+
+### 配信停止リンクの実装
+
+**EmailWrapper.tsx** に配信停止リンクが自動的に含まれます。
+
+**表示内容**:
+```
+配信停止 / Unsubscribe
+```
+
+**配置**: メールフッター（著作権表示の下）
+
+**技術的な仕組み**:
+- `{{{RESEND_UNSUBSCRIBE_URL}}}` プレースホルダーを使用
+- Resendが各受信者専用の配信停止URLを自動生成
+- ローカル開発時はプレースホルダーがそのまま表示される（問題なし）
+
+### 配信停止フロー
+
+```
+1. 受信者がメール内の「配信停止 / Unsubscribe」リンクをクリック
+   ↓
+2. Resendの配信停止ページが表示される
+   ↓
+3. 受信者が配信停止を確認
+   ↓
+4. Resend Dashboard → Audiences → Contacts で
+   該当ユーザーが unsubscribed: true に更新される
+   ↓
+5. 次回のBroadcast送信時、配信停止ユーザーを自動的にスキップ
+```
+
+### 配信停止ユーザーの確認方法
+
+#### 1. Resend Dashboard
+
+1. [Resend Dashboard](https://resend.com/audiences) にアクセス
+2. **Audiences** → 該当Audienceをクリック
+3. **Contacts** タブで `unsubscribed: true` のユーザーを確認
+
+**フィルタリング**:
+- Status: `Unsubscribed` でフィルタリング可能
+
+#### 2. Resend Contacts API
+
+**コマンド例**:
+
+```bash
+# Contact情報を取得
+curl -X GET 'https://api.resend.com/contacts?email=test@example.com' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  | jq '.data[] | {email: .email, unsubscribed: .unsubscribed}'
+```
+
+**期待される出力**:
+
+```json
+{
+  "email": "test@example.com",
+  "unsubscribed": true
+}
+```
+
+### 配信停止後の動作
+
+**自動スキップ**:
+- 配信停止したユーザーは、次回の `resend.broadcasts.send()` 実行時に自動的にスキップされます
+- 手動でContactsから削除する必要はありません
+
+**重複送信防止**:
+- GitHub Actions → Scheduled Email Delivery のログに「配信停止ユーザーをスキップ」と記録されます
+
+**再購読**:
+- ユーザーが再購読したい場合、Resendの配信停止ページから再購読可能です（設定による）
+
+### カスタマイズオプション（手動設定）
+
+**Resend Dashboard での配信停止ページカスタマイズ**:
+
+1. [Resend Dashboard](https://resend.com/settings/unsubscribe-page) → Settings → Unsubscribe Page
+2. 以下の項目をカスタマイズ可能:
+   - ロゴ: プロジェクトのロゴをアップロード
+   - 背景色: `#f1f5f9`（EmailWrapperの背景色と統一）
+   - テキスト色: `#1e293b`（メール本文の色と統一）
+   - 配信停止確認メッセージ: 日本語化（例: 「配信停止が完了しました。今後メールは送信されません。」）
+   - 再購読リンク: 「再購読する場合はこちら」
+
+**注意**: この設定は全てのBroadcastに適用されます。
+
+### トラブルシューティング
+
+#### 配信停止リンクが表示されない
+
+**原因**: `EmailWrapper.tsx` が古いバージョン
+
+**解決策**: 最新のコードベースを取得（配信停止リンクが含まれている）
+
+#### 配信停止後もメールが届く
+
+**原因1**: 配信停止処理が完了していない（処理中）
+
+**対処**: 数分待ってから再度確認
+
+**原因2**: 異なるメールアドレスが複数登録されている
+
+**対処**: Resend Dashboard → Contacts で該当ユーザーの全てのメールアドレスを確認
+
+### 法的コンプライアンス
+
+#### FTC要件（米国）
+
+**CAN-SPAM Act**:
+- ✅ マーケティングメールに配信停止オプションを提供
+- ✅ 配信停止リクエストを10営業日以内に処理（Resendが自動処理）
+- ✅ 配信停止手段が明確で、簡単にアクセス可能
+
+#### GDPR要件（欧州）
+
+**個人データの削除権**:
+- ✅ 明確な配信停止リンクの表示
+- ⚠️ 完全な個人データ削除が必要な場合、Resend Contacts APIで手動削除が必要
+
+**削除手順（オプション）**:
+
+```bash
+# Contact削除
+curl -X DELETE 'https://api.resend.com/contacts/{contact_id}' \
+  -H 'Authorization: Bearer YOUR_API_KEY'
+```
+
+### 参考リンク
+
+- [Resend - Should I add an unsubscribe link?](https://resend.com/docs/knowledge-base/should-i-add-an-unsubscribe-link)
+- [Resend - Broadcast API](https://resend.com/docs/api-reference/broadcasts/create-broadcast)
+- [FTC - CAN-SPAM Act](https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business)
+
+---
+
 ## 日常的なチェックリスト
 
 ### ローカル制作時
@@ -531,7 +677,7 @@ cat public/archives/2024/05/20-summer-sale/config.json
 - [ ] `src/app/draft/page.tsx` 編集
 - [ ] 画像を `public/mail-assets/` に配置
 - [ ] http://localhost:3000/draft でプレビュー確認
-- [ ] レイアウト・画像・リンク・フォントをチェック
+- [ ] レイアウト・画像・リンク・フォント・配信停止リンクをチェック
 
 ### アーカイブ時
 
@@ -570,4 +716,4 @@ cat public/archives/2024/05/20-summer-sale/config.json
 
 ---
 
-最終更新日: 2025-12-19
+最終更新日: 2026-01-20

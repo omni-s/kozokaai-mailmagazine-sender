@@ -60,6 +60,7 @@ docs/
 - **[workflow.md](./ops/workflow.md)** - 日常的なメール配信フロー
   - ローカル制作 → アーカイブ → レビュー → 本番配信のステップバイステップ
   - ブランチ戦略との統合（main直接push vs feature ブランチ）
+  - 配信停止機能（Unsubscribe機能、FTC/GDPR対応、トラブルシューティング）
   - 緊急停止手順
   - 配信履歴の確認方法
 
@@ -121,6 +122,7 @@ docs/
   - Resend Audience ID管理の仕組み
   - sentAt タイムスタンプ管理
   - Manual Approval（二重チェック機構）
+  - 配信停止メカニズム（Unsubscribe、FTC/GDPR対応、自動スキップ処理）
 
 ## 更新手順（PDCA）
 1. PLAN: 既存の配置と命名を本索引で確認し、追加箇所を決める。

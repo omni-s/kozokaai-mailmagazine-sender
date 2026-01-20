@@ -329,6 +329,44 @@ module.exports = {
 - EmailWrapper が同じタグを出力すると hydration error が発生
 - `preview={true}` でブラウザプレビュー時のみテーブルレイアウトを返却
 
+### 6. 配信停止機能（Unsubscribe）
+
+**実装**: Resend Broadcast APIの配信停止機能を使用
+
+**法的要件**: FTC（米国）およびGDPR（欧州）の要件により、マーケティングメールには配信停止オプションが必須
+
+**実装場所**: `src/components/email/EmailWrapper.tsx` L108-120
+
+```tsx
+{/* 配信停止リンク */}
+<p style={{ margin: '12px 0 0 0' }}>
+  <a
+    href="{{{RESEND_UNSUBSCRIBE_URL}}}"
+    style={{
+      color: '#94a3b8',
+      textDecoration: 'underline',
+      fontSize: '12px',
+    }}
+  >
+    配信停止 / Unsubscribe
+  </a>
+</p>
+```
+
+**動作メカニズム**:
+1. `{{{RESEND_UNSUBSCRIBE_URL}}}` プレースホルダーを使用
+2. Resendが各受信者専用の配信停止URLを自動生成
+3. 受信者が配信停止リンクをクリック
+4. Resend Dashboard → Contacts で `unsubscribed: true` に更新
+5. 次回のBroadcast送信時、配信停止ユーザーを自動的にスキップ
+
+**重要なポイント**:
+- ローカル開発時はプレースホルダーがそのまま表示される（問題なし）
+- 配信停止したユーザーは `resend.broadcasts.send()` で自動的にスキップされる
+- 手動でContactsから削除する必要はない
+
+**参考**: `docs/ops/workflow.md` - 配信停止機能セクション、`docs/specs/architecture.md` - 配信停止メカニズムセクション
+
 ---
 
 ## GitHub Actions Workflows
@@ -557,4 +595,4 @@ CHORE: Add devcontainer configuration
 
 ---
 
-最終更新日: 2025-12-22
+最終更新日: 2026-01-20
