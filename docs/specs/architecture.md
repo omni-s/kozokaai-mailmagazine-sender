@@ -804,7 +804,7 @@ if (!result.success) {
 
 **Resend Broadcast APIによる自動配信停止管理**
 
-Resend APIは、マーケティングメールに必須の配信停止機能を完全サポートしています。本プロジェクトでは、`EmailWrapper.tsx`に配信停止リンクを含めることで、FTC（米国）およびGDPR（欧州）の法的要件に準拠しています。
+Resend APIは、マーケティングメールに必須の配信停止機能を完全サポートしています。本プロジェクトでは、`EmailFooter.tsx`コンポーネントに配信停止リンクを含め、`EmailWrapper.tsx`から呼び出すことで、FTC（米国）およびGDPR（欧州）の法的要件に準拠しています。
 
 ### 動作フロー
 
@@ -823,10 +823,30 @@ Resend APIは、マーケティングメールに必須の配信停止機能を�
 
 ### 実装詳細
 
-#### EmailWrapper.tsx（`src/components/email/EmailWrapper.tsx` L108-120）
+#### EmailFooter.tsx（`src/components/email/EmailFooter.tsx`）
+
+配信停止リンクを含むFooterを独立したコンポーネントとして実装。
+
+**設計方針**:
+- props を受け取らない（固定実装、安全性優先）
+- JSDocコメントで配信停止リンクの重要性を明記
+- コード内コメントで「削除しないでください」を明示
+- EmailWrapper内で自動的に呼び出される
+
+**コンポーネント責務**:
+- 企業情報の表示
+- 著作権表示
+- 配信停止リンク（FTC/GDPR対応）
+
+**誤削除防止機構**:
+1. 独立したコンポーネントファイル（`EmailFooter.tsx`）
+2. JSDocコメントで法的要件を明記
+3. コード内コメントで削除禁止を明示
+4. EmailWrapper内で強制的に呼び出される設計
 
 ```tsx
-{/* 配信停止リンク */}
+{/* 配信停止リンク（FTC/GDPR対応） */}
+{/* ⚠️ 重要: このリンクを削除しないでください */}
 <p style={{ margin: '12px 0 0 0' }}>
   <a
     href="{{{RESEND_UNSUBSCRIBE_URL}}}"

@@ -335,7 +335,7 @@ module.exports = {
 
 **法的要件**: FTC（米国）およびGDPR（欧州）の要件により、マーケティングメールには配信停止オプションが必須
 
-**実装場所**: `src/components/email/EmailWrapper.tsx` L108-120
+**実装場所**: `src/components/email/EmailFooter.tsx` L47-59
 
 ```tsx
 {/* 配信停止リンク */}
@@ -366,6 +366,24 @@ module.exports = {
 - 手動でContactsから削除する必要はない
 
 **参考**: `docs/ops/workflow.md` - 配信停止機能セクション、`docs/specs/architecture.md` - 配信停止メカニズムセクション
+
+### 7. EmailFooter コンポーネント（配信停止リンク保護）
+
+**実装**: 配信停止リンクを含むFooterを独立したコンポーネントとして切り出し
+
+**目的**: 配信停止UIの誤削除を防止（FTC/GDPR対応）
+
+**実装場所**: `src/components/email/EmailFooter.tsx`
+
+**使用場所**: `src/components/email/EmailWrapper.tsx` 内で呼び出し
+
+**重要なポイント**:
+- EmailFooterは props を受け取らない（固定実装、安全性優先）
+- 配信停止リンク `{{{RESEND_UNSUBSCRIBE_URL}}}` を常に含む
+- JSDocコメントとコード内コメントで削除禁止を明示
+- EmailWrapper内で自動的に呼び出されるため、全てのメールで統一的に表示される
+
+**参考**: `docs/specs/architecture.md` - 配信停止メカニズムセクション
 
 ---
 

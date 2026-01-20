@@ -1,4 +1,5 @@
 import React from 'react';
+import { EmailFooter } from './EmailFooter';
 
 interface EmailWrapperProps {
   children: React.ReactNode;
@@ -76,52 +77,8 @@ export function EmailWrapper({
                 </tbody>
               </table>
 
-              {/* フッター */}
-              <table
-                width="600"
-                cellPadding="0"
-                cellSpacing="0"
-                role="presentation"
-                style={{
-                  maxWidth: '600px',
-                  marginTop: '20px',
-                }}
-              >
-                <tbody>
-                  <tr>
-                    <td
-                      align="center"
-                      style={{
-                        fontSize: '13px',
-                        color: '#94a3b8',
-                        lineHeight: '1.5',
-                      }}
-                    >
-                      <p style={{ margin: '0 0 8px 0' }}>
-                        このメールは kozokaAI からお送りしています
-                      </p>
-                      <p style={{ margin: 0 }} suppressHydrationWarning>
-                        © {new Date().getFullYear()} [会社名]. All rights
-                        reserved.
-                      </p>
-
-                      {/* 配信停止リンク */}
-                      <p style={{ margin: '12px 0 0 0' }}>
-                        <a
-                          href="{{{RESEND_UNSUBSCRIBE_URL}}}"
-                          style={{
-                            color: '#94a3b8',
-                            textDecoration: 'underline',
-                            fontSize: '12px',
-                          }}
-                        >
-                          配信停止 / Unsubscribe
-                        </a>
-                      </p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              {/* フッター（EmailFooter コンポーネント） */}
+              <EmailFooter />
             </td>
           </tr>
         </tbody>
