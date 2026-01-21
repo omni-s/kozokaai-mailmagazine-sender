@@ -252,6 +252,28 @@ pnpm install
 - または、DevContainer起動時に必ず再ビルドを実行
 - `.next`キャッシュもクリアすることで、ビルド関連の問題を回避
 
+### 予防策: ローカルでpnpm install後は必ずDevContainer再ビルド
+
+**重要**: ローカル環境（macOS）で `pnpm install` を実行した場合、DevContainerを再ビルドせずに起動すると、プラットフォーム不一致エラーが発生します。
+
+**推奨フロー:**
+1. ローカルで依存関係を追加: `pnpm add {package}`
+2. **必ず DevContainer を再ビルド**: VSCode → Cmd+Shift+P → "Dev Containers: Rebuild Container"
+3. DevContainer内で動作確認
+
+**node_modules の確認方法:**
+```bash
+# DevContainer内で実行
+pnpm ls esbuild
+
+# プラットフォーム固有バイナリを確認
+ls -la node_modules/.pnpm/@esbuild/
+
+# 期待される結果:
+# - @esbuild/linux-arm64 が存在
+# - @esbuild/darwin-arm64 が存在しない
+```
+
 ---
 
 ## カスタマイズガイド

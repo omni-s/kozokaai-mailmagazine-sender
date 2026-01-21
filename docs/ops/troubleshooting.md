@@ -181,6 +181,43 @@ pnpm install
 
 ---
 
+### GUIからの配信準備時にesbuildエラーが発生した場合
+
+**エラーメッセージ例:**
+```
+[API /commit] mail.html 変換エラー: Error: Command failed: npx tsx src/scripts/generate-mail-html.ts
+
+Error: You installed esbuild for another platform than the one you're currently using.
+Specifically the "@esbuild/darwin-arm64" package is present but this platform
+needs the "@esbuild/linux-arm64" package instead.
+```
+
+**原因:**
+- DevContainer内で、ホストOS（macOS）用のesbuildバイナリが参照されている
+- `postCreateCommand` が正常に実行されなかった可能性
+
+**解決策:**
+
+1. **DevContainerを再ビルド:**
+   ```
+   VSCode: Cmd+Shift+P → "Dev Containers: Rebuild Container"
+   ```
+
+2. **手動で再インストール:**
+   ```bash
+   cd /workspace
+   rm -rf node_modules .next
+   pnpm install
+   ```
+
+3. **動作確認:**
+   ```bash
+   pnpm ls @esbuild/linux-arm64  # → 存在することを確認
+   pnpm ls @esbuild/darwin-arm64 # → 存在しないことを確認
+   ```
+
+---
+
 ## 3. Next.js 16 ESLint 問題
 
 ### エラー: `Invalid project directory provided`
