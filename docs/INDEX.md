@@ -14,7 +14,7 @@ docs/
 ├── INDEX.md          # 本索引ファイル
 ├── dev/              # 開発関連ドキュメント
 │   ├── branch.md     # ブランチ戦略とCI/CDワークフロー
-│   └── devcontainer.md  # VS Code Dev Container設定と使い方
+│   └── devcontainer.md  # VS Code Dev Container 運用終了について（歴史的記録）
 ├── setup/            # 環境構築ガイド
 │   └── environment.md   # AWS、Resend、GitHub設定
 ├── ops/              # 運用ガイド
@@ -40,11 +40,10 @@ docs/
   - コミットメッセージ規約
   - 運用フロー例とトラブルシューティング
 
-- **[devcontainer.md](./dev/devcontainer.md)** - VS Code Dev Container 設定と使い方
-  - Dev Containerの概要と利点
-  - セットアップ手順（初回・2回目以降）
-  - トラブルシューティング（ポート競合、認証エラー、プラットフォーム固有バイナリの不一致等）
-  - カスタマイズガイド（拡張機能追加、ポート設定等）
+- **[devcontainer.md](./dev/devcontainer.md)** - VS Code Dev Container 運用終了について
+  - 運用終了の理由（permissions問題、プラットフォーム不一致）
+  - 現在の推奨環境（ローカル開発）
+  - 過去の設定（参考）
 
 ### 環境構築（setup/）
 
@@ -74,7 +73,6 @@ docs/
 
 - **[troubleshooting.md](./ops/troubleshooting.md)** - トラブルシューティング
   - pnpm run commit エラー対処
-  - DevContainer環境でのesbuildエラー対処
   - GitHub Actions エラー対処（Check、Staging、Production）
   - 画像が表示されない問題の診断
   - メールが届かない問題の診断

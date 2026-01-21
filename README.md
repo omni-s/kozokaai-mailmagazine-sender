@@ -99,46 +99,6 @@ kozokaai-mailmagazine-sender/
 
 ## セットアップ
 
-### オプション1: devcontainer を使用（推奨）
-
-チーム全体で統一された開発環境を利用できます。
-
-#### 前提条件
-
-- Docker Desktop がインストールされていること
-- VS Code + Dev Containers 拡張機能（`ms-vscode-remote.remote-containers`）
-
-#### 起動手順
-
-1. **VS Code でプロジェクトを開く**
-   ```bash
-   code .
-   ```
-
-2. **Dev Containerで再起動**
-   - Command Palette（`Cmd+Shift+P` / `Ctrl+Shift+P`）→ **「Dev Containers: Reopen in Container」** を実行
-   - または、VS Codeが自動検出した「Reopen in Container」通知をクリック
-
-3. **コンテナビルド完了を待つ**（初回のみ5〜10分）
-
-4. **環境変数ファイル作成**
-   ```bash
-   cp .env.example .env
-   # .env を編集してAPI キー等を設定
-   ```
-
-5. **開発サーバー起動**
-   ```bash
-   pnpm run dev
-   ```
-   - ブラウザで http://localhost:3000 を開く
-
-詳細は [docs/dev/devcontainer.md](./docs/dev/devcontainer.md) を参照してください。
-
----
-
-### オプション2: ローカル環境を使用
-
 #### 1. 依存関係インストール
 
 ```bash
