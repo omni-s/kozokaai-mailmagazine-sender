@@ -1,5 +1,5 @@
 {
-  "name": "Resend Mail System (Next.js 15 + TypeScript)",
+  "name": "Resend Mail System (Next.js 16 + TypeScript)",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
 
   "features": {
@@ -48,7 +48,7 @@
     }
   },
 
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "rm -rf node_modules .next && pnpm install",
   "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
 
   "remoteEnv": {
