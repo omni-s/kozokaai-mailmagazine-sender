@@ -117,7 +117,7 @@ docs/
 - **[architecture.md](./specs/architecture.md)** - システムアーキテクチャ概要
   - 全体フロー（ローカル制作 → S3 → テスト → 本番配信）
   - 技術スタック詳細と選定理由
-  - 画像パス置換ロジック（開発時 `/mail-assets/` → 本番 S3 URL）
+  - 画像パス置換ロジック（開発時 `/MAIL-ASSETS/` → 本番 S3 URL）
   - メールHTML互換性設計（EmailWrapper テーブルレイアウト）
   - Resend Audience ID管理の仕組み
   - sentAt タイムスタンプ管理

@@ -161,8 +161,8 @@ function validateImagePaths(archiveDir: string): ValidationError | null {
   // コメントを除去してからパターンマッチング
   mailContent = removeComments(mailContent);
 
-  // <Img src="/mail-assets/..." /> のパターンを抽出
-  const imgPattern = /<Img[^>]*src=["']\/mail-assets\/([^"']+)["']/g;
+  // <Img src="/MAIL-ASSETS/..." /> のパターンを抽出
+  const imgPattern = /<Img[^>]*src=["']\/MAIL-ASSETS\/([^"']+)["']/g;
   const matches = [...mailContent.matchAll(imgPattern)];
 
   if (matches.length === 0) {

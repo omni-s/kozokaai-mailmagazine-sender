@@ -483,12 +483,12 @@ Error: Validation failed: config.json schema error
 
 **エラーメッセージ**:
 ```
-Error: Image path not found: /mail-assets/hero.png
+Error: Image path not found: /MAIL-ASSETS/hero.png
 ```
 
 **対処法**:
 
-1. `mail.tsx` 内の `<Img src="/mail-assets/hero.png" />` 確認
+1. `mail.tsx` 内の `<Img src="/MAIL-ASSETS/hero.png" />` 確認
 2. `assets/hero.png` が実在するか確認
 3. ファイル名の大文字小文字一致確認（Linux環境は厳密）
 
@@ -667,15 +667,15 @@ Error: Resource not accessible by integration
 1. **パス確認**
    ```tsx
    // ❌ 間違い: 先頭スラッシュなし
-   <Img src="mail-assets/hero.png" />
+   <Img src="MAIL-ASSETS/hero.png" />
 
    // ✅ 正しい: 先頭スラッシュあり
-   <Img src="/mail-assets/hero.png" />
+   <Img src="/MAIL-ASSETS/hero.png" />
    ```
 
 2. **ファイル存在確認**
    ```bash
-   ls -la public/mail-assets/hero.png
+   ls -la public/MAIL-ASSETS/hero.png
    ```
 
 3. **ファイル名の大文字小文字一致確認**

@@ -16,7 +16,7 @@ import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from "../lib/s3";
 
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
 const DRAFT_FILE = path.join(PROJECT_ROOT, "src/app/page.tsx");
-const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, "public/mail-assets");
+const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, "public/MAIL-ASSETS");
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, "src/archives");
 
 interface CommitAnswers {
@@ -750,7 +750,7 @@ async function main() {
         fs.unlinkSync(srcPath); // 元ファイルを削除
       });
     } else {
-      console.log(chalk.yellow("警告: mail-assets/ に画像がありません"));
+      console.log(chalk.yellow("警告: MAIL-ASSETS/ に画像がありません"));
     }
   }
 

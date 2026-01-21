@@ -88,7 +88,7 @@ pnpm run commit
 スクリプトが自動的に:
 1. アーカイブディレクトリを作成（`public/archives/{YYYY}/{MM}/{DD-MSG}/`）
 2. `src/app/draft/page.tsx` → `mail.tsx` に移動
-3. `public/mail-assets/` → `assets/` に画像移動
+3. `public/MAIL-ASSETS/` → `assets/` に画像移動
 4. `config.json` 生成（subject, segmentId, scheduledAt, sentAt: null）
 5. `src/app/draft/page.tsx` を初期テンプレートにリセット
 6. Git commit & push（コミットメッセージ: `MAIL: {message}`）
@@ -126,7 +126,7 @@ kozokaai-mailmagazine-sender/
 │       ├── send-test-email.ts  # GitHub Actions: テスト送信
 │       └── send-production-email.ts  # GitHub Actions: 本番配信
 ├── public/
-│   ├── mail-assets/            # 作業中の画像置き場
+│   ├── MAIL-ASSETS/            # 作業中の画像置き場
 │   └── archives/               # メールアーカイブ
 │       └── {YYYY}/
 │           └── {MM}/
@@ -238,7 +238,7 @@ config.json の sentAt 自動更新（Git commit & push）
 
 ### 2. 画像パス置換ロジック
 
-**開発時**: `/mail-assets/hero.png`（ローカル開発サーバー用）
+**開発時**: `/MAIL-ASSETS/hero.png`（ローカル開発サーバー用）
 **本番時**: `https://bucket.s3.region.amazonaws.com/archives/YYYY/MM/DD-MSG/assets/hero.png`
 
 **実装**: `send-test-email.ts` と `send-production-email.ts` の `replaceImagePaths()` 関数で正規表現置換。
@@ -251,11 +251,11 @@ function replaceImagePaths(
   mm: string,
   ddMsg: string
 ): string {
-  const pattern = /<Img[^>]*src=['"]\/mail-assets\/([^'"]+)['"]/g;
+  const pattern = /<Img[^>]*src=['"]\/MAIL-ASSETS\/([^'"]+)['"]/g;
 
   return html.replace(pattern, (match, filename) => {
     const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
-    return match.replace(/\/mail-assets\/[^'"]+/, s3Url);
+    return match.replace(/\/MAIL-ASSETS\/[^'"]+/, s3Url);
   });
 }
 ```

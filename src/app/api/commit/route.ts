@@ -11,7 +11,7 @@ import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from '@/lib/s3';
  */
 const PROJECT_ROOT = process.cwd();
 const DRAFT_FILE = path.join(PROJECT_ROOT, 'src/app/page.tsx');
-const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, 'public/mail-assets');
+const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, 'public/MAIL-ASSETS');
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, 'src/archives');
 const TEMPLATE_FILE = path.join(PROJECT_ROOT, 'src/app/draft/template.tsx');
 
@@ -263,7 +263,7 @@ export async function POST(request: NextRequest) {
         });
         console.log('[API /commit] 画像ファイル移動完了');
       } else {
-        console.log('[API /commit] 警告: mail-assets/ に画像がありません');
+        console.log('[API /commit] 警告: MAIL-ASSETS/ に画像がありません');
       }
     }
 

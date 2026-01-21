@@ -26,7 +26,7 @@
                     │   page.tsx           │
                     │                      │
                     │ 画像: public/        │
-                    │   mail-assets/       │
+                    │   MAIL-ASSETS/       │
                     └──────────────────────┘
                                  │
                                  │ pnpm run commit
@@ -173,7 +173,7 @@ kozokaai-mailmagazine-sender/
 │       ├── send-test-email.ts     # Staging Workflow
 │       └── send-production-email.ts # Production Workflow
 ├── public/
-│   ├── mail-assets/               # 制作中の画像
+│   ├── MAIL-ASSETS/               # 制作中の画像
 │   └── archives/                  # アーカイブ済みメール
 │       └── YYYY/MM/DD-MSG/
 │           ├── mail.tsx
@@ -193,7 +193,7 @@ kozokaai-mailmagazine-sender/
 ```
 src/app/draft/page.tsx (編集中)
   ├── <EmailWrapper> (共通レイアウト)
-  │     └── <Img src="/mail-assets/hero.png" /> (画像参照)
+  │     └── <Img src="/MAIL-ASSETS/hero.png" /> (画像参照)
   └── <p>メール本文...</p>
 
            │
@@ -203,7 +203,7 @@ src/app/draft/page.tsx (編集中)
 public/archives/2024/05/20-summer-sale/
   ├── mail.tsx (draft/page.tsx をコピー)
   ├── assets/
-  │     └── hero.png (mail-assets/ から移動)
+  │     └── hero.png (MAIL-ASSETS/ から移動)
   └── config.json
         {
           "subject": "【夏季限定】特別セール",
@@ -235,7 +235,7 @@ upload-to-s3.ts (Staging Workflow)
 send-test-email.ts (Staging Workflow)
   ├── mail.tsx を React → HTML 変換
   ├── 画像パス置換
-  │     /mail-assets/hero.png
+  │     /MAIL-ASSETS/hero.png
   │       → https://bucket.s3.region.amazonaws.com/.../hero.png
   └── Resend API でテスト送信
         to: REVIEWER_EMAIL
@@ -260,7 +260,7 @@ send-production-email.ts (Production Workflow)
 
 ### 問題
 
-メール制作時に使用する画像パス（`/mail-assets/hero.png`）は、ローカル開発サーバーでのみ有効です。実際のメール配信では、S3にホスティングされた画像を参照する必要があります。
+メール制作時に使用する画像パス（`/MAIL-ASSETS/hero.png`）は、ローカル開発サーバーでのみ有効です。実際のメール配信では、S3にホスティングされた画像を参照する必要があります。
 
 ### 解決策
 
@@ -277,7 +277,7 @@ export default function DraftMail() {
   return (
     <EmailWrapper>
       <Img
-        src="/mail-assets/hero.png"
+        src="/MAIL-ASSETS/hero.png"
         alt="Hero Image"
         width={600}
         height={400}
@@ -303,11 +303,11 @@ function replaceImagePaths(
   mm: string,
   ddMsg: string
 ): string {
-  const pattern = /<Img[^>]*src=['"]\/mail-assets\/([^'"]+)['"]/g;
+  const pattern = /<Img[^>]*src=['"]\/MAIL-ASSETS\/([^'"]+)['"]/g;
 
   return html.replace(pattern, (match, filename) => {
     const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
-    return match.replace(/\/mail-assets\/[^'"]+/, s3Url);
+    return match.replace(/\/MAIL-ASSETS\/[^'"]+/, s3Url);
   });
 }
 ```
@@ -316,7 +316,7 @@ function replaceImagePaths(
 
 ```html
 <!-- Before -->
-<img src="/mail-assets/hero.png" alt="Hero Image" width="600" height="400" />
+<img src="/MAIL-ASSETS/hero.png" alt="Hero Image" width="600" height="400" />
 
 <!-- After -->
 <img src="https://bucket.s3.ap-northeast-1.amazonaws.com/archives/2024/05/20-summer-sale/assets/hero.png"
@@ -683,8 +683,8 @@ This workflow is waiting for approval to deploy to production.
 | `AWS_ACCESS_KEY_ID` | AWS IAM認証 | `AKIA...` |
 | `AWS_SECRET_ACCESS_KEY` | AWS IAM認証 | `secret...` |
 | `AWS_REGION` | S3リージョン | `ap-northeast-1` |
-| `S3_BUCKET_NAME` | S3バケット名 | `my-mail-assets` |
-| `S3_BUCKET_URL` | S3ベースURL | `https://my-mail-assets.s3.ap-northeast-1.amazonaws.com` |
+| `S3_BUCKET_NAME` | S3バケット名 | `my-MAIL-ASSETS` |
+| `S3_BUCKET_URL` | S3ベースURL | `https://my-MAIL-ASSETS.s3.ap-northeast-1.amazonaws.com` |
 
 ### Check Workflow（check.yml）
 

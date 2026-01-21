@@ -20,7 +20,7 @@
 3. **バケットを作成** ボタンをクリック
 
 **基本設定**:
-- **バケット名**: 任意（例: `kozokaai-mail-assets`）
+- **バケット名**: 任意（例: `kozokaai-MAIL-ASSETS`）
 - **リージョン**: `ap-northeast-1`（東京）推奨
 - **バケットタイプ**: **General purpose**（汎用）
 
@@ -140,7 +140,7 @@ S3バケットのURLを確認します。
 
 **形式**: `https://{bucket-name}.s3.{region}.amazonaws.com`
 
-**例**: `https://kozokaai-mail-assets.s3.ap-northeast-1.amazonaws.com`
+**例**: `https://kozokaai-MAIL-ASSETS.s3.ap-northeast-1.amazonaws.com`
 
 ---
 
@@ -224,8 +224,8 @@ Resendの提供するテストアドレス `onboarding@resend.dev` を使用で�
 | `AWS_ACCESS_KEY_ID` | AWS IAMアクセスキー | `AKIA...` |
 | `AWS_SECRET_ACCESS_KEY` | AWS IAMシークレットキー | `secret...` |
 | `AWS_REGION` | S3リージョン | `ap-northeast-1` |
-| `S3_BUCKET_NAME` | S3バケット名 | `kozokaai-mail-assets` |
-| `S3_BUCKET_URL` | S3ベースURL | `https://kozokaai-mail-assets.s3.ap-northeast-1.amazonaws.com` |
+| `S3_BUCKET_NAME` | S3バケット名 | `kozokaai-MAIL-ASSETS` |
+| `S3_BUCKET_URL` | S3ベースURL | `https://kozokaai-MAIL-ASSETS.s3.ap-northeast-1.amazonaws.com` |
 
 ### 3.3. Secrets登録手順
 
@@ -314,8 +314,8 @@ RESEND_FROM_EMAIL=info@example.com
 AWS_ACCESS_KEY_ID=AKIA...
 AWS_SECRET_ACCESS_KEY=secret...
 AWS_REGION=ap-northeast-1
-S3_BUCKET_NAME=kozokaai-mail-assets
-S3_BUCKET_URL=https://kozokaai-mail-assets.s3.ap-northeast-1.amazonaws.com
+S3_BUCKET_NAME=kozokaai-MAIL-ASSETS
+S3_BUCKET_URL=https://kozokaai-MAIL-ASSETS.s3.ap-northeast-1.amazonaws.com
 
 # レビュアー
 REVIEWER_EMAIL=reviewer@example.com

@@ -129,7 +129,7 @@ aws s3 cp s3://<bucket-name>/archives/YYYY/MM/DD-MSG/config.json - | jq .
 
 **例**:
 ```bash
-aws s3 cp s3://kozokaai-mail-assets/archives/2026/01/20-gui-delivery-test/config.json - | jq .
+aws s3 cp s3://kozokaai-MAIL-ASSETS/archives/2026/01/20-gui-delivery-test/config.json - | jq .
 ```
 
 #### 期待される出力

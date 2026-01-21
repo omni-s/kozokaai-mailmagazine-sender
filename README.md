@@ -74,7 +74,7 @@ kozokaai-mailmagazine-sender/
 │       ├── send-test-email.ts  # GitHub Actions: テスト送信
 │       └── send-production-email.ts  # GitHub Actions: 本番配信
 ├── public/
-│   ├── mail-assets/            # 作業中の画像置き場
+│   ├── MAIL-ASSETS/            # 作業中の画像置き場
 │   └── archives/               # メールアーカイブ
 │       └── {YYYY}/
 │           └── {MM}/
@@ -184,7 +184,7 @@ pnpm run dev
 ### ローカル制作
 
 1. http://localhost:3000/draft でメールをデザイン
-2. 画像は `public/mail-assets/` に配置
+2. 画像は `public/MAIL-ASSETS/` に配置
 3. ブラウザでプレビュー確認
 4. 完成したら以下のコマンドを実行
 

@@ -19,8 +19,8 @@ import { CommitForm } from '@/components/commit/CommitForm';
  * このファイルを編集してメールをデザインします。
  * `pnpm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
  *
- * 画像は public/mail-assets/ に配置してください。
- * 例: <Img src="/mail-assets/hero.jpg" alt="Hero Image" width="600" />
+ * 画像は public/MAIL-ASSETS/ に配置してください。
+ * 例: <Img src="/MAIL-ASSETS/hero.jpg" alt="Hero Image" width="600" />
  */
 
 /**
@@ -37,7 +37,7 @@ export function MailContent() {
       <EmailSection>
         <EmailCard backgroundColor="#ffffff" padding="0">
           <Img
-            src="/mail-assets/placeholder.webp"
+            src="/MAIL-ASSETS/placeholder.webp"
             alt="ヘッダー画像"
             width="520"
             style={{
@@ -78,7 +78,7 @@ export function MailContent() {
               このファイル (src/app/page.tsx) を編集
             </li>
             <li style={{ marginBottom: '8px' }}>
-              画像を public/mail-assets/ に配置
+              画像を public/MAIL-ASSETS/ に配置
             </li>
             <li style={{ marginBottom: '8px' }}>
               pnpm run dev でプレビュー確認
@@ -138,7 +138,7 @@ export default function Home() {
         <EmailSection>
           <EmailCard backgroundColor="#ffffff" padding="0">
             <Img
-              src="/mail-assets/placeholder.webp"
+              src="/MAIL-ASSETS/placeholder.webp"
               alt="ヘッダー画像"
               width="520"
               style={{
@@ -179,7 +179,7 @@ export default function Home() {
                 このファイル (src/app/page.tsx) を編集
               </li>
               <li style={{ marginBottom: '8px' }}>
-                画像を public/mail-assets/ に配置
+                画像を public/MAIL-ASSETS/ に配置
               </li>
               <li style={{ marginBottom: '8px' }}>
                 pnpm run dev でプレビュー確認

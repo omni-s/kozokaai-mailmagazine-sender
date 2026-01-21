@@ -30,7 +30,7 @@ export function WorkflowSection() {
             }
           >
             <Text size="sm" c="dimmed">
-              画像は <Code>public/mail-assets/</Code> に配置
+              画像は <Code>public/MAIL-ASSETS/</Code> に配置
             </Text>
           </List.Item>
           <List.Item

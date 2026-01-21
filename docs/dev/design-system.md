@@ -216,7 +216,7 @@ export default function DraftEmail() {
   }}
 >
   <Img
-    src="/mail-assets/hero.jpg"
+    src="/MAIL-ASSETS/hero.jpg"
     alt="ヒーロー画像"
     width="520"
     style={{
@@ -331,7 +331,7 @@ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica N
 
 #### 画像コンポーネント
 - **Img**: `@/components/email/Img` を使用
-- 開発時: `/mail-assets/` パス
+- 開発時: `/MAIL-ASSETS/` パス
 - 本番時: S3 URLに自動置換
 
 #### 画像使用例
@@ -339,7 +339,7 @@ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica N
 import { Img } from '@/components/email/Img';
 
 <Img
-  src="/mail-assets/hero.jpg"
+  src="/MAIL-ASSETS/hero.jpg"
   alt="ヒーロー画像"
   width="520"
   style={{
@@ -351,7 +351,7 @@ import { Img } from '@/components/email/Img';
 ```
 
 #### ✅ 画像の適切な使用
-- 画像は`public/mail-assets/`に配置
+- 画像は`public/MAIL-ASSETS/`に配置
 - `alt`属性を必ず指定（アクセシビリティ）
 - `width`属性を指定（メールクライアント互換性）
 - カード内に配置して視覚的階層を作成
