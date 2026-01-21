@@ -204,6 +204,56 @@ pnpm install
 # Command Palette → "Dev Containers: Rebuild Container Without Cache"
 ```
 
+### 7. プラットフォーム固有バイナリの不一致（esbuild等）
+
+**問題:**
+```
+Error: You installed esbuild for another platform than the one you're currently using.
+Specifically the "@esbuild/darwin-arm64" package is present but this platform
+needs the "@esbuild/linux-arm64" package instead.
+```
+
+**原因:**
+- ローカル環境（macOS）で`pnpm install`を実行すると、macOS用のバイナリがインストールされる
+- `.devcontainer/devcontainer.json`の`workspaceMount`設定により、ローカルの`node_modules`がそのままDevContainerにマウントされる
+- DevContainer（Linux）で実行すると、プラットフォーム固有のバイナリが不一致になる
+
+**影響を受けるパッケージ:**
+- `esbuild` / `@esbuild/*`
+- `@swc/core`
+- `sharp`
+- その他のネイティブバイナリを含むパッケージ
+
+**対応1: DevContainerを再ビルド**
+```bash
+# Command Palette (Cmd+Shift+P)
+> Dev Containers: Rebuild Container
+```
+
+**対応2: 手動でnode_modulesを再インストール**
+```bash
+# DevContainer内で実行
+rm -rf node_modules .next
+pnpm install
+```
+
+**対応3: .devcontainer/devcontainer.jsonを確認**
+
+`.devcontainer/devcontainer.json`のL51が以下のようになっているか確認:
+
+```json
+"postCreateCommand": "rm -rf node_modules .next && pnpm install",
+```
+
+この設定により、DevContainer起動時に自動的にLinux用のバイナリが再インストールされます。
+
+**予防策:**
+- DevContainerを使用する場合は、ローカルで`pnpm install`を実行しない
+- または、DevContainer起動時に必ず再ビルドを実行
+- `.next`キャッシュもクリアすることで、ビルド関連の問題を回避
+
+---
+
 ## カスタマイズガイド
 
 ### VS Code拡張機能の追加
@@ -291,4 +341,4 @@ pnpm install
 
 ---
 
-最終更新日: 2025-12-18
+最終更新日: 2026-01-21

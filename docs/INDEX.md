@@ -43,7 +43,7 @@ docs/
 - **[devcontainer.md](./dev/devcontainer.md)** - VS Code Dev Container 設定と使い方
   - Dev Containerの概要と利点
   - セットアップ手順（初回・2回目以降）
-  - トラブルシューティング（ポート競合、認証エラー等）
+  - トラブルシューティング（ポート競合、認証エラー、プラットフォーム固有バイナリの不一致等）
   - カスタマイズガイド（拡張機能追加、ポート設定等）
 
 ### 環境構築（setup/）
@@ -74,6 +74,7 @@ docs/
 
 - **[troubleshooting.md](./ops/troubleshooting.md)** - トラブルシューティング
   - pnpm run commit エラー対処
+  - DevContainer環境でのesbuildエラー対処
   - GitHub Actions エラー対処（Check、Staging、Production）
   - 画像が表示されない問題の診断
   - メールが届かない問題の診断
@@ -132,4 +133,4 @@ docs/
 
 ---
 
-最終更新日: 2026-01-20
+最終更新日: 2026-01-21
