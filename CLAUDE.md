@@ -459,9 +459,29 @@ REVIEWER_EMAIL=reviewer@example.com
 TEST_SEGMENT_ID=your_test_segment_id
 ```
 
-### GitHub Actions用（GitHub Secrets）
+### GitHub Actions用（GitHub Secrets & Variables）
 
-上記すべて + `GITHUB_TOKEN`（自動設定済み）
+#### GitHub Secrets（機密情報）
+- RESEND_API_KEY
+- RESEND_FROM_EMAIL
+- REVIEWER_EMAIL
+- S3_BUCKET_URL
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- AWS_REGION
+- S3_BUCKET_NAME
+- GITHUB_TOKEN（自動設定済み）
+
+#### GitHub Variables（非機密情報）
+- TEST_SEGMENT_ID（オプション）
+
+**設定場所**:
+- Secrets: Settings → Secrets and variables → Actions → Secrets
+- Variables: Settings → Secrets and variables → Actions → Variables
+
+**TEST_SEGMENT_ID の動作**:
+- 設定時: Staging Workflow でテスト用 Segment 全体にテストメール送信
+- 未設定時: Staging Workflow で REVIEWER_EMAIL（1名）にテストメール送信
 
 **GitHub Environments**:
 - `production` 環境を作成

@@ -238,6 +238,48 @@ Resendの提供するテストアドレス `onboarding@resend.dev` を使用で�
 
 ---
 
+## GitHub Variables（非機密情報の管理）
+
+### Variables とは
+
+- **用途**: 非機密の設定値（Segment ID、環境名など）
+- **可視性**: Settings → Secrets and variables → Actions → Variables で値を確認・編集可能
+- **暗号化**: なし（平文で保存）
+
+### TEST_SEGMENT_ID の設定
+
+**TEST_SEGMENT_ID は Variables で管理します**（Secrets ではありません）
+
+#### 設定手順
+
+1. **GitHubリポジトリ** → **Settings** → **Secrets and variables** → **Actions**
+2. **Variables** タブをクリック
+3. **New repository variable** ボタンをクリック
+4. 以下を入力:
+   - **Name**: `TEST_SEGMENT_ID`
+   - **Value**: テスト用 Segment ID（例: `2491ecb4-cd37-47e9-82e2-b5fa9e5bed9f`）
+     - Resend Dashboard → Audiences → Test Segment → Segment ID をコピー
+5. **Add variable** をクリック
+
+### Secrets と Variables の使い分け
+
+| 設定項目 | 種別 | 理由 |
+|---------|------|------|
+| RESEND_API_KEY | Secrets | API キーは機密情報 |
+| AWS_ACCESS_KEY_ID | Secrets | AWS認証情報は機密情報 |
+| AWS_SECRET_ACCESS_KEY | Secrets | AWS認証情報は機密情報 |
+| TEST_SEGMENT_ID | **Variables** | Segment ID は非機密情報（UUID） |
+| REVIEWER_EMAIL | Secrets | メールアドレスは個人情報（PII） |
+| その他（S3_BUCKET_URL等） | Secrets | 現状維持（統一性のため） |
+
+### 注意事項
+
+- 既に `TEST_SEGMENT_ID` を Secrets で設定している場合でも、Variables が優先されます
+- Variables は暗号化されないため、機密情報は **絶対に** Variables に設定しないでください
+- Variables 未設定時は REVIEWER_EMAIL にフォールバック（個別送信）
+
+---
+
 ## 4. GitHub Environments設定（Manual Approval）
 
 ### 4.1. Environments画面へのアクセス
