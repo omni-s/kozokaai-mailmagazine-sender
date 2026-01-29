@@ -3,6 +3,7 @@ import './globals.css';
 import { MantineProvider, ColorSchemeScript } from '@mantine/core';
 import { AppShellLayout } from '@/components/layout/AppShellLayout';
 import { getArchiveList } from '@/lib/archive-loader';
+import { theme } from '@/lib/theme';
 
 export const metadata: Metadata = {
   title: 'Resend メール配信システム',
@@ -22,7 +23,7 @@ export default async function RootLayout({
         <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body>
-        <MantineProvider defaultColorScheme="auto">
+        <MantineProvider defaultColorScheme="auto" theme={theme}>
           <AppShellLayout archives={archives}>
             {children}
           </AppShellLayout>

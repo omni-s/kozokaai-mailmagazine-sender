@@ -1,383 +1,50 @@
 ---
 alwaysApply: true
-description: "Cursor IDEを使用してこのシステムを開発する上で遵守するルールを定義しています。"
+description: "毎回参照される最低限のルールとドキュメントへの参照リンク"
 ---
 
 # プロジェクト全体ルール
 
-このファイルは、kozokaAI メールマガジン配信システムのプロジェクト全体に適用されるルールを定義します。
+kozokaAI メールマガジン配信システム（Next.js + React Email + Resend API + AWS S3）のプロジェクト全体に適用される最低限のルールとドキュメントへの参照リンクです。
 
-## 非エンジニア向けリソース
+## 必須遵守ルール
 
-メールデザインを行う非エンジニアの方は、以下のリソースを活用してください：
-- **安全ガイド**: `.cursor/rules/non-engineer-safety.mdc`
-- **初心者向けガイド**: `docs/for-non-engineers/getting-started.md`
-- **コンポーネントリファレンス**: `docs/for-non-engineers/component-reference.md`
-- **よくあるエラー**: `docs/for-non-engineers/common-errors.md`
-- **kozokaAI ブランドガイド**: `docs/for-non-engineers/brand-guide.md`
+### ドキュメント運用
 
----
+- **ルール/知見は `docs/` に集約**（唯一の SoT）
+- **変更時は `docs/INDEX.md` を必ず更新**
+- **ドキュメントコミットは `DOC:` プレフィックス**
+- **機密情報（PII 等）は `docs/` に保存しない**
 
-## プロジェクト概要
-
-Resend メール配信システム。Next.js + React Email + Resend API + AWS S3 を組み合わせた、マーケティング担当者向けメールマガジン配信システムです。
-
-**主な特徴:**
-
-- ローカルで React コンポーネントとしてメールをデザイン
-- Git + GitHub Actions による完全自動化された CI/CD パイプライン
-- S3 による画像ホスティング + Resend API による一斉配信
-- Manual Approval による誤送信防止機構
-- 予約配信機能（日本時間で配信日時を指定可能）
-
----
-
-## 技術スタック
-
-### ランタイム
-
-- **Node.js**: 20.20.0（LTS、セキュリティ修正済み）
-
-### コア技術
-
-- **Next.js**: 16.1.0 (App Router, Turbopack)
-- **React**: 19.2.3
-- **TypeScript**: 5.9.3
-- **Tailwind CSS**: 4.1.18 (@tailwindcss/postcss)
-
-### メール配信
-
-- **Resend API**: メール配信プラットフォーム（SDK v6.6.0）
-- **@react-email/render**: React → HTML 変換（非同期 API: `await render()`、v2.0.0）
-- **@react-email/components**: メール用 React コンポーネント
-
-### インフラ
-
-- **AWS S3**: 画像アセット配信（SDK v3 使用）
-- **GitHub Actions**: CI/CD（Manual Approval 機能）
-
----
-
-## ディレクトリ構造
-
-```
-kozokaai-mailmagazine-sender/
-├── src/
-│ ├── app/
-│ │ ├── page.tsx # メールテンプレート編集（MailContent + Home）
-│ │ ├── layout.tsx
-│ │ └── globals.css
-│ ├── components/
-│ │ ├── email/ # メール用コンポーネント
-│ │ │ ├── EmailWrapper.tsx # テーブルレイアウト（メールクライアント互換）
-│ │ │ └── Img.tsx # 画像パス解決コンポーネント
-│ │ └── ui/ # ShadcnUI コンポーネント
-│ ├── lib/
-│ │ ├── resend.ts # Resend SDK初期化
-│ │ ├── s3.ts # S3 Client初期化
-│ │ └── config-schema.ts # Zodスキーマ（config.json検証）
-│ └── scripts/ # CLI・自動化スクリプト
-│ ├── commit.ts # pnpm run commit
-│ ├── validate-archive.ts # GitHub Actions: バリデーション
-│ ├── upload-to-s3.ts # GitHub Actions: S3アップロード
-│ ├── send-test-email.ts # GitHub Actions: テスト送信
-│ └── send-production-email.ts # GitHub Actions: 本番配信
-├── public/
-│ ├── MAIL-ASSETS/ # 作業中の画像置き場
-│ └── archives/ # メールアーカイブ
-│ └── {YYYY}/
-│ └── {MM}/
-│ └── {DD-MSG}/
-│ ├── mail.tsx
-│ ├── config.json
-│ └── assets/
-└── docs/ # ドキュメント（唯一のSoT）
- ├── INDEX.md # ドキュメント索引
- ├── specs/ # 仕様関連
- ├── dev/ # 開発関連
- ├── setup/ # 環境構築
- └── ops/ # 運用関連
-```
-
----
-
-## 開発コマンド
-
-### ローカル開発
-
-```bash
-# 開発サーバー起動（Hot Reload有効）
-pnpm run dev
-
-# ブラウザで http://localhost:3000 を開く
-# メール制作は http://localhost:3000
-```
-
-### ビルド・検証
-
-```bash
-# Next.jsビルド
-pnpm run build
-
-# ESLint実行
-pnpm run lint
-
-# TypeScript型チェック
-pnpm run type-check
-```
-
-### メール配信フロー
-
-```bash
-# ローカル制作完了後のアーカイブ・コミット
-pnpm run commit
-```
-
-対話形式で以下を入力:
-
-- コミットメッセージ（例: `summer-sale`）
-- メール件名（例: `【サマーセール】最大50%OFFのお知らせ`）
-- Resend Segment ID（例: `78261eea-8f8b-4381-83c6-79fa7120f1cf`）
-- 配信タイミング（即時配信 or 予約配信）
-- 配信日時（予約配信の場合、JST、例: `2026-01-20 18:00`）
-
-スクリプトが自動的に:
-
-1. アーカイブディレクトリを作成（`public/archives/{YYYY}/{MM}/{DD-MSG}/`）
-2. `src/app/page.tsx` → `mail.tsx` に移動
-3. `public/MAIL-ASSETS/` → `assets/` に画像移動
-4. `config.json` 生成（subject, segmentId, scheduledAt, sentAt: null）
-5. `src/app/page.tsx` を初期テンプレートにリセット
-6. Git commit & push（コミットメッセージ: `MAIL: {message}`）
-
----
-
-## 重要な設計パターン
-
-### 1. メール HTML 互換性
-
-**問題**: Modern CSS（flexbox、grid）は多くのメールクライアント（Outlook、Gmail）で非対応。
-
-**解決策**: `EmailWrapper.tsx` で `<table>` タグ + インラインスタイルを使用。
-
-**実装**:
-
-- 外側テーブル: 100%幅、背景色 #f6f9fc
-- 内側テーブル: 600px 固定幅、背景色 #ffffff
-- 中央揃え: `<td align="center">`（`margin: 0 auto` 非対応対策）
-
-### 2. 画像パス置換ロジック
-
-**開発時**: `/MAIL-ASSETS/hero.png`（ローカル開発サーバー用）
-**本番時**: `https://bucket.s3.region.amazonaws.com/archives/YYYY/MM/DD-MSG/assets/hero.png`
-
-**実装**: `send-test-email.ts` と `send-production-email.ts` の `replaceImagePaths()` 関数で正規表現置換。
-
-### 3. EmailWrapper の preview モード
-
-**問題**: ブラウザプレビュー（Next.js）とメール配信（Resend）で必要な HTML 構造が異なる。
-
-**解決策**: `preview` prop で切り替え。
-
-**実装**:
-
-- `preview={true}`: `<table>` のみ返却（Next.js App Router 用、`<html>`, `<body>` なし）
-- `preview={false}`（デフォルト）: `<html>`, `<body>` を含むフル HTML（メール配信用）
-
-**使用例**:
-
-```tsx
-// ブラウザプレビュー（src/app/page.tsx）
-<EmailWrapper preview={true} previewText="...">
- {children}
-</EmailWrapper>
-
-// メール配信（src/scripts/send-test-email.ts）
-<EmailWrapper previewText="...">
- {children}
-</EmailWrapper>
-```
-
----
-
-## ドキュメント運用ルール
-
-### 基本方針
-
-- ルール/知見は `docs/` に集約（唯一の SoT）
-- 変更時は `docs/INDEX.md` を必ず更新
-- ドキュメントコミットは `DOC:` プレフィックス
-- 機密情報（PII 等）は `docs/` に保存しない
-
-### 運用フロー（PDCA）
+### 作業フロー
 
 1. **PLAN**: `docs/INDEX.md` で既存配置と命名を確認
 2. **DO**: 該当 `docs/` ファイルを更新 or 新規作成
-3. **CHECK**: リンク切れ/重複/命名不整合が無いか確認
+3. **CHECK**: `.cursor/rules/guidelines.mdc`にあるチェックリストを参照
 4. **ACTION**: 運用改善点や不足ルールをドキュメント化
 
-### 命名・配置ガイド
-
-- ファイル名は `kebab-case.md`、目的が明確な名前
-- 1 ファイルが 300 行超 or 技術領域が分岐 → 分割/ディレクトリ化
-
-### 主要ドキュメント
-
-- **[docs/INDEX.md](./docs/INDEX.md)**: ドキュメント索引
-- **[docs/specs/require.md](./docs/specs/require.md)**: 要件定義書
-- **[docs/specs/architecture.md](./docs/specs/architecture.md)**: システムアーキテクチャ
-- **[docs/dev/design-system.md](./docs/dev/design-system.md)**: デザインシステム仕様書
-- **[docs/dev/branch.md](./docs/dev/branch.md)**: ブランチ戦略と CI/CD
-- **[docs/ops/workflow.md](./docs/ops/workflow.md)**: 日常的な配信フロー
-
 ---
 
-## コミットメッセージ規約
+## ドキュメント参照
 
-### プレフィックス
+### メイン索引
 
-- `MAIL:` - メール配信関連（アーカイブ作成、本番配信）
-- `FIX:` - バグ修正
-- `FEAT:` - 新機能追加
-- `DOC:` - ドキュメント更新
-- `CHORE:` - ビルド、設定変更
+- **[docs/INDEX.md](./docs/INDEX.md)** - 全ドキュメントの索引（必ず最初に確認）
+- **[.cursor/rules/guidelines.mdc]** - メルマガ作成のためのルール
 
-### 例
+### 非エンジニア向けリソース
 
-```
-MAIL: summer-sale
-FIX: React2Shell脆弱性対応（CVE-2025-55182）
-DOC: セキュリティアップデート手順を追加
-FEAT: Manual Approval機能を追加
-CHORE: Add devcontainer configuration
-```
+- **[.cursor/rules/non-engineer-safety.mdc](./.cursor/rules/non-engineer-safety.mdc)** - 安全ガイド
+- **[docs/for-non-engineers/getting-started.md](./docs/for-non-engineers/getting-started.md)** - 初心者向けガイド
+- **[docs/for-non-engineers/component-reference.md](./docs/for-non-engineers/component-reference.md)** - コンポーネントリファレンス
+- **[docs/for-non-engineers/common-errors.md](./docs/for-non-engineers/common-errors.md)** - よくあるエラー集
+- **[docs/for-non-engineers/brand-guide.md](./docs/for-non-engineers/brand-guide.md)** - kozokaAI ブランドガイド
 
----
+### 主要ドキュメント（詳細は docs/INDEX.md を参照）
 
-## GitHub Actions Workflows
-
-### check.yml
-
-**Trigger**: `main`, `feature/**` への Push
-
-**処理内容**:
-
-- ESLint 実行
-- TypeScript 型チェック
-- Next.js ビルド
-- アーカイブバリデーション（config.json、画像パス、Segment ID 確認）
-
-### staging.yml
-
-**Trigger**: Pull Request 作成・更新
-
-**処理内容**:
-
-- 新規追加された archive ディレクトリを検出
-- 画像を S3 へアップロード（public-read）
-- React → HTML 変換
-- テストメール送信
-- `TEST_SEGMENT_ID` 設定時: Segment 一斉送信（件名: `[TEST] {subject}`）
-- 未設定時: `REVIEWER_EMAIL` へ個別送信（件名: `[TEST] {subject}`）
-
-### production.yml
-
-**Trigger**: `main` へのマージ
-
-**処理内容**:
-
-- **Manual Approval 待機**（GitHub Environments 機能）
-- `production-dispatcher.ts` を実行
-- `scheduledAt === null` → 即時配信実行
-- `scheduledAt > 現在時刻` → ログ出力のみ（予約配信待機）
-- `scheduledAt <= 現在時刻` → 即時配信実行（過去日時の場合）
-- `config.json` の `sentAt` を更新してコミット（即時配信の場合のみ）
-
-### scheduled-email-delivery.yml
-
-**Trigger**: cron（5 分ごと）、手動実行（`workflow_dispatch`）
-
-**処理内容**:
-
-- **Manual Approval 不要**（無人実行）
-- `send-scheduled-emails.ts` を実行
-- S3 から全 config.json を取得
-- `scheduledAt` が現在時刻 ±5 分以内のアーカイブを抽出
-- 重複送信防止: `sentAt !== null` の場合はスキップ
-- Resend Audience へ一斉送信
-- `config.json` の `sentAt` を更新してコミット
-
----
-
-## 環境変数
-
-### ローカル開発用（.env）
-
-```bash
-# Resend API
-RESEND_API_KEY=your_resend_api_key
-RESEND_FROM_EMAIL=your_email@example.com
-
-# AWS S3
-AWS_ACCESS_KEY_ID=your_aws_access_key_id
-AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
-AWS_REGION=ap-northeast-1
-S3_BUCKET_NAME=your_bucket_name
-S3_BUCKET_URL=https://your_bucket_name.s3.ap-northeast-1.amazonaws.com
-
-# Test Email
-REVIEWER_EMAIL=reviewer@example.com
-
-# Test Email - Segment送信（オプション）
-# TEST_SEGMENT_IDが設定されている場合、Segment一斉送信でテストメール送信
-# 未設定の場合、REVIEWER_EMAILに個別送信
-TEST_SEGMENT_ID=your_test_segment_id
-```
-
-### GitHub Actions 用（GitHub Secrets）
-
-上記すべて + `GITHUB_TOKEN`（自動設定済み）
-
-**GitHub Environments**:
-
-- `production` 環境を作成
-- Protection Rules で承認者を設定
-
----
-
-## トラブルシューティング
-
-### pnpm run commit エラー
-
-**症状**: `page.tsx が見つかりません`
-
-**原因**: `src/app/page.tsx` が存在しない
-
-**解決策**: `src/app/draft/template.tsx` から復元
-
-### GitHub Actions エラー
-
-**Check Workflow 失敗**:
-
-- ESLint: `pnpm run lint` でローカル確認
-- TypeScript: `pnpm run type-check` でローカル確認
-- Validation: `config.json` の形式、Segment ID 確認
-
-**Staging Workflow 失敗**:
-
-- S3 アップロード: AWS 認証情報確認（GitHub Secrets）
-- テスト送信: `REVIEWER_EMAIL` 確認
-
-**Production Workflow 失敗**:
-
-- Manual Approval: 承認者が承認ボタン押下済みか確認
-- Resend API: Segment ID 存在確認
-
----
-
-## 参照リンク
-
-- [Resend 公式ドキュメント](https://resend.com/docs)
-- [Next.js 公式ドキュメント](https://nextjs.org/docs)
-- [@react-email/render](https://react.email/docs/utilities/render)
-- [GitHub Actions 公式ドキュメント](https://docs.github.com/ja/actions)
+- **[docs/specs/require.md](./docs/specs/require.md)** - 要件定義書
+- **[docs/specs/architecture.md](./docs/specs/architecture.md)** - システムアーキテクチャ
+- **[docs/dev/branch.md](./docs/dev/branch.md)** - ブランチ戦略と CI/CD
+- **[docs/ops/workflow.md](./docs/ops/workflow.md)** - 日常的な配信フロー
+- **[docs/ops/troubleshooting.md](./docs/ops/troubleshooting.md)** - トラブルシューティング
+- **[docs/setup/environment.md](./docs/setup/environment.md)** - 環境構築ガイド

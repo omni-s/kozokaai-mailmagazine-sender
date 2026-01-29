@@ -143,7 +143,7 @@ export default function Home() {
       {/* 配信準備ボタン */}
       <Container size="sm" mt="xl" mb="xl">
         <Box style={{ textAlign: 'center' }}>
-          <Button onClick={open} size="lg" color="blue" fullWidth>
+          <Button onClick={open} size="lg" fullWidth>
             配信準備を開始
           </Button>
         </Box>
