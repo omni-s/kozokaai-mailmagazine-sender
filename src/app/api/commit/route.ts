@@ -272,7 +272,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 7. assets/ の移動
+    // 7. assets/ の移動（ファイルのみコピー、ディレクトリはスキップ）
     if (fs.existsSync(MAIL_ASSETS_DIR)) {
       const entries = fs.readdirSync(MAIL_ASSETS_DIR);
       if (entries.length > 0) {
@@ -281,7 +281,7 @@ export async function POST(request: NextRequest) {
           const srcPath = path.join(MAIL_ASSETS_DIR, entry);
           const destPath = path.join(assetsDir, entry);
           const stat = fs.statSync(srcPath);
-          
+
           if (stat.isDirectory()) {
             // ディレクトリの場合は再帰的にコピー
             fs.cpSync(srcPath, destPath, { recursive: true });
@@ -293,7 +293,15 @@ export async function POST(request: NextRequest) {
         });
         console.log('[API /commit] 画像ファイルコピー完了');
       } else {
-        console.log('[API /commit] 警告: MAIL-ASSETS/ に画像がありません');
+        console.log('[API /commit] 警告: MAIL-ASSETS/ に画像ファイルがありません');
+      }
+      // サブディレクトリが存在する場合は警告
+      const dirs = entries.filter((entry) => {
+        const entryPath = path.join(MAIL_ASSETS_DIR, entry);
+        return fs.statSync(entryPath).isDirectory();
+      });
+      if (dirs.length > 0) {
+        console.warn(`[API /commit] 警告: MAIL-ASSETS/ にサブディレクトリが検出されました: ${dirs.join(', ')}。画像はフラットに配置してください。`);
       }
     }
 

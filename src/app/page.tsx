@@ -4,11 +4,9 @@ import React from 'react';
 import { Modal, Button, Container, Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { EmailWrapper } from '@/components/email/EmailWrapper';
-import { EmailHeader } from '@/components/email/EmailHeader';
 import { EmailSection } from '@/components/email/EmailSection';
 import { EmailCard } from '@/components/email/EmailCard';
 import { EmailButton } from '@/components/email/EmailButton';
-import { EmailHeading } from '@/components/email/EmailHeading';
 import { EmailText } from '@/components/email/EmailText';
 import { EmailDivider } from '@/components/email/EmailDivider';
 import { Img } from '@/components/email/Img';
@@ -46,7 +44,7 @@ function MailContentBody() {
               <tr>
                 <td style={{ backgroundColor: '#ffffff', padding: 0, textAlign: 'center' }}>
                   <Img
-                    src="/mail-assets/260128/kozokaAI_logo.png"
+                    src="/MAIL-ASSETS/kozokaAI_logo.png"
                     alt="kozokaAI"
                     width="200"
                     height="41"
@@ -94,7 +92,7 @@ function MailContentBody() {
               <tr>
                 <td style={{ backgroundColor: '#ffffff', padding: 0 }}>
                   <Img
-                    src="/mail-assets/260128/活用中 note_バナー.png"
+                    src="/MAIL-ASSETS/活用中 note_バナー.png"
                     alt="活用中 note_バナー"
                     width="560"
                     height="293"
@@ -237,7 +235,7 @@ function MailContentBody() {
                 </td>
                 <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                   <Img
-                    src="/mail-assets/260128/注注くん.png"
+                    src="/MAIL-ASSETS/注注くん.png"
                     alt="注注くん"
                     width="130"
                     height="130"
@@ -295,7 +293,7 @@ function MailContentBody() {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/260128/260128.png"
+                    src="/MAIL-ASSETS/260128.png"
                     alt="【YouTube】製品紹介動画を公開しました！"
                     width="200"
                     height="103"
@@ -380,7 +378,7 @@ function MailContentBody() {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/260128/吉野くん.png"
+                    src="/MAIL-ASSETS/吉野くん.png"
                     alt="「大会」に出まくって派手に暴れるGrokの戦略"
                     width="200"
                     height="103"
@@ -464,8 +462,8 @@ function MailContentBody() {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/260128/ITトレンドEXPO.jpg"
-                    alt="kozokaAIがイベントに出展します！✨"
+                    src="/MAIL-ASSETS/ITトレンドEXPO.jpg"
+                    alt="kozokaAIがイベントに出展します！"
                     width="200"
                     height="103"
                     style={{
@@ -488,7 +486,7 @@ function MailContentBody() {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    kozokaAIがイベントに出展します！✨
+                    kozokaAIがイベントに出展します！
                   </h3>
                   <div style={{ marginTop: '8px', marginBottom: '8px', width: '100%' }}>
                     <hr
@@ -509,7 +507,7 @@ function MailContentBody() {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                      
+
 3月3日(火)～3月7日(土)開催の最大級オンライン展示会「ITトレンドEXPO 2026 Spring」に出展することになりました！
 豪華出演者に加え、Amazonギフトプレゼントキャンペーンもございます！お見逃しなく！
                   </p>
@@ -643,7 +641,7 @@ export default function Home() {
                 <tr>
                   <td style={{ backgroundColor: '#ffffff', padding: 0, textAlign: 'center' }}>
                     <Img
-                      src="/mail-assets/260128/kozokaAI_logo.png"
+                      src="/MAIL-ASSETS/kozokaAI_logo.png"
                       alt="kozokaAI"
                       width="200"
                       height="41"
@@ -691,7 +689,7 @@ export default function Home() {
                 <tr>
                   <td style={{ backgroundColor: '#ffffff', padding: 0 }}>
                     <Img
-                      src="/mail-assets/260128/活用中 note_バナー.png"
+                      src="/MAIL-ASSETS/活用中 note_バナー.png"
                       alt="活用中 note_バナー"
                       width="560"
                       height="293"
@@ -834,7 +832,7 @@ export default function Home() {
                   </td>
                   <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                     <Img
-                      src="/mail-assets/260128/注注くん.png"
+                      src="/MAIL-ASSETS/注注くん.png"
                       alt="注注くん"
                       width="130"
                       height="130"
@@ -892,7 +890,7 @@ export default function Home() {
                 <tr>
                   <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                     <Img
-                      src="/mail-assets/260128/260128.png"
+                      src="/MAIL-ASSETS/260128.png"
                       alt="【YouTube】製品紹介動画を公開しました！"
                       width="200"
                       height="103"
@@ -976,7 +974,7 @@ export default function Home() {
                 <tr>
                   <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                     <Img
-                      src="/mail-assets/260128/吉野くん.png"
+                      src="/MAIL-ASSETS/吉野くん.png"
                       alt="「大会」に出まくって派手に暴れるGrokの戦略"
                       width="200"
                       height="103"
@@ -1060,7 +1058,7 @@ export default function Home() {
                 <tr>
                   <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                     <Img
-                      src="/mail-assets/260128/ITトレンドEXPO.jpg"
+                      src="/MAIL-ASSETS/ITトレンドEXPO.jpg"
                       alt="kozokaAIがイベントに出展します！✨"
                       width="200"
                       height="103"
@@ -1203,7 +1201,7 @@ export default function Home() {
           </EmailText>
           <EmailText variant="muted" style={{ fontSize: '11px', color: '#999999', lineHeight: '1.6', marginTop: '12px' }}>
             株式会社kozokaAI<br />
-            〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
+            〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17階
           </EmailText>
         </EmailSection>
       </EmailWrapper>

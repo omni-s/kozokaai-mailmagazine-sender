@@ -8,7 +8,7 @@ interface EmailTextProps {
 }
 
 export function EmailText({ children, variant = 'body', margin = '0', style }: EmailTextProps) {
-  const baseStyles = {
+  const baseStyles: Record<string, React.CSSProperties> = {
     body: {
       margin,
       fontSize: '15px',
