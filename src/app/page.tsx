@@ -1203,7 +1203,7 @@ export default function Home() {
           </EmailText>
           <EmailText variant="muted" style={{ fontSize: '11px', color: '#999999', lineHeight: '1.6', marginTop: '12px' }}>
             株式会社kozokaAI<br />
-            〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
+            〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17階
           </EmailText>
         </EmailSection>
       </EmailWrapper>
