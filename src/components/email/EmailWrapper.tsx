@@ -1,5 +1,4 @@
 import React from 'react';
-import { EmailFooter } from './EmailFooter';
 
 interface EmailWrapperProps {
   children: React.ReactNode;
@@ -76,9 +75,6 @@ export function EmailWrapper({
                   </tr>
                 </tbody>
               </table>
-
-              {/* フッター（EmailFooter コンポーネント） */}
-              <EmailFooter />
             </td>
           </tr>
         </tbody>

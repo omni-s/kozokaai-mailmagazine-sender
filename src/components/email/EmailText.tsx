@@ -4,10 +4,11 @@ interface EmailTextProps {
   children: React.ReactNode;
   variant?: 'body' | 'muted';
   margin?: string;
+  style?: React.CSSProperties;
 }
 
-export function EmailText({ children, variant = 'body', margin = '0' }: EmailTextProps) {
-  const styles = {
+export function EmailText({ children, variant = 'body', margin = '0', style }: EmailTextProps) {
+  const baseStyles = {
     body: {
       margin,
       fontSize: '15px',
@@ -22,5 +23,5 @@ export function EmailText({ children, variant = 'body', margin = '0' }: EmailTex
     },
   };
 
-  return <p style={styles[variant]}>{children}</p>;
+  return <p style={{ ...baseStyles[variant], ...style }}>{children}</p>;
 }
