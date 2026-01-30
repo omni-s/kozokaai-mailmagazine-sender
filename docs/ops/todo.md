@@ -18,7 +18,7 @@
 ### 1.1. AWS S3バケット設定
 
 - [ ] **S3バケット作成**
-  - バケット名を決定（例: `kozokaai-mail-assets`）
+  - バケット名を決定（例: `kozokaai-MAIL-ASSETS`）
   - リージョンを選択（推奨: `ap-northeast-1`）
   - パブリックアクセスのブロックを全て解除
   - **参照**: [docs/setup/environment.md - 1.1. S3バケット作成](../setup/environment.md#11-s3バケット作成)
@@ -167,7 +167,7 @@
   - `pnpm run dev` で開発サーバー起動
   - http://localhost:3000/draft でプレビュー
   - `src/app/draft/page.tsx` を編集
-  - テスト用画像を `public/mail-assets/` に配置
+  - テスト用画像を `public/MAIL-ASSETS/` に配置
   - **参照**: [docs/ops/workflow.md - ステップ1: ローカル制作フェーズ](./workflow.md#ステップ1-ローカル制作フェーズ)
 
 - [ ] **pnpm run commit 実行**
@@ -265,7 +265,7 @@
 - [ ] **メールコンテンツ作成**
   - `pnpm run dev` で開発サーバー起動
   - `src/app/draft/page.tsx` を編集
-  - 画像を `public/mail-assets/` に配置
+  - 画像を `public/MAIL-ASSETS/` に配置
   - プレビュー確認（http://localhost:3000/draft）
   - **参照**: [docs/ops/workflow.md - ステップ1: ローカル制作フェーズ](./workflow.md#ステップ1-ローカル制作フェーズ)
 

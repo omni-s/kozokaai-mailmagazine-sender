@@ -19,7 +19,7 @@
 
 - Next.js開発サーバー (`pnpm run dev`) を起動。
 - `src/app/draft/page.tsx` (仮称: 作業用ファイル) を編集。
-- 画像は `public/mail-assets/` に配置し、コード内では `/mail-assets/image.png` と指定。
+- 画像は `public/MAIL-ASSETS/` に配置し、コード内では `/MAIL-ASSETS/image.png` と指定。
 - ブラウザでプレビューを確認しながらデザインを調整。
 
 #### コミット & アーカイブ
@@ -33,7 +33,7 @@
 
 **自動処理スクリプトの実行:**
 
-- `src/app/draft/page.tsx` と `public/mail-assets/` を `public/archives/{YYYY}/{MM}/{DD-MSG}/` へ移動。
+- `src/app/draft/page.tsx` と `public/MAIL-ASSETS/` を `public/archives/{YYYY}/{MM}/{DD-MSG}/` へ移動。
 - 宛先情報を記載した `config.json` を同ディレクトリに生成。
 - `src/app/draft/page.tsx` を初期テンプレートにリセット。
 - `git add .`, `git commit -m "..."`, `git push` を自動実行。
@@ -52,7 +52,7 @@
 - **アセットアップロード**: 今回追加された archives 内の画像を S3 (Public Read) へアップロード。
 - **HTML変換 & パス置換:**
   - ReactコンポーネントをHTML文字列に変換。
-  - 画像パス `/mail-assets/...` をS3のURL `https://{bucket}.s3.../archives/...` に置換。
+  - 画像パス `/MAIL-ASSETS/...` をS3のURL `https://{bucket}.s3.../archives/...` に置換。
 - **テスト送信**: 生成されたHTMLを使用し、指定されたレビュアー（上長）へテストメールを送信。
 - **Bot通知**: PRコメントに「テスト送信完了」等のステータスを通知（任意）。
 
@@ -93,7 +93,7 @@ public/
 
 ### 3.2. 画像パス置換ロジック (A案採用)
 
-**開発時**: ユーザーは `<Img src="/mail-assets/hero.jpg" />` と記述。Next.jsのローカルサーバーで正しく表示される。
+**開発時**: ユーザーは `<Img src="/MAIL-ASSETS/hero.jpg" />` と記述。Next.jsのローカルサーバーで正しく表示される。
 
 **ビルド時 (CI):**
 

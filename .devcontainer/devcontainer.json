@@ -1,71 +1,80 @@
-{
-  "name": "Resend Mail System (Next.js 15 + TypeScript)",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+// ============================================
+// DevContainer 運用終了（2026-01-21）
+// ============================================
+// 理由: ファイル操作のpermissions問題により運用を終了
+// 詳細: docs/dev/devcontainer.md を参照
+//
+// 以下の設定は参考として残されています。
+// ============================================
 
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
-  },
-
-  "forwardPorts": [3000],
-  "portsAttributes": {
-    "3000": {
-      "label": "Next.js Dev Server",
-      "onAutoForward": "notify"
-    }
-  },
-
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss",
-        "formulahendry.auto-rename-tag",
-        "dsznajder.es7-react-js-snippets",
-        "streetsidesoftware.code-spell-checker",
-        "yoavbls.pretty-ts-errors",
-        "usernamehw.errorlens",
-        "eamodio.gitlens",
-        "editorconfig.editorconfig"
-      ],
-      "settings": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true,
-        "editor.codeActionsOnSave": {
-          "source.fixAll.eslint": "explicit"
-        },
-        "tailwindCSS.experimental.classRegex": [
-          ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
-          ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-        ],
-        "typescript.tsdk": "node_modules/typescript/lib",
-        "typescript.enablePromptUseWorkspaceTsdk": true,
-        "files.exclude": {
-          "**/.next": true,
-          "**/node_modules": true
-        }
-      }
-    }
-  },
-
-  "postCreateCommand": "npm install",
-  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
-
-  "remoteEnv": {
-    "NODE_ENV": "development"
-  },
-
-  "mounts": [
-    "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,readonly",
-    "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,readonly"
-  ],
-
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
-  "workspaceFolder": "/workspace",
-
-  "remoteUser": "node",
-
-  "containerEnv": {
-    "SHELL": "/bin/bash"
-  }
-}
+// {
+//   "name": "Resend Mail System (Next.js 16 + TypeScript)",
+//   "image": "mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm",
+//
+//   "features": {
+//     "ghcr.io/devcontainers/features/github-cli:1": {}
+//   },
+//
+//   "forwardPorts": [3000],
+//   "portsAttributes": {
+//     "3000": {
+//       "label": "Next.js Dev Server",
+//       "onAutoForward": "notify"
+//     }
+//   },
+//
+//   "customizations": {
+//     "vscode": {
+//       "extensions": [
+//         "dbaeumer.vscode-eslint",
+//         "esbenp.prettier-vscode",
+//         "bradlc.vscode-tailwindcss",
+//         "formulahendry.auto-rename-tag",
+//         "dsznajder.es7-react-js-snippets",
+//         "streetsidesoftware.code-spell-checker",
+//         "yoavbls.pretty-ts-errors",
+//         "usernamehw.errorlens",
+//         "eamodio.gitlens",
+//         "editorconfig.editorconfig"
+//       ],
+//       "settings": {
+//         "editor.defaultFormatter": "esbenp.prettier-vscode",
+//         "editor.formatOnSave": true,
+//         "editor.codeActionsOnSave": {
+//           "source.fixAll.eslint": "explicit"
+//         },
+//         "tailwindCSS.experimental.classRegex": [
+//           ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+//           ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+//         ],
+//         "typescript.tsdk": "node_modules/typescript/lib",
+//         "typescript.enablePromptUseWorkspaceTsdk": true,
+//         "files.exclude": {
+//           "**/.next": true,
+//           "**/node_modules": true
+//         }
+//       }
+//     }
+//   },
+//
+//   "postCreateCommand": "rm -rf node_modules .next && pnpm install",
+//   "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+//
+//   "remoteEnv": {
+//     "NODE_ENV": "development"
+//   },
+//
+//   "mounts": [
+//     "source=${localEnv:HOME}/.ssh,target=/home/node/.ssh,type=bind,readonly",
+//     "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,readonly"
+//   ],
+//
+//   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+//   "workspaceFolder": "/workspace",
+//
+//   "remoteUser": "node",
+//
+//   "containerEnv": {
+//     "SHELL": "/bin/bash"
+//   }
+// }

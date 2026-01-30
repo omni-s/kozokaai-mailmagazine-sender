@@ -6,11 +6,15 @@
 
 ## 目次
 
-1. [pnpm run commit エラー](#1-npm-run-commit-エラー)
-2. [GitHub Actions エラー](#2-github-actions-エラー)
-3. [画像が表示されない](#3-画像が表示されない)
-4. [メールが届かない](#4-メールが届かない)
-5. [config.json エラー](#5-configjson-エラー)
+1. [pnpm run commit エラー](#1-pnpm-run-commit-エラー)
+2. [DevContainer環境でのesbuildエラー](#2-devcontainer環境でのesbuildエラー)
+3. [Next.js 16 ESLint 問題](#3-nextjs-16-eslint-問題)
+4. [Hydration Error（EmailWrapper）](#4-hydration-erroremailwrapper)
+5. [Next.js キャッシュ問題](#5-nextjs-キャッシュ問題コードは正しいのにエラーが出る)
+6. [GitHub Actions エラー](#6-github-actions-エラー)
+7. [画像が表示されない](#7-画像が表示されない)
+8. [メールが届かない](#8-メールが届かない)
+9. [config.json エラー](#9-configjson-エラー)
 
 ---
 
@@ -136,7 +140,48 @@ pnpm run commit
 
 ---
 
-## 2. Next.js 16 ESLint 問題
+## 2. DevContainer環境でのesbuildエラー
+
+### 症状
+
+DevContainerで「配信準備を開始」を実行すると、以下のエラーが発生する:
+
+```
+Error: You installed esbuild for another platform than the one you're currently using.
+Specifically the "@esbuild/darwin-arm64" package is present but this platform
+needs the "@esbuild/linux-arm64" package instead.
+```
+
+### 原因
+
+ローカル環境（macOS）でインストールされた`node_modules`がDevContainerにマウントされているため、プラットフォーム固有のバイナリが不一致になっている。
+
+### 解決策1: DevContainerを再ビルド
+
+```bash
+# VS Code Command Palette (Cmd+Shift+P)
+> Dev Containers: Rebuild Container
+```
+
+### 解決策2: 手動でnode_modulesを再インストール
+
+```bash
+# DevContainer内で実行
+rm -rf node_modules .next
+pnpm install
+```
+
+### 解決策3: .devcontainer/devcontainer.jsonの修正
+
+`postCreateCommand`を以下のように変更（すでに修正済みの場合は不要）:
+
+```json
+"postCreateCommand": "rm -rf node_modules .next && pnpm install",
+```
+
+---
+
+## 3. Next.js 16 ESLint 問題
 
 ### エラー: `Invalid project directory provided`
 
@@ -218,7 +263,7 @@ error 'PutObjectCommand' is defined but never used @typescript-eslint/no-unused-
 
 ---
 
-## 3. Hydration Error（EmailWrapper）
+## 4. Hydration Error（EmailWrapper）
 
 ### 症状
 
@@ -275,7 +320,7 @@ EmailWrapper コンポーネントは、以下の2つの用途で設計されて
 
 ---
 
-## 4. Next.js キャッシュ問題（コードは正しいのにエラーが出る）
+## 5. Next.js キャッシュ問題（コードは正しいのにエラーが出る）
 
 ### 症状
 
@@ -361,7 +406,7 @@ pnpm run dev:clean
 
 ---
 
-## 5. GitHub Actions エラー
+## 6. GitHub Actions エラー
 
 ### Check Workflow 失敗
 
@@ -483,12 +528,12 @@ Error: Validation failed: config.json schema error
 
 **エラーメッセージ**:
 ```
-Error: Image path not found: /mail-assets/hero.png
+Error: Image path not found: /MAIL-ASSETS/hero.png
 ```
 
 **対処法**:
 
-1. `mail.tsx` 内の `<Img src="/mail-assets/hero.png" />` 確認
+1. `mail.tsx` 内の `<Img src="/MAIL-ASSETS/hero.png" />` 確認
 2. `assets/hero.png` が実在するか確認
 3. ファイル名の大文字小文字一致確認（Linux環境は厳密）
 
@@ -656,7 +701,7 @@ Error: Resource not accessible by integration
 
 ---
 
-## 6. 画像が表示されない
+## 7. 画像が表示されない
 
 ### ローカル開発時
 
@@ -667,15 +712,15 @@ Error: Resource not accessible by integration
 1. **パス確認**
    ```tsx
    // ❌ 間違い: 先頭スラッシュなし
-   <Img src="mail-assets/hero.png" />
+   <Img src="MAIL-ASSETS/hero.png" />
 
    // ✅ 正しい: 先頭スラッシュあり
-   <Img src="/mail-assets/hero.png" />
+   <Img src="/MAIL-ASSETS/hero.png" />
    ```
 
 2. **ファイル存在確認**
    ```bash
-   ls -la public/mail-assets/hero.png
+   ls -la public/MAIL-ASSETS/hero.png
    ```
 
 3. **ファイル名の大文字小文字一致確認**
@@ -737,7 +782,7 @@ Error: Resource not accessible by integration
 
 ---
 
-## 7. メールが届かない
+## 8. メールが届かない
 
 ### Resend Dashboard でエラーログ確認
 
@@ -798,7 +843,7 @@ Error: Resource not accessible by integration
 
 ---
 
-## 8. config.json エラー
+## 9. config.json エラー
 
 ### Zodスキーマエラーの解読方法
 

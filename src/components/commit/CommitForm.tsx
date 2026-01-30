@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { TextInput, Button, Select, Stack, Group, Alert } from '@mantine/core';
+import { TextInput, Button, Select, Stack, Group, Alert, Modal } from '@mantine/core';
 import { format, parse, isValid } from 'date-fns';
 
 /**
@@ -37,6 +37,9 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ApiResponse | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // 上書き確認用State
+  const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<CommitAnswers | null>(null);
 
   /**
    * バリデーション関数
@@ -85,16 +88,9 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
   };
 
   /**
-   * フォーム送信ハンドラ
+   * API呼び出し実行（共通化）
    */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // バリデーション
-    if (!validateForm()) {
-      return;
-    }
-
+  const executeCommit = async (data: CommitAnswers, overwrite: boolean = false) => {
     setLoading(true);
     setResult(null);
 
@@ -102,25 +98,33 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
       const response = await fetch('/api/commit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(answers),
+        body: JSON.stringify({ ...data, overwrite }),
       });
 
-      const data: ApiResponse = await response.json();
+      const responseData: ApiResponse = await response.json();
 
-      if (response.ok && data.success) {
-        setResult(data);
-        // 成功時のコールバック
-        if (onSuccess) {
-          setTimeout(() => {
-            onSuccess();
-          }, 2000); // 2秒後にモーダルを閉じる
-        }
-      } else {
+      // 409 Conflict: アーカイブ既存エラー
+      if (response.status === 409 && !overwrite) {
+        setPendingRequest(data);
+        setShowOverwriteConfirm(true);
+        setLoading(false);
+        return;
+      }
+
+      // その他のエラー
+      if (!response.ok || !responseData.success) {
         setResult({
           success: false,
-          message: data.message || 'エラーが発生しました',
+          message: responseData.message || 'エラーが発生しました',
         });
+        setLoading(false);
+        return;
       }
+
+      // 成功
+      setResult(responseData);
+      setShowOverwriteConfirm(false);
+      setPendingRequest(null);
     } catch (error) {
       setResult({
         success: false,
@@ -129,6 +133,38 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * フォーム送信ハンドラ
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+    await executeCommit(answers, false);
+  };
+
+  /**
+   * 上書き確認ダイアログ - 実行ボタン
+   */
+  const handleOverwriteConfirm = async () => {
+    if (!pendingRequest) return;
+    setShowOverwriteConfirm(false);
+    await executeCommit(pendingRequest, true);
+  };
+
+  /**
+   * 上書き確認ダイアログ - キャンセルボタン
+   */
+  const handleOverwriteCancel = () => {
+    setShowOverwriteConfirm(false);
+    setPendingRequest(null);
+    setResult({
+      success: false,
+      message: 'アーカイブ名を変更して再度お試しください',
+    });
   };
 
   /**
@@ -230,9 +266,49 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
                 アーカイブ: <code>{result.archiveDir}</code>
               </div>
             )}
+            <Button
+              mt="md"
+              size="sm"
+              variant="light"
+              color={result.success ? 'green' : 'red'}
+              onClick={() => {
+                setResult(null);
+                if (result.success && onSuccess) {
+                  onSuccess();
+                }
+              }}
+            >
+              OK
+            </Button>
           </Alert>
         )}
       </Stack>
+
+      {/* 上書き確認ダイアログ */}
+      <Modal
+        opened={showOverwriteConfirm}
+        onClose={handleOverwriteCancel}
+        title="アーカイブ上書き確認"
+        size="md"
+        centered
+        closeOnClickOutside={false}
+        withCloseButton={false}
+      >
+        <Stack gap="md">
+          <Alert color="yellow" title="警告">
+            このアーカイブは既に存在します。上書きすると既存のデータが完全に削除されます。
+          </Alert>
+
+          <Group justify="flex-end" mt="md">
+            <Button variant="default" onClick={handleOverwriteCancel}>
+              キャンセル
+            </Button>
+            <Button color="red" onClick={handleOverwriteConfirm} loading={loading}>
+              上書きする
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
     </form>
   );
 }

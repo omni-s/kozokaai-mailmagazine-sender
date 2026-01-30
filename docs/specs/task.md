@@ -54,7 +54,7 @@
   - [x] `src/components/email`
   - [x] `src/lib`
   - [x] `src/scripts`
-  - [x] `public/mail-assets`
+  - [x] `public/MAIL-ASSETS`
   - [x] `public/archives`
 - [x] `src/components/email/Img.tsx` 作成（画像パス解決用）
 - [x] `src/components/email/EmailWrapper.tsx` 作成（共通レイアウト）
@@ -99,7 +99,7 @@
   - [x] アーカイブディレクトリ作成（`public/archives/{YYYY}/{MM}/{DD-MSG}/`）
   - [x] ファイル移動
     - [x] `src/app/draft/page.tsx` → `archives/{YYYY}/{MM}/{DD-MSG}/mail.tsx`
-    - [x] `public/mail-assets/*` → `archives/{YYYY}/{MM}/{DD-MSG}/assets/`
+    - [x] `public/MAIL-ASSETS/*` → `archives/{YYYY}/{MM}/{DD-MSG}/assets/`
   - [x] `config.json` 生成（subject, audienceId, sentAt: null）
   - [x] `src/app/draft/page.tsx` を初期テンプレートにリセット
   - [x] Git操作自動化（add, commit, push）
@@ -151,7 +151,7 @@
 - [x] `src/scripts/send-test-email.ts` 作成
   - [x] 新規archiveディレクトリ検出
   - [x] React → HTML変換（@react-email/render）
-  - [x] 画像パス置換（`/mail-assets/` → S3 URL）
+  - [x] 画像パス置換（`/MAIL-ASSETS/` → S3 URL）
   - [x] テストメール送信
     - [x] 宛先: REVIEWER_EMAIL
     - [x] 件名: `[TEST] {config.json の subject}`

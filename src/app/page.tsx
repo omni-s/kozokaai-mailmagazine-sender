@@ -4,6 +4,7 @@ import React from 'react';
 import { Modal, Button, Container, Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { EmailWrapper } from '@/components/email/EmailWrapper';
+import { EmailHeader } from '@/components/email/EmailHeader';
 import { EmailSection } from '@/components/email/EmailSection';
 import { EmailCard } from '@/components/email/EmailCard';
 import { EmailButton } from '@/components/email/EmailButton';
@@ -19,15 +20,19 @@ import { CommitForm } from '@/components/commit/CommitForm';
  * このファイルを編集してメールをデザインします。
  * `pnpm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
  *
- * 画像は public/mail-assets/ に配置してください。
- * 例: <Img src="/mail-assets/hero.jpg" alt="Hero Image" width="600" />
+ * 画像は public/MAIL-ASSETS/ に配置してください。
+ * 例: <Img src="/MAIL-ASSETS/hero.jpg" alt="Hero Image" width="600" />
  */
 
 /**
- * メール配信用コンポーネント（Hooksなし）
- * @react-email/render でレンダリングされます
+ * MailContentBody - メールコンテンツ本体
+ *
+ * MailContent と Home で共通化されたメールコンテンツです。
+ * ブラウザプレビューと配信メールの不整合を防止します。
+ *
+ * ⚠️ 重要: このコンポーネントを編集すると、両方に反映されます。
  */
-export function MailContent() {
+function MailContentBody() {
   return (
     <EmailWrapper
       preview={false}
@@ -610,6 +615,14 @@ export function MailContent() {
 }
 
 /**
+ * メール配信用コンポーネント（Hooksなし）
+ * @react-email/render でレンダリングされます
+ */
+export function MailContent() {
+  return <MailContentBody />;
+}
+
+/**
  * ホーム画面（プレビュー + 配信準備UI）
  */
 export default function Home() {
@@ -1135,7 +1148,7 @@ export default function Home() {
         <EmailSection>
           <EmailCard backgroundColor="#ffffff" padding="20px">
             <EmailText variant="muted" style={{ fontSize: '13px', color: '#666666', lineHeight: '1.6', textAlign: 'center' }}>
-              株式会社kozokaAI  kozokaAI BOOSTマガジン事務局<br />
+              株式会社kozokaAI  『kozokaAI BOOSTマガジン事務局』<br />
               COMPANY：
             <a
                 href="https://www.kozoka-ai.co.jp/"
@@ -1198,7 +1211,7 @@ export default function Home() {
       {/* 配信準備ボタン */}
       <Container size="sm" mt="xl" mb="xl">
         <Box style={{ textAlign: 'center' }}>
-          <Button onClick={open} size="lg" color="blue" fullWidth>
+          <Button onClick={open} size="lg" fullWidth>
             配信準備を開始
           </Button>
         </Box>

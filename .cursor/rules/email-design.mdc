@@ -1,0 +1,443 @@
+---
+alwaysApply: false
+
+---
+# メールデザイン作成ルール
+
+このファイルは、Cursor IDEでメールテンプレートを作成・編集する際に守るべきルールを定義します。
+
+## 非エンジニア向けガイド
+
+初めてメールデザインを行う方は、まず以下を確認してください：
+- **安全ガイド**: `.cursor/rules/non-engineer-safety.mdc`
+- **初心者向けガイド**: `docs/for-non-engineers/getting-started.md`
+- **よくあるエラー**: `docs/for-non-engineers/common-errors.md`
+
+---
+
+## 基本原則
+
+### 編集ファイル
+- **メールテンプレート編集**: `src/app/page.tsx` の `MailContent` コンポーネントを編集
+- **プレビュー表示**: 同じファイルの `Home` コンポーネント（`preview={true}` を使用）
+- **画像配置**: `public/MAIL-ASSETS/` ディレクトリに配置
+
+### 必須コンポーネントラッパー
+すべてのメールコンテンツは `EmailWrapper` でラップする必要があります。
+
+```tsx
+import { EmailWrapper } from '@/components/email/EmailWrapper';
+
+export function MailContent() {
+  return (
+    <EmailWrapper preview={false} previewText="プレビューテキスト">
+      {/* メールコンテンツ */}
+    </EmailWrapper>
+  );
+}
+```
+
+**重要**: 
+- プレビュー時（ブラウザ表示）: `preview={true}` を使用
+- 配信時（メール送信）: `preview={false}` または省略（デフォルト）
+
+---
+
+## 厳格な禁止事項
+
+### ❌ 使用禁止: Tailwind CSSクラス
+メールクライアント（Outlook、Gmail等）はTailwind CSSクラスを解釈できません。
+
+```tsx
+// ❌ 禁止
+<div className="bg-white p-4 text-gray-900">
+
+// ✅ 正しい
+<div style={{ backgroundColor: '#ffffff', padding: '24px', color: '#0f172a' }}>
+```
+
+### ❌ 使用禁止: CSS変数
+CSS変数は多くのメールクライアントで非対応です。
+
+```tsx
+// ❌ 禁止
+<div style={{ color: 'var(--primary-color)' }}>
+
+// ✅ 正しい
+<div style={{ color: '#2563eb' }}>
+```
+
+### ❌ 使用禁止: Flexbox / Grid
+FlexboxやGridは多くのメールクライアントで非対応です。`EmailWrapper`がテーブルレイアウトを使用しているため、その中でFlexbox/Gridは使用できません。
+
+```tsx
+// ❌ 禁止
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+
+// ✅ 正しい（中央揃えはテーブルのalign属性を使用）
+<div style={{ textAlign: 'center' }}>
+```
+
+### ❌ 使用禁止: 絵文字
+ブラウザ・OSによる表示差異やアクセシビリティの問題があるため、絵文字の使用は禁止です。
+
+```tsx
+// ❌ 禁止
+<p>こんにちは 👋</p>
+
+// ✅ 正しい
+<p>こんにちは</p>
+```
+
+### ❌ 使用禁止: 複雑なCSSアニメーション
+メールクライアントはCSSアニメーションをサポートしていません。
+
+---
+
+## 必須コンポーネント
+
+### EmailWrapper
+すべてのメールコンテンツのルートコンポーネント。テーブルレイアウトで600px固定幅を提供。
+
+```tsx
+import { EmailWrapper } from '@/components/email/EmailWrapper';
+
+<EmailWrapper preview={false} previewText="プレビューテキスト">
+  {/* コンテンツ */}
+</EmailWrapper>
+```
+
+### Img（画像コンポーネント）
+画像は必ず `Img` コンポーネントを使用し、`/MAIL-ASSETS/` パスで指定します。
+
+```tsx
+import { Img } from '@/components/email/Img';
+
+<Img
+  src="/MAIL-ASSETS/hero.jpg"
+  alt="ヒーロー画像"
+  width="520"
+  style={{
+    width: '100%',
+    height: 'auto',
+    display: 'block',
+  }}
+/>
+```
+
+**重要**: 
+- 画像は `public/MAIL-ASSETS/` に配置
+- `alt` 属性は必須（アクセシビリティ）
+- `width` 属性を指定（メールクライアント互換性）
+- 本番時は自動的にS3 URLに置換されます
+
+### EmailSection
+セクション間のスペーシングを管理（デフォルト: 24px）。
+
+```tsx
+import { EmailSection } from '@/components/email/EmailSection';
+
+<EmailSection>
+  {/* セクションコンテンツ */}
+</EmailSection>
+```
+
+### EmailCard
+カードレイアウトコンポーネント。デフォルト背景色 `#f8fafc`、パディング `24px`。
+
+```tsx
+import { EmailCard } from '@/components/email/EmailCard';
+
+<EmailCard backgroundColor="#ffffff" padding="24px">
+  {/* カードコンテンツ */}
+</EmailCard>
+```
+
+### EmailButton
+CTAボタンコンポーネント。デフォルト背景色 `#2563eb`（blue-600）。
+
+```tsx
+import { EmailButton } from '@/components/email/EmailButton';
+
+<div style={{ textAlign: 'center' }}>
+  <EmailButton href="https://example.com">詳細を見る</EmailButton>
+</div>
+```
+
+### EmailText
+テキストコンポーネント。`variant` でスタイルを切り替え。
+
+```tsx
+import { EmailText } from '@/components/email/EmailText';
+
+<EmailText variant="body" margin="0 0 16px 0">
+  本文テキスト
+</EmailText>
+
+<EmailText variant="muted">
+  サブテキスト（slate-500）
+</EmailText>
+```
+
+### EmailHeading
+見出しコンポーネント。`level={1}` は30px、`level={2}` は24px。
+
+```tsx
+import { EmailHeading } from '@/components/email/EmailHeading';
+
+<EmailHeading level={1}>メインタイトル</EmailHeading>
+<EmailHeading level={2}>サブタイトル</EmailHeading>
+```
+
+### EmailDivider
+区切り線コンポーネント。
+
+```tsx
+import { EmailDivider } from '@/components/email/EmailDivider';
+
+<EmailDivider />
+```
+
+---
+
+## デザインシステム準拠
+
+### カラーパレット（Slate系）
+
+メールテンプレートでは、Shadcn UIスタイルのslate系カラーパレットを使用します。
+
+#### 背景色
+- **外側背景**: `#f1f5f9` (slate-100) - EmailWrapperで設定済み
+- **カード背景**: `#ffffff` (white)
+- **カード背景（セカンダリ）**: `#f8fafc` (slate-50)
+
+#### テキスト色
+- **見出し**: `#0f172a` (slate-900)
+- **本文**: `#1e293b` (slate-800)
+- **サブテキスト**: `#64748b` (slate-500)
+- **ミュートテキスト**: `#94a3b8` (slate-400) - フッター用
+
+#### ボーダー色
+- **カードボーダー**: `#e2e8f0` (slate-200)
+
+#### プライマリボタン
+- **背景色**: `#2563eb` (blue-600)
+- **テキスト色**: `#ffffff` (white)
+
+### スペーシングシステム（24pxベース）
+
+- **セクション間**: `24px` (marginBottom)
+- **カード内パディング**: `24px`
+- **要素間**: `16px` または `8px`
+
+```tsx
+// セクション間
+<EmailSection> {/* marginBottom: 24px が自動適用 */}
+  {/* コンテンツ */}
+</EmailSection>
+
+// カード内パディング
+<EmailCard> {/* padding: 24px がデフォルト */}
+  {/* コンテンツ */}
+</EmailCard>
+```
+
+### フォントサイズ
+
+- **見出し（h1）**: `30px`, `fontWeight: 600`
+- **見出し（h2）**: `24px`, `fontWeight: 600`
+- **本文**: `15px`, `fontWeight: 400`
+- **サブテキスト**: `16px`, `fontWeight: 400`
+- **フッター**: `14px`, `fontWeight: 400`
+
+### Border Radius
+
+- **カード**: `8px`
+- **ボタン**: `6px`
+- **画像**: `8px` または `6px`
+
+### メール幅
+
+- **最大幅**: `600px` (EmailWrapperで設定済み)
+- **パディング**: `40px` (EmailWrapper内側)
+
+---
+
+## 実装パターンとベストプラクティス
+
+### カードレイアウトの実装
+
+```tsx
+<EmailSection>
+  <EmailCard backgroundColor="#ffffff" padding="24px">
+    <EmailHeading level={2}>カードタイトル</EmailHeading>
+    <EmailText margin="0 0 16px 0">
+      カードの本文コンテンツです。
+    </EmailText>
+    <div style={{ textAlign: 'center' }}>
+      <EmailButton href="https://example.com">詳細を見る</EmailButton>
+    </div>
+  </EmailCard>
+</EmailSection>
+```
+
+### 画像カードの実装
+
+```tsx
+<EmailSection>
+  <EmailCard backgroundColor="#ffffff" padding="0">
+    <Img
+      src="/MAIL-ASSETS/hero.jpg"
+      alt="ヒーロー画像"
+      width="520"
+      style={{
+        width: '100%',
+        height: 'auto',
+        display: 'block',
+        borderRadius: '8px',
+      }}
+    />
+  </EmailCard>
+</EmailSection>
+```
+
+### 中央揃えの実装
+
+```tsx
+// ✅ 正しい（textAlignを使用）
+<div style={{ textAlign: 'center' }}>
+  <EmailButton href="https://example.com">ボタン</EmailButton>
+</div>
+
+// ❌ 禁止（Flexboxを使用）
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+  <EmailButton href="https://example.com">ボタン</EmailButton>
+</div>
+```
+
+### インラインスタイルの記述
+
+すべてのスタイルはインラインスタイル（`style` prop）で記述します。
+
+```tsx
+// ✅ 正しい
+<div
+  style={{
+    marginBottom: '24px',
+    padding: '24px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '8px',
+    border: '1px solid #e2e8f0',
+  }}
+>
+  {/* コンテンツ */}
+</div>
+```
+
+### アクセシビリティ
+
+- 画像には必ず `alt` 属性を指定
+- リンクには明確なテキストを提供
+- 十分なコントラスト比を確保（slate-900 on white など）
+- カラーのみに依存しない情報伝達
+
+---
+
+## 完全な実装例
+
+```tsx
+import { EmailWrapper } from '@/components/email/EmailWrapper';
+import { EmailSection } from '@/components/email/EmailSection';
+import { EmailCard } from '@/components/email/EmailCard';
+import { EmailButton } from '@/components/email/EmailButton';
+import { EmailHeading } from '@/components/email/EmailHeading';
+import { EmailText } from '@/components/email/EmailText';
+import { EmailDivider } from '@/components/email/EmailDivider';
+import { Img } from '@/components/email/Img';
+
+export function MailContent() {
+  return (
+    <EmailWrapper preview={false} previewText="メールマガジン第1号">
+      {/* ヘッダー画像 */}
+      <EmailSection>
+        <EmailCard backgroundColor="#ffffff" padding="0">
+          <Img
+            src="/MAIL-ASSETS/hero.jpg"
+            alt="ヘッダー画像"
+            width="520"
+            style={{
+              width: '100%',
+              height: 'auto',
+              display: 'block',
+              borderRadius: '8px',
+            }}
+          />
+        </EmailCard>
+      </EmailSection>
+
+      {/* タイトルセクション */}
+      <EmailSection>
+        <EmailHeading level={1}>メールマガジン第1号</EmailHeading>
+        <EmailText variant="muted">
+          このテンプレートを編集して、あなたのメールマガジンをデザインしてください。
+        </EmailText>
+      </EmailSection>
+
+      {/* コンテンツカード */}
+      <EmailSection>
+        <EmailCard>
+          <EmailText margin="0 0 16px 0">
+            カードコンテンツの本文です。
+          </EmailText>
+          <div style={{ textAlign: 'center' }}>
+            <EmailButton href="https://example.com">詳細を見る</EmailButton>
+          </div>
+        </EmailCard>
+      </EmailSection>
+
+      {/* 区切り線 */}
+      <EmailDivider />
+
+      {/* フッター情報 */}
+      <EmailText variant="muted">
+        ご質問やお問い合わせは
+        <a
+          href="mailto:info@example.com"
+          style={{
+            color: '#2563eb',
+            textDecoration: 'none',
+            fontWeight: 500,
+          }}
+        >
+          info@example.com
+        </a>
+        までご連絡ください。
+      </EmailText>
+    </EmailWrapper>
+  );
+}
+```
+
+---
+
+## 参照ドキュメント
+
+- **デザインシステム仕様書**: `docs/dev/design-system.md`
+- **EmailWrapper実装**: `src/components/email/EmailWrapper.tsx`
+- **Imgコンポーネント実装**: `src/components/email/Img.tsx`
+- **メールテンプレート編集ファイル**: `src/app/page.tsx`
+
+---
+
+## チェックリスト
+
+メールテンプレート作成時、以下を確認してください：
+
+- [ ] `EmailWrapper` でラップされているか
+- [ ] インラインスタイルのみ使用しているか（Tailwind CSSクラス、CSS変数、Flexbox/Gridを使用していないか）
+- [ ] 画像は `Img` コンポーネントを使用し、`/MAIL-ASSETS/` パスで指定しているか
+- [ ] 画像に `alt` 属性を指定しているか
+- [ ] Slate系カラーパレットを使用しているか
+- [ ] 24pxベースのスペーシングシステムを維持しているか
+- [ ] 絵文字を使用していないか
+- [ ] 複雑なCSSアニメーションを使用していないか

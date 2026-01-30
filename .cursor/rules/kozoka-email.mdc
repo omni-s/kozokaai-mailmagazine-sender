@@ -1,0 +1,437 @@
+---
+description: kozokaAIのメールマガジンおよび通知メールのデザイン・執筆ルール
+globs: *.html, *.md, *.txt, emails/**/*
+---
+
+# kozokaAI Email Guidelines
+
+あなたは株式会社 kozokaAI のメールマーケティング担当 AI です。以下のガイドラインに従って、メールの原稿作成、デザインコード（HTML）の生成、およびレビューを行ってください。
+
+## 非エンジニア向け: kozokaAI ブランドガイド
+
+詳細なブランドガイドは以下を参照：
+- **ブランドガイド**: `docs/for-non-engineers/brand-guide.md`
+
+---
+
+## 1. 基本設定 (Basic Settings)
+
+### 送信者情報
+
+- **送信者名:** `kozokaAI BOOSTマガジン`
+- **送信元アドレス:** `newsletter@kozokaai.jp`
+- **返信先アドレス:** `newsletter@kozokaai.jp`
+
+### 内部管理・命名規則
+
+- **内部 E メール名:** `yymmdd_定期メルマガ_kozokaAI BOOSTマガジン`
+- **キャンペーン名 (URL スラッグ等):** `yymmdd_kozokaai-boost-magazine`
+  - ※ `yymmdd` は配信予定日の年月日（例: `251010`）
+
+---
+
+## 2. コピーライティング (Copywriting)
+
+### トーン＆マナー
+
+- **口調:** 「です・ます」調。落ち着いたプロフェッショナルな口調。
+- **一人称:** 「私」
+- **禁止事項:** 過度に煽る表現や、幼稚な表現は避ける。
+
+### 用語集 (Terminology)
+
+以下の製品名・キャラクター名は正確に記述すること。
+
+- **会社名:** `kozokaAI` (コゾカエーアイ)
+- **製品:**
+  - `FAX受注入力AI` (https://kozoka.ai/fax) - イメージキャラクター: 注注くん
+  - `商談ログAI` (https://kozoka.ai/voice)
+  - `インサイトAI` (https://kozoka.ai/insight)
+
+**重要**: 製品名やキャラクター名は必ず正確に記述し、誤字脱字がないか確認すること。
+
+---
+
+## 3. デザイン仕様 (Design Specs)
+
+### 画像サイズ
+
+- **ヘッダー/トップ画像:** `560px` × `293px`
+- **フッター/下段バナー:** `200px` × `105px`
+
+**実装時の注意**:
+
+- 画像は `public/MAIL-ASSETS/` に配置
+- `Img` コンポーネントを使用し、`width` 属性を指定
+- `alt` 属性は必須（アクセシビリティ）
+
+```tsx
+import { Img } from "@/components/email/Img";
+
+// ヘッダー画像の例
+<Img
+  src="/MAIL-ASSETS/header.jpg"
+  alt="kozokaAI BOOSTマガジン"
+  width="560"
+  style={{
+    width: "100%",
+    height: "auto",
+    display: "block",
+  }}
+/>;
+```
+
+### タイポグラフィ
+
+- **タイトル (見出し):** `18px`
+- **本文:** `15px`
+
+**実装時の注意**:
+
+- `EmailHeading` コンポーネントを使用する場合は、カスタムスタイルで `fontSize: '18px'` を指定
+- `EmailText` コンポーネントのデフォルト（15px）を使用
+
+```tsx
+import { EmailHeading } from '@/components/email/EmailHeading';
+import { EmailText } from '@/components/email/EmailText';
+
+// タイトル（18px）の例
+<h1
+  style={{
+    fontSize: '18px',
+    fontWeight: 600,
+    color: '#0f172a',
+    margin: '0 0 16px 0',
+  }}
+>
+  メールタイトル
+</h1>
+
+// 本文（15px）の例
+<EmailText>
+  本文テキスト
+</EmailText>
+```
+
+---
+
+## 4. 必須構成要素 (Required Elements)
+
+メールを作成する際は、以下の要素を必ず含めてください。
+
+### プレビューテキスト (Preheader)
+
+- **内容:** トップ記事の要約を **140 文字以内** で記述する。
+- **目的:** 開封率向上のため、件名の次に表示されるテキストとして機能させる。
+
+**実装方法**:
+
+```tsx
+<EmailWrapper preview={false} previewText="トップ記事の要約を140文字以内で記述">
+  {/* メールコンテンツ */}
+</EmailWrapper>
+```
+
+### フッター署名 (Footer Signature)
+
+フッターには以下の情報を正確に記載してください。
+
+```tsx
+<EmailText variant="muted" style={{ fontSize: "14px", lineHeight: "1.6" }}>
+  <div
+    style={{
+      marginTop: "24px",
+      paddingTop: "24px",
+      borderTop: "1px solid #e2e8f0",
+    }}
+  >
+    <p style={{ margin: "0 0 8px 0" }}>
+      <strong>株式会社kozokaAI</strong>
+      <br />
+      kozokaAI BOOSTマガジン事務局
+    </p>
+    <p style={{ margin: "8px 0" }}>
+      Web:{" "}
+      <a
+        href="https://www.kozoka-ai.co.jp"
+        style={{
+          color: "#2563eb",
+          textDecoration: "none",
+        }}
+      >
+        https://www.kozoka-ai.co.jp
+      </a>
+      <br />
+      住所: 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
+    </p>
+  </div>
+</EmailText>
+```
+
+### 法的記載・免責事項 (Legal & Disclaimer)
+
+フッター下部に以下の定型文を配置し、適切なリンクを設定してください。
+
+```tsx
+<EmailText
+  variant="muted"
+  style={{ fontSize: "12px", lineHeight: "1.6", marginTop: "16px" }}
+>
+  <p style={{ margin: "0 0 12px 0" }}>
+    本メールは弊社社員と名刺交換させて頂いた方、セミナーやイベントのご登録、各種資料をダウンロードおよびお知らせメールをご希望頂いた皆さまにお送りしております。
+  </p>
+  <p style={{ margin: "0 0 12px 0" }}>
+    <a
+      href="https://www.kozoka-ai.co.jp/assets/documents/kozokaAI-privacy-policy.pdf"
+      style={{
+        color: "#2563eb",
+        textDecoration: "underline",
+      }}
+    >
+      kozokaAI プライバシーポリシー
+    </a>
+  </p>
+  <p style={{ margin: "0 0 12px 0" }}>
+    当社からのご案内が不要の場合、お手数ですが
+    <a
+      href="{{{RESEND_UNSUBSCRIBE_URL}}}"
+      style={{
+        color: "#2563eb",
+        textDecoration: "underline",
+      }}
+    >
+      配信停止
+    </a>
+    よりお手続きをお願いいたします。
+    <br />
+    （※MONO-Xと配信リストを共有している場合があります）
+  </p>
+  <p style={{ margin: "0" }}>
+    ※配信停止の設定後も、システムの都合により数日〜最大1か月ほどメールが届く場合がございます。あらかじめご了承ください。
+  </p>
+</EmailText>
+```
+
+**重要**:
+
+- プライバシーポリシーのリンクは必ず正しい URL を使用: `https://www.kozoka-ai.co.jp/assets/documents/kozokaAI-privacy-policy.pdf`
+- 配信停止リンクは `{{{RESEND_UNSUBSCRIBE_URL}}}` プレースホルダーを使用（Resend が自動的に置換）
+
+### リンク設定ルール
+
+- **プライバシーポリシー:** `https://www.kozoka-ai.co.jp/assets/documents/kozokaAI-privacy-policy.pdf`
+- **配信解除 (Unsubscribe):** `{{{RESEND_UNSUBSCRIBE_URL}}}` プレースホルダーを使用
+- **会社 Web サイト:** `https://www.kozoka-ai.co.jp`
+
+**実装時の注意**:
+
+- すべてのリンクは `href` 属性で正しく設定
+- リンクテキストは明確で、クリック可能であることが分かるようにする
+- 外部リンクは新しいタブで開く必要がある場合は `target="_blank"` を指定（ただし、メールクライアント互換性のため、通常は省略）
+
+---
+
+## 5. 配信前チェックリスト (Pre-flight Checklist)
+
+AI がコンテンツをレビューする際は、以下の項目を確認してください。
+
+### コンテンツ確認
+
+- [ ] **件名:** メールの用件を的確に表しているか？
+- [ ] **プレビューテキスト:** 140 文字以内で、記事の魅力を伝えているか？
+- [ ] **トーン＆マナー:** 「です・ます」調で、プロフェッショナルな口調か？
+- [ ] **用語:** 製品名が正確に記述されているか？（`kozokaAI`, `FAX受注入力AI`, `商談ログAI`, `インサイトAI`）
+
+### デザイン確認
+
+- [ ] **画像表示:** すべての画像に `alt` テキストが設定されているか？
+- [ ] **画像サイズ:** ヘッダー画像は 560px×293px、フッター画像は 200px×105px か？
+- [ ] **タイポグラフィ:** タイトル 18px、本文 15px が使用されているか？
+
+### 技術確認
+
+- [ ] **リンク:** 全ての URL が正しく、リンク切れがないか？（特にプライバシーポリシー）
+- [ ] **フッター署名:** 会社情報、住所、Web サイトが正確に記載されているか？
+- [ ] **法的記載:** プライバシーポリシーリンク、配信停止リンクが正しく設定されているか？
+- [ ] **プレーンテキスト:** HTML メールが表示できない環境用のテキストが用意されているか？（Resend が自動生成）
+
+### メールクライアント互換性確認
+
+- [ ] **インラインスタイル:** Tailwind CSS クラスや CSS 変数を使用していないか？
+- [ ] **レイアウト:** Flexbox/Grid を使用していないか？（テーブルレイアウトを使用）
+- [ ] **EmailWrapper:** すべてのコンテンツが `EmailWrapper` でラップされているか？
+
+---
+
+## 6. 実装例（完全版）
+
+以下は、kozokaAI のメールマガジンの完全な実装例です。
+
+```tsx
+import { EmailWrapper } from "@/components/email/EmailWrapper";
+import { EmailSection } from "@/components/email/EmailSection";
+import { EmailCard } from "@/components/email/EmailCard";
+import { EmailButton } from "@/components/email/EmailButton";
+import { EmailHeading } from "@/components/email/EmailHeading";
+import { EmailText } from "@/components/email/EmailText";
+import { EmailDivider } from "@/components/email/EmailDivider";
+import { Img } from "@/components/email/Img";
+
+export function MailContent() {
+  return (
+    <EmailWrapper
+      preview={false}
+      previewText="kozokaAI BOOSTマガジン最新号をお届けします。今月はFAX受注入力AIの新機能をご紹介します。"
+    >
+      {/* ヘッダー画像 */}
+      <EmailSection>
+        <EmailCard backgroundColor="#ffffff" padding="0">
+          <Img
+            src="/MAIL-ASSETS/header.jpg"
+            alt="kozokaAI BOOSTマガジン"
+            width="560"
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+            }}
+          />
+        </EmailCard>
+      </EmailSection>
+
+      {/* タイトルセクション */}
+      <EmailSection>
+        <h1
+          style={{
+            fontSize: "18px",
+            fontWeight: 600,
+            color: "#0f172a",
+            margin: "0 0 16px 0",
+            lineHeight: "1.3",
+          }}
+        >
+          kozokaAI BOOSTマガジン 2025年1月号
+        </h1>
+        <EmailText variant="muted">
+          今月のkozokaAI製品情報をお届けします。
+        </EmailText>
+      </EmailSection>
+
+      {/* メインコンテンツ */}
+      <EmailSection>
+        <EmailCard>
+          <EmailText margin="0 0 16px 0">
+            こんにちは、kozokaAI BOOSTマガジン事務局です。
+          </EmailText>
+          <EmailText margin="0 0 16px 0">
+            今月は、<strong>FAX受注入力AI</strong>の新機能をご紹介します。
+            注注くんが、より使いやすくなりました。
+          </EmailText>
+          <div style={{ textAlign: "center", marginTop: "24px" }}>
+            <EmailButton href="https://www.kozoka-ai.co.jp">
+              詳細を見る
+            </EmailButton>
+          </div>
+        </EmailCard>
+      </EmailSection>
+
+      {/* 区切り線 */}
+      <EmailDivider />
+
+      {/* フッター署名 */}
+      <EmailText
+        variant="muted"
+        style={{ fontSize: "14px", lineHeight: "1.6" }}
+      >
+        <div
+          style={{
+            marginTop: "24px",
+            paddingTop: "24px",
+            borderTop: "1px solid #e2e8f0",
+          }}
+        >
+          <p style={{ margin: "0 0 8px 0" }}>
+            <strong>株式会社kozokaAI</strong>
+            <br />
+            kozokaAI BOOSTマガジン事務局
+          </p>
+          <p style={{ margin: "8px 0" }}>
+            Web:{" "}
+            <a
+              href="https://www.kozoka-ai.co.jp"
+              style={{
+                color: "#2563eb",
+                textDecoration: "none",
+              }}
+            >
+              https://www.kozoka-ai.co.jp
+            </a>
+            <br />
+            住所: 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
+          </p>
+        </div>
+      </EmailText>
+
+      {/* 法的記載・免責事項 */}
+      <EmailText
+        variant="muted"
+        style={{ fontSize: "12px", lineHeight: "1.6", marginTop: "16px" }}
+      >
+        <p style={{ margin: "0 0 12px 0" }}>
+          本メールは弊社社員と名刺交換させて頂いた方、セミナーやイベントのご登録、各種資料をダウンロードおよびお知らせメールをご希望頂いた皆さまにお送りしております。
+        </p>
+        <p style={{ margin: "0 0 12px 0" }}>
+          <a
+            href="https://www.kozoka-ai.co.jp/assets/documents/kozokaAI-privacy-policy.pdf"
+            style={{
+              color: "#2563eb",
+              textDecoration: "underline",
+            }}
+          >
+            kozokaAI プライバシーポリシー
+          </a>
+        </p>
+        <p style={{ margin: "0 0 12px 0" }}>
+          当社からのご案内が不要の場合、お手数ですが
+          <a
+            href="{{{RESEND_UNSUBSCRIBE_URL}}}"
+            style={{
+              color: "#2563eb",
+              textDecoration: "underline",
+            }}
+          >
+            配信停止
+          </a>
+          よりお手続きをお願いいたします。
+          <br />
+          （※MONO-Xと配信リストを共有している場合があります）
+        </p>
+        <p style={{ margin: "0" }}>
+          ※配信停止の設定後も、システムの都合により数日〜最大1か月ほどメールが届く場合がございます。あらかじめご了承ください。
+        </p>
+      </EmailText>
+    </EmailWrapper>
+  );
+}
+```
+
+---
+
+## 7. 参照ドキュメント
+
+- **技術的制約**: `.cursor/rules/email-design.mdc` - メールクライアント互換性、コンポーネント使用方法
+- **プロジェクト全体ルール**: `.cursor/rules/general.mdc` - 技術スタック、開発フロー
+- **デザインシステム**: `docs/dev/design-system.md` - カラーパレット、スペーシングシステム
+
+---
+
+## 8. 注意事項
+
+### 既存の EmailFooter コンポーネントとの統合
+
+既存の `EmailFooter` コンポーネント（`src/components/email/EmailFooter.tsx`）には配信停止リンクが含まれていますが、kozokaAI 固有のフッター署名と法的記載を追加する場合は、以下のいずれかの方法を選択してください：
+
+1. **EmailFooter コンポーネントを拡張**: kozokaAI 固有のフッター情報を追加
+2. **MailContent 内で直接実装**: 上記の実装例のように、フッター署名と法的記載を直接記述
+
+どちらの方法を選択するかは、プロジェクトの要件に応じて決定してください。

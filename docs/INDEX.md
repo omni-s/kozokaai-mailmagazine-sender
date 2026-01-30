@@ -12,13 +12,19 @@
 ```
 docs/
 ├── INDEX.md          # 本索引ファイル
+├── for-non-engineers/   # 非エンジニア向けガイド
+│   ├── getting-started.md      # 初めてのメール作成（ステップバイステップ）
+│   ├── component-reference.md  # コンポーネントリファレンス
+│   ├── common-errors.md        # よくあるエラー集
+│   └── brand-guide.md          # kozokaAI ブランドガイド
 ├── dev/              # 開発関連ドキュメント
 │   ├── branch.md     # ブランチ戦略とCI/CDワークフロー
-│   └── devcontainer.md  # VS Code Dev Container設定と使い方
+│   └── devcontainer.md  # VS Code Dev Container 運用終了について（歴史的記録）
 ├── setup/            # 環境構築ガイド
 │   └── environment.md   # AWS、Resend、GitHub設定
 ├── ops/              # 運用ガイド
 │   ├── workflow.md      # 日常的な配信フロー
+│   ├── reply-email.md   # メール返信機能ガイド
 │   ├── scheduled-delivery-verification.md  # 予約配信の確認方法
 │   ├── troubleshooting.md  # トラブルシューティング
 │   ├── security-updates.md # セキュリティアップデート手順
@@ -32,6 +38,42 @@ docs/
 
 ## ドキュメント一覧
 
+### 非エンジニア向け（for-non-engineers/）
+
+- **[getting-started.md](./for-non-engineers/getting-started.md)** - 初めてのメール作成ガイド
+  - Cursor IDE でメールマガジンを作成する基本的な流れ
+  - 環境セットアップから配信までのステップバイステップ
+  - Hello World サンプル、画像追加、ボタン追加
+  - 配信準備（pnpm run commit）と本番配信（Manual Approval）
+  - MailContentBody パターン（DRY化、コード重複防止、保守性向上）
+  - 作成前・作成中・配信前チェックリスト
+
+- **[component-reference.md](./for-non-engineers/component-reference.md)** - コンポーネントリファレンス
+  - メールデザインで使えるコンポーネント（部品）の視覚的リファレンス
+  - EmailWrapper、EmailHeader、EmailSection、EmailCard、EmailHeading、EmailText、EmailButton、Img、EmailDivider
+  - EmailHeader: kozokaAI ブランドヘッダーの統一管理（誤削除防止、S3 自動置換）
+  - 各コンポーネントの用途、必須プロパティ、デフォルト値、実装例、注意事項
+  - コピー＆ペーストできる実装例
+  - kozokaAI BOOST マガジンの完全な実装例
+
+- **[common-errors.md](./for-non-engineers/common-errors.md)** - よくあるエラー集
+  - メールが表示されない（構文エラー、previewText 未設定、インポート漏れ）
+  - 画像が表示されない（ファイル名のタイポ、画像パスの誤り、img タグ使用、width/height 未設定）
+  - Tailwind CSS クラスが効かない（メールクライアント非対応、インラインスタイルに変換）
+  - pnpm run commit エラー（draft/page.tsx が見つからない、MAIL-ASSETS/ に画像がない、Segment ID が不正）
+  - GitHub Actions エラー（Lint エラー、型エラー、S3 アップロードエラー、テストメール送信エラー）
+  - 診断フローチャート付き
+
+- **[brand-guide.md](./for-non-engineers/brand-guide.md)** - kozokaAI ブランドガイド
+  - 会社情報（会社名、送信者情報、Web サイト、住所）
+  - 製品ラインナップ（FAX受注入力AI、商談ログAI、インサイトAI）
+  - ブランドカラー（プライマリ #00ADAA、ホバー #009A97）
+  - タイポグラフィ（見出し 18px、本文 15px、小さいテキスト 13px）
+  - トーン＆マナー（「です・ます」調、プロフェッショナルで親しみやすい）
+  - 画像サイズ（ヘッダー 560×293px、フッター 200×105px）
+  - 必須構成要素（プレビューテキスト、フッター署名、配信停止リンク）
+  - 配信前チェックリスト
+
 ### 開発関連（dev/）
 
 - **[branch.md](./dev/branch.md)** - ブランチ運用戦略とGitHub ActionsによるCI/CDワークフローのテンプレート
@@ -40,11 +82,10 @@ docs/
   - コミットメッセージ規約
   - 運用フロー例とトラブルシューティング
 
-- **[devcontainer.md](./dev/devcontainer.md)** - VS Code Dev Container 設定と使い方
-  - Dev Containerの概要と利点
-  - セットアップ手順（初回・2回目以降）
-  - トラブルシューティング（ポート競合、認証エラー等）
-  - カスタマイズガイド（拡張機能追加、ポート設定等）
+- **[devcontainer.md](./dev/devcontainer.md)** - VS Code Dev Container 運用終了について
+  - 運用終了の理由（permissions問題、プラットフォーム不一致）
+  - 現在の推奨環境（ローカル開発）
+  - 過去の設定（参考）
 
 ### 環境構築（setup/）
 
@@ -63,6 +104,14 @@ docs/
   - 配信停止機能（Unsubscribe機能、FTC/GDPR対応、トラブルシューティング）
   - 緊急停止手順
   - 配信履歴の確認方法
+
+- **[reply-email.md](./ops/reply-email.md)** - メール返信機能ガイド
+  - 受信者からの返信に対して個別に返信メールを送信
+  - Resend Emails API の使用（replyTo パラメータ）
+  - 対話型CLI（inquirer）による入力インターフェース
+  - 件名に "Re:" プレフィックス自動追加
+  - トラブルシューティング（送信エラー、エディタ問題、スレッド化）
+  - FAQ（自動返信、複数宛先、プレーンテキスト、React コンポーネント）
 
 - **[scheduled-delivery-verification.md](./ops/scheduled-delivery-verification.md)** - 予約配信の確認方法
   - GitHub Actions ワークフロー確認（即座）
@@ -117,7 +166,7 @@ docs/
 - **[architecture.md](./specs/architecture.md)** - システムアーキテクチャ概要
   - 全体フロー（ローカル制作 → S3 → テスト → 本番配信）
   - 技術スタック詳細と選定理由
-  - 画像パス置換ロジック（開発時 `/mail-assets/` → 本番 S3 URL）
+  - 画像パス置換ロジック（開発時 `/MAIL-ASSETS/` → 本番 S3 URL）
   - メールHTML互換性設計（EmailWrapper テーブルレイアウト）
   - Resend Audience ID管理の仕組み
   - sentAt タイムスタンプ管理
@@ -132,4 +181,4 @@ docs/
 
 ---
 
-最終更新日: 2026-01-20
+最終更新日: 2026-01-21

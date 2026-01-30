@@ -123,7 +123,7 @@ async function getS3Object(key: string): Promise<string | null> {
 }
 
 /**
- * 画像パスを /mail-assets/ から S3 URL に置換
+ * 画像パスを /MAIL-ASSETS/ から S3 URL に置換
  */
 function replaceImagePaths(
   html: string,
@@ -132,11 +132,11 @@ function replaceImagePaths(
   mm: string,
   ddMsg: string
 ): string {
-  const pattern = /<[Ii]mg[^>]*src=['"]\/mail-assets\/([^'"]+)['"]/g;
+  const pattern = /<[Ii]mg[^>]*src=['"]\/MAIL-ASSETS\/([^'"]+)['"]/g;
 
   return html.replace(pattern, (match, filename) => {
     const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
-    return match.replace(/\/mail-assets\/[^'"]+/, s3Url);
+    return match.replace(/\/MAIL-ASSETS\/[^'"]+/, s3Url);
   });
 }
 

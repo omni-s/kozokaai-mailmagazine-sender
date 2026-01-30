@@ -60,7 +60,7 @@ export default function DraftMail() {
       </h1>
 
       <Img
-        src="/mail-assets/hero.png"
+        src="/MAIL-ASSETS/hero.png"
         alt="夏季セールのバナー"
         width={600}
         height={400}
@@ -96,11 +96,11 @@ export default function DraftMail() {
 
 ### 1.3. 画像配置
 
-画像ファイルは `public/mail-assets/` 配下に配置します。
+画像ファイルは `public/MAIL-ASSETS/` 配下に配置します。
 
 ```bash
 # 画像をコピー
-cp ~/Downloads/hero.png public/mail-assets/
+cp ~/Downloads/hero.png public/MAIL-ASSETS/
 ```
 
 **サポートされる画像形式**: PNG, JPG, GIF, SVG
@@ -208,7 +208,7 @@ public/archives/
 #### 2.3.3. ファイル移動
 
 - `src/app/draft/page.tsx` → `archives/2024/05/20-summer-sale/mail.tsx`
-- `public/mail-assets/*` → `archives/2024/05/20-summer-sale/assets/`
+- `public/MAIL-ASSETS/*` → `archives/2024/05/20-summer-sale/assets/`
 
 #### 2.3.4. config.json 生成
 
@@ -359,7 +359,7 @@ mainブランチへのマージで、Production Workflowが自動起動します
 
 ```html
 <!-- Before -->
-<img src="/mail-assets/hero.png" />
+<img src="/MAIL-ASSETS/hero.png" />
 
 <!-- After -->
 <img src="https://bucket.s3.region.amazonaws.com/archives/2024/05/20-summer-sale/assets/hero.png" />
@@ -675,7 +675,7 @@ curl -X DELETE 'https://api.resend.com/contacts/{contact_id}' \
 
 - [ ] `pnpm run dev` で開発サーバー起動
 - [ ] `src/app/draft/page.tsx` 編集
-- [ ] 画像を `public/mail-assets/` に配置
+- [ ] 画像を `public/MAIL-ASSETS/` に配置
 - [ ] http://localhost:3000/draft でプレビュー確認
 - [ ] レイアウト・画像・リンク・フォント・配信停止リンクをチェック
 
