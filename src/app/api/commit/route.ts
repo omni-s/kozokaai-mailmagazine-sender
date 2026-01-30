@@ -275,16 +275,20 @@ export async function POST(request: NextRequest) {
     // 7. assets/ の移動（ファイルのみコピー、ディレクトリはスキップ）
     if (fs.existsSync(MAIL_ASSETS_DIR)) {
       const entries = fs.readdirSync(MAIL_ASSETS_DIR);
-      const files = entries.filter((entry) => {
-        const entryPath = path.join(MAIL_ASSETS_DIR, entry);
-        return fs.statSync(entryPath).isFile();
-      });
-      if (files.length > 0) {
-        console.log(`[API /commit] 画像ファイルコピー中... (${files.length}件)`);
-        files.forEach((file) => {
-          const srcPath = path.join(MAIL_ASSETS_DIR, file);
-          const destPath = path.join(assetsDir, file);
-          fs.copyFileSync(srcPath, destPath);
+      if (entries.length > 0) {
+        console.log(`[API /commit] 画像ファイルコピー中... (${entries.length}件)`);
+        entries.forEach((entry) => {
+          const srcPath = path.join(MAIL_ASSETS_DIR, entry);
+          const destPath = path.join(assetsDir, entry);
+          const stat = fs.statSync(srcPath);
+
+          if (stat.isDirectory()) {
+            // ディレクトリの場合は再帰的にコピー
+            fs.cpSync(srcPath, destPath, { recursive: true });
+          } else {
+            // ファイルの場合は通常のコピー
+            fs.copyFileSync(srcPath, destPath);
+          }
           // 元ファイルは削除しない（再編集時のため保持）
         });
         console.log('[API /commit] 画像ファイルコピー完了');

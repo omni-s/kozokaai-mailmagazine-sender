@@ -28,7 +28,7 @@ export function EmailButton({
         backgroundColor,
         color,
         textDecoration: 'none',
-        borderRadius: '6px',
+        borderRadius: '25px',
         fontSize: '15px',
         fontWeight: 500,
         lineHeight: '1.5',

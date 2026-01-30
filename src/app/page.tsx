@@ -463,7 +463,7 @@ function MailContentBody() {
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
                     src="/MAIL-ASSETS/ITトレンドEXPO.jpg"
-                    alt="kozokaAIがイベントに出展します！✨"
+                    alt="kozokaAIがイベントに出展します！"
                     width="200"
                     height="103"
                     style={{
@@ -486,7 +486,7 @@ function MailContentBody() {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    kozokaAIがイベントに出展します！✨
+                    kozokaAIがイベントに出展します！
                   </h3>
                   <div style={{ marginTop: '8px', marginBottom: '8px', width: '100%' }}>
                     <hr
@@ -507,7 +507,7 @@ function MailContentBody() {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                      
+
 3月3日(火)～3月7日(土)開催の最大級オンライン展示会「ITトレンドEXPO 2026 Spring」に出展することになりました！
 豪華出演者に加え、Amazonギフトプレゼントキャンペーンもございます！お見逃しなく！
                   </p>
