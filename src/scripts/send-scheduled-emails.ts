@@ -24,6 +24,7 @@ interface ProductionEmailError {
 
 /**
  * 画像パスを /MAIL-ASSETS/ から S3 URL に置換
+ * 大文字小文字不問（/mail-assets/ も対応）
  */
 function replaceImagePaths(
   html: string,
@@ -32,12 +33,12 @@ function replaceImagePaths(
   mm: string,
   ddMsg: string
 ): string {
-  // <Img> と <img> の両方に対応（大文字小文字不問）
-  const pattern = /<[Ii]mg[^>]*src=['"]\/MAIL-ASSETS\/([^'"]+)['"]/g;
+  // <Img> と <img> の両方、/MAIL-ASSETS/ と /mail-assets/ の両方に対応
+  const pattern = /<[Ii]mg[^>]*src=['"]\/[Mm][Aa][Ii][Ll]-[Aa][Ss][Ss][Ee][Tt][Ss]\/([^'"]+)['"]/g;
 
   return html.replace(pattern, (match, filename) => {
     const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
-    return match.replace(/\/MAIL-ASSETS\/[^'"]+/, s3Url);
+    return match.replace(/\/[Mm][Aa][Ii][Ll]-[Aa][Ss][Ss][Ee][Tt][Ss]\/[^'"]+/, s3Url);
   });
 }
 

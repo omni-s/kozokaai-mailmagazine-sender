@@ -141,6 +141,10 @@ function removeComments(code: string): string {
 
 /**
  * 画像パスの検証
+ *
+ * 以下を検証:
+ * 1. 画像パスが /MAIL-ASSETS/ 形式であること（大文字小文字チェック）
+ * 2. 参照されている画像ファイルが assets/ に存在すること
  */
 function validateImagePaths(archiveDir: string): ValidationError | null {
   const mailPath = path.join(PROJECT_ROOT, archiveDir, 'mail.tsx');
@@ -161,14 +165,37 @@ function validateImagePaths(archiveDir: string): ValidationError | null {
   // コメントを除去してからパターンマッチング
   mailContent = removeComments(mailContent);
 
-  // <Img src="/MAIL-ASSETS/..." /> のパターンを抽出
-  const imgPattern = /<Img[^>]*src=["']\/MAIL-ASSETS\/([^"']+)["']/g;
+  // 不正な画像パスの検出（小文字 /mail-assets/ やサブディレクトリの使用）
+  const invalidPathPattern = /<[Ii]mg[^>]*src=["']\/mail-assets\/([^"']+)["']/g;
+  const invalidMatches = [...mailContent.matchAll(invalidPathPattern)];
+  if (invalidMatches.length > 0) {
+    const invalidPaths = invalidMatches.map((m) => `/mail-assets/${m[1]}`);
+    return {
+      type: '画像パス',
+      message: '画像パスが不正です。/MAIL-ASSETS/ （大文字）を使用してください',
+      details: invalidPaths.join(', '),
+    };
+  }
+
+  // <Img src="/MAIL-ASSETS/..." /> のパターンを抽出（<img> 小文字タグも対応）
+  const imgPattern = /<[Ii]mg[^>]*src=["']\/MAIL-ASSETS\/([^"']+)["']/g;
   const matches = [...mailContent.matchAll(imgPattern)];
 
   if (matches.length === 0) {
     // 画像が使用されていない場合は警告のみ
     console.log(chalk.yellow('  警告: 画像が使用されていません'));
     return null;
+  }
+
+  // サブディレクトリが使用されていないかチェック
+  const subDirPaths = matches.filter((m) => m[1].includes('/'));
+  if (subDirPaths.length > 0) {
+    const paths = subDirPaths.map((m) => `/MAIL-ASSETS/${m[1]}`);
+    return {
+      type: '画像パス',
+      message: '画像パスにサブディレクトリが使用されています。画像はフラットに配置してください',
+      details: paths.join(', '),
+    };
   }
 
   // 各画像ファイルの存在確認

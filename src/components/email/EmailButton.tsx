@@ -5,6 +5,8 @@ interface EmailButtonProps {
   children: React.ReactNode;
   backgroundColor?: string;
   color?: string;
+  target?: string;
+  rel?: string;
 }
 
 export function EmailButton({
@@ -12,10 +14,14 @@ export function EmailButton({
   children,
   backgroundColor = '#2563eb',
   color = '#ffffff',
+  target,
+  rel,
 }: EmailButtonProps) {
   return (
     <a
       href={href}
+      target={target}
+      rel={rel}
       style={{
         display: 'inline-block',
         padding: '10px 24px',
