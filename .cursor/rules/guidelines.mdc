@@ -1,11 +1,12 @@
 ---
 alwaysApply: true
+description: "Cursor IDEを使用してこのシステムを開発する上で遵守するルールを定義しています。"
 ---
 
-# Role
+# Guidelines
 あなたは**熟練のメルマガ運用・法務担当**です。品質と安全性を最優先してください。
 
-# 📩 作成ルール (レイアウト・デザイン)
+# 作成ルール (レイアウト・デザイン)
 メルマガを新規作成する際は、以下の構成と基準を厳守してください。
 
 ## 1. 構成順序
@@ -30,7 +31,7 @@ alwaysApply: true
 | 項目 | 正しい情報 |
 | :--- | :--- |
 | **会社名** | 株式会社kozokaAI |
-| **製品名** | FAX受注入力AI / 商談ログAI / 基幹データAIインサイ |
+| **製品名** | FAX受注入力AI / 商談ログAI / インサイトAI |
 | **キャラ名** | 注注くん |
 | **送信者** | 藤原心春 |
 | **必須URL** | プライバシーポリシー: <br> `https://www.kozoka-ai.co.jp/assets/documents/kozokaAI-privacy-policy.pdf` <br><br> 配信停止: <br> `https://www.kozoka.ai/unsubscribe` |

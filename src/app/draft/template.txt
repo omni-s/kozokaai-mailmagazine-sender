@@ -1,5 +1,10 @@
+'use client';
+
 import React from 'react';
+import { Modal, Button, Container, Box } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { EmailWrapper } from '@/components/email/EmailWrapper';
+import { EmailHeader } from '@/components/email/EmailHeader';
 import { EmailSection } from '@/components/email/EmailSection';
 import { EmailCard } from '@/components/email/EmailCard';
 import { EmailButton } from '@/components/email/EmailButton';
@@ -7,6 +12,7 @@ import { EmailHeading } from '@/components/email/EmailHeading';
 import { EmailText } from '@/components/email/EmailText';
 import { EmailDivider } from '@/components/email/EmailDivider';
 import { Img } from '@/components/email/Img';
+import { CommitForm } from '@/components/commit/CommitForm';
 
 /**
  * メールテンプレート作業用ファイル
@@ -14,20 +20,29 @@ import { Img } from '@/components/email/Img';
  * このファイルを編集してメールをデザインします。
  * `pnpm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
  *
- * 画像は public/mail-assets/ に配置してください。
- * 例: <Img src="/mail-assets/hero.jpg" alt="Hero Image" width="600" />
+ * 画像は public/MAIL-ASSETS/ に配置してください。
+ * 例: <Img src="/MAIL-ASSETS/hero.jpg" alt="Hero Image" width="600" />
  */
-export default function Home() {
+
+/**
+ * MailContentBody - メールコンテンツ本体
+ *
+ * MailContent と Home で共通化されたメールコンテンツです。
+ * ブラウザプレビューと配信メールの不整合を防止します。
+ *
+ * ⚠️ 重要: このコンポーネントを編集すると、両方に反映されます。
+ */
+function MailContentBody() {
   return (
-    <EmailWrapper
-      preview={true}
-      previewText="サンプルメールマガジンのプレビューテキストです"
-    >
+    <>
+      {/* ヘッダー画像（統一管理） */}
+      <EmailHeader />
+
       {/* ヘッダー画像 */}
       <EmailSection>
         <EmailCard backgroundColor="#ffffff" padding="0">
           <Img
-            src="/mail-assets/placeholder.webp"
+            src="/MAIL-ASSETS/placeholder.webp"
             alt="ヘッダー画像"
             width="520"
             style={{
@@ -68,7 +83,7 @@ export default function Home() {
               このファイル (src/app/page.tsx) を編集
             </li>
             <li style={{ marginBottom: '8px' }}>
-              画像を public/mail-assets/ に配置
+              画像を public/MAIL-ASSETS/ に配置
             </li>
             <li style={{ marginBottom: '8px' }}>
               pnpm run dev でプレビュー確認
@@ -107,6 +122,54 @@ export default function Home() {
         </a>
         までご連絡ください。
       </EmailText>
+    </>
+  );
+}
+
+/**
+ * メール配信用コンポーネント（Hooksなし）
+ * @react-email/render でレンダリングされます
+ */
+export function MailContent() {
+  return (
+    <EmailWrapper
+      preview={false}
+      previewText="サンプルメールマガジンのプレビューテキストです"
+    >
+      <MailContentBody />
     </EmailWrapper>
+  );
+}
+
+/**
+ * ホーム画面（プレビュー + 配信準備UI）
+ */
+export default function Home() {
+  const [opened, { open, close }] = useDisclosure(false);
+
+  return (
+    <>
+      {/* メールプレビュー（preview={true}でブラウザ表示用） */}
+      <EmailWrapper
+        preview={true}
+        previewText="サンプルメールマガジンのプレビューテキストです"
+      >
+        <MailContentBody />
+      </EmailWrapper>
+
+      {/* 配信準備ボタン */}
+      <Container size="sm" mt="xl" mb="xl">
+        <Box style={{ textAlign: 'center' }}>
+          <Button onClick={open} size="lg" color="blue" fullWidth>
+            配信準備を開始
+          </Button>
+        </Box>
+      </Container>
+
+      {/* 配信準備Modal */}
+      <Modal opened={opened} onClose={close} title="配信準備" size="lg" centered>
+        <CommitForm onSuccess={close} />
+      </Modal>
+    </>
   );
 }

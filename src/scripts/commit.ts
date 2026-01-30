@@ -16,7 +16,7 @@ import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from "../lib/s3";
 
 const PROJECT_ROOT = path.resolve(__dirname, "../..");
 const DRAFT_FILE = path.join(PROJECT_ROOT, "src/app/page.tsx");
-const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, "public/mail-assets");
+const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, "public/MAIL-ASSETS");
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, "src/archives");
 
 interface CommitAnswers {
@@ -96,7 +96,7 @@ const STEPS: Step[] = [
     status: "pending",
   },
   { id: "move-mail", name: "mail.tsx 移動", status: "pending" },
-  { id: "move-assets", name: "画像ファイル移動", status: "pending" },
+  { id: "move-assets", name: "画像ファイルコピー", status: "pending" },
   { id: "create-config", name: "config.json 生成", status: "pending" },
   {
     id: "s3-upload",
@@ -742,20 +742,20 @@ async function main() {
   if (fs.existsSync(MAIL_ASSETS_DIR)) {
     const files = fs.readdirSync(MAIL_ASSETS_DIR);
     if (files.length > 0) {
-      console.log(chalk.cyan(`画像ファイルを移動中... (${files.length}件)`));
+      console.log(chalk.cyan(`画像ファイルをコピー中... (${files.length}件)`));
       files.forEach((file) => {
         const srcPath = path.join(MAIL_ASSETS_DIR, file);
         const destPath = path.join(assetsDir, file);
         fs.copyFileSync(srcPath, destPath);
-        fs.unlinkSync(srcPath); // 元ファイルを削除
+        // 元ファイルは削除しない（再編集時のため保持）
       });
     } else {
-      console.log(chalk.yellow("警告: mail-assets/ に画像がありません"));
+      console.log(chalk.yellow("警告: MAIL-ASSETS/ に画像がありません"));
     }
   }
 
   updateStepStatus("move-assets", "success");
-  console.log(chalk.green("✓ 画像ファイル移動"));
+  console.log(chalk.green("✓ 画像ファイルコピー"));
 
   // 8. config.json 生成
   updateStepStatus("create-config", "running");
@@ -814,9 +814,13 @@ async function main() {
   console.log(chalk.cyan("\nS3へアップロード中...\n"));
 
   try {
-    // S3プレフィックスを構築
+    // クロスプラットフォーム対応: Windows/Linux/macOS
+    // Step 1: プロジェクトルートからの相対パスを取得
+    const relativePath = path.relative(PROJECT_ROOT, archiveDir);
+
+    // Step 2: すべてのパスセパレータをフォワードスラッシュに統一（S3キー形式）
     // src/archives/2026/01/14-test → archives/2026/01/14-test
-    const s3Prefix = archiveDir.replace(`${PROJECT_ROOT}/src/`, "");
+    const s3Prefix = relativePath.split(path.sep).join("/").replace(/^src\//, "");
 
     // 画像をS3にアップロード
     const assetsResults: Array<{

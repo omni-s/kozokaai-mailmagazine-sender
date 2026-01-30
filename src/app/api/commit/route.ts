@@ -11,9 +11,8 @@ import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from '@/lib/s3';
  */
 const PROJECT_ROOT = process.cwd();
 const DRAFT_FILE = path.join(PROJECT_ROOT, 'src/app/page.tsx');
-const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, 'public/mail-assets');
+const MAIL_ASSETS_DIR = path.join(PROJECT_ROOT, 'public/MAIL-ASSETS');
 const ARCHIVES_DIR = path.join(PROJECT_ROOT, 'src/archives');
-const TEMPLATE_FILE = path.join(PROJECT_ROOT, 'src/app/draft/template.tsx');
 
 /**
  * リクエストボディの型定義
@@ -24,6 +23,7 @@ interface CommitRequestBody {
   segmentId: string;
   scheduleType: 'immediate' | 'scheduled';
   scheduledAt?: string;
+  overwrite?: boolean;
 }
 
 /**
@@ -172,12 +172,15 @@ export async function POST(request: NextRequest) {
     const body: CommitRequestBody = await request.json();
     const { commitMessage, subject, segmentId, scheduleType, scheduledAt } = body;
 
+    const { overwrite = false } = body;
+
     console.log('[API /commit] リクエスト受信:', {
       commitMessage,
       subject,
       segmentId,
       scheduleType,
       scheduledAt,
+      overwrite,
     });
 
     // 2. バリデーション
@@ -207,13 +210,32 @@ export async function POST(request: NextRequest) {
     console.log('[API /commit] アーカイブディレクトリ:', archiveDir);
 
     if (fs.existsSync(archiveDir)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `アーカイブ ${dd}-${commitMessage} は既に存在します`,
-        },
-        { status: 409 }
-      );
+      if (!overwrite) {
+        // 上書き未承認 → 409 Conflict
+        return NextResponse.json(
+          {
+            success: false,
+            message: `アーカイブ ${dd}-${commitMessage} は既に存在します`,
+          },
+          { status: 409 }
+        );
+      }
+
+      // 上書き承認済み → 既存ディレクトリ削除
+      console.log('[API /commit] 既存アーカイブを削除中...', archiveDir);
+      try {
+        fs.rmSync(archiveDir, { recursive: true, force: true });
+        console.log('[API /commit] 既存アーカイブ削除完了');
+      } catch (deleteError) {
+        console.error('[API /commit] アーカイブ削除エラー:', deleteError);
+        return NextResponse.json(
+          {
+            success: false,
+            message: '既存アーカイブの削除に失敗しました。ファイルがロックされている可能性があります。',
+          },
+          { status: 500 }
+        );
+      }
     }
 
     fs.mkdirSync(archiveDir, { recursive: true });
@@ -254,16 +276,16 @@ export async function POST(request: NextRequest) {
     if (fs.existsSync(MAIL_ASSETS_DIR)) {
       const files = fs.readdirSync(MAIL_ASSETS_DIR);
       if (files.length > 0) {
-        console.log(`[API /commit] 画像ファイル移動中... (${files.length}件)`);
+        console.log(`[API /commit] 画像ファイルコピー中... (${files.length}件)`);
         files.forEach((file) => {
           const srcPath = path.join(MAIL_ASSETS_DIR, file);
           const destPath = path.join(assetsDir, file);
           fs.copyFileSync(srcPath, destPath);
-          fs.unlinkSync(srcPath);
+          // 元ファイルは削除しない（再編集時のため保持）
         });
-        console.log('[API /commit] 画像ファイル移動完了');
+        console.log('[API /commit] 画像ファイルコピー完了');
       } else {
-        console.log('[API /commit] 警告: mail-assets/ に画像がありません');
+        console.log('[API /commit] 警告: MAIL-ASSETS/ に画像がありません');
       }
     }
 
@@ -303,7 +325,12 @@ export async function POST(request: NextRequest) {
     console.log('[API /commit] S3アップロード開始...');
 
     try {
-      const s3Prefix = archiveDir.replace(`${PROJECT_ROOT}/src/`, '');
+      // クロスプラットフォーム対応: Windows/Linux/macOS
+      // Step 1: プロジェクトルートからの相対パスを取得
+      const relativePath = path.relative(PROJECT_ROOT, archiveDir);
+
+      // Step 2: すべてのパスセパレータをフォワードスラッシュに統一（S3キー形式）
+      const s3Prefix = relativePath.split(path.sep).join('/').replace(/^src\//, '');
 
       // 画像をS3にアップロード
       const assetsResults: Array<{
@@ -358,16 +385,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 10. page.tsx のリセット
-    if (fs.existsSync(TEMPLATE_FILE)) {
-      console.log('[API /commit] page.tsx をリセット中...');
-      fs.copyFileSync(TEMPLATE_FILE, DRAFT_FILE);
-      console.log('[API /commit] page.tsx リセット完了');
-    } else {
-      console.log('[API /commit] 警告: template.tsx が見つかりません（page.tsx リセットスキップ）');
-    }
-
-    // 11. Git 操作
+    // 10. Git 操作
     console.log('[API /commit] Git操作開始...');
 
     // git add
@@ -420,7 +438,7 @@ export async function POST(request: NextRequest) {
     }
     console.log('[API /commit] git push 完了');
 
-    // 12. 成功レスポンス
+    // 11. 成功レスポンス
     return NextResponse.json({
       success: true,
       message: '配信準備が完了しました。PRを作成してレビュー依頼してください。',

@@ -26,7 +26,7 @@
                     │   page.tsx           │
                     │                      │
                     │ 画像: public/        │
-                    │   mail-assets/       │
+                    │   MAIL-ASSETS/       │
                     └──────────────────────┘
                                  │
                                  │ pnpm run commit
@@ -173,7 +173,7 @@ kozokaai-mailmagazine-sender/
 │       ├── send-test-email.ts     # Staging Workflow
 │       └── send-production-email.ts # Production Workflow
 ├── public/
-│   ├── mail-assets/               # 制作中の画像
+│   ├── MAIL-ASSETS/               # 制作中の画像
 │   └── archives/                  # アーカイブ済みメール
 │       └── YYYY/MM/DD-MSG/
 │           ├── mail.tsx
@@ -193,7 +193,7 @@ kozokaai-mailmagazine-sender/
 ```
 src/app/draft/page.tsx (編集中)
   ├── <EmailWrapper> (共通レイアウト)
-  │     └── <Img src="/mail-assets/hero.png" /> (画像参照)
+  │     └── <Img src="/MAIL-ASSETS/hero.png" /> (画像参照)
   └── <p>メール本文...</p>
 
            │
@@ -203,7 +203,7 @@ src/app/draft/page.tsx (編集中)
 public/archives/2024/05/20-summer-sale/
   ├── mail.tsx (draft/page.tsx をコピー)
   ├── assets/
-  │     └── hero.png (mail-assets/ から移動)
+  │     └── hero.png (MAIL-ASSETS/ から移動)
   └── config.json
         {
           "subject": "【夏季限定】特別セール",
@@ -235,7 +235,7 @@ upload-to-s3.ts (Staging Workflow)
 send-test-email.ts (Staging Workflow)
   ├── mail.tsx を React → HTML 変換
   ├── 画像パス置換
-  │     /mail-assets/hero.png
+  │     /MAIL-ASSETS/hero.png
   │       → https://bucket.s3.region.amazonaws.com/.../hero.png
   └── Resend API でテスト送信
         to: REVIEWER_EMAIL
@@ -260,7 +260,7 @@ send-production-email.ts (Production Workflow)
 
 ### 問題
 
-メール制作時に使用する画像パス（`/mail-assets/hero.png`）は、ローカル開発サーバーでのみ有効です。実際のメール配信では、S3にホスティングされた画像を参照する必要があります。
+メール制作時に使用する画像パス（`/MAIL-ASSETS/hero.png`）は、ローカル開発サーバーでのみ有効です。実際のメール配信では、S3にホスティングされた画像を参照する必要があります。
 
 ### 解決策
 
@@ -277,7 +277,7 @@ export default function DraftMail() {
   return (
     <EmailWrapper>
       <Img
-        src="/mail-assets/hero.png"
+        src="/MAIL-ASSETS/hero.png"
         alt="Hero Image"
         width={600}
         height={400}
@@ -303,11 +303,11 @@ function replaceImagePaths(
   mm: string,
   ddMsg: string
 ): string {
-  const pattern = /<Img[^>]*src=['"]\/mail-assets\/([^'"]+)['"]/g;
+  const pattern = /<Img[^>]*src=['"]\/MAIL-ASSETS\/([^'"]+)['"]/g;
 
   return html.replace(pattern, (match, filename) => {
     const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
-    return match.replace(/\/mail-assets\/[^'"]+/, s3Url);
+    return match.replace(/\/MAIL-ASSETS\/[^'"]+/, s3Url);
   });
 }
 ```
@@ -316,7 +316,7 @@ function replaceImagePaths(
 
 ```html
 <!-- Before -->
-<img src="/mail-assets/hero.png" alt="Hero Image" width="600" height="400" />
+<img src="/MAIL-ASSETS/hero.png" alt="Hero Image" width="600" height="400" />
 
 <!-- After -->
 <img src="https://bucket.s3.ap-northeast-1.amazonaws.com/archives/2024/05/20-summer-sale/assets/hero.png"
@@ -683,8 +683,8 @@ This workflow is waiting for approval to deploy to production.
 | `AWS_ACCESS_KEY_ID` | AWS IAM認証 | `AKIA...` |
 | `AWS_SECRET_ACCESS_KEY` | AWS IAM認証 | `secret...` |
 | `AWS_REGION` | S3リージョン | `ap-northeast-1` |
-| `S3_BUCKET_NAME` | S3バケット名 | `my-mail-assets` |
-| `S3_BUCKET_URL` | S3ベースURL | `https://my-mail-assets.s3.ap-northeast-1.amazonaws.com` |
+| `S3_BUCKET_NAME` | S3バケット名 | `my-MAIL-ASSETS` |
+| `S3_BUCKET_URL` | S3ベースURL | `https://my-MAIL-ASSETS.s3.ap-northeast-1.amazonaws.com` |
 
 ### Check Workflow（check.yml）
 
@@ -1018,6 +1018,229 @@ curl -X DELETE 'https://api.resend.com/contacts/{contact_id}' \
 - [Resend - Unsubscribe Topics](https://resend.com/blog/unsubscribe-topics)
 - [FTC - CAN-SPAM Act](https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business)
 - [GDPR - Right to be forgotten](https://gdpr-info.eu/art-17-gdpr/)
+
+---
+
+## アーカイブ上書き確認メカニズム
+
+### 概要
+
+GUI（http://localhost:3000）から配信準備を実行する際、既存のアーカイブディレクトリが存在する場合に上書き確認ダイアログを表示し、ユーザーに選択させる機能を実装しています。
+
+### 実装方式
+
+**GUI実装**: Mantine Modal + 二段階リクエスト
+
+### 動作フロー
+
+```
+1. ユーザーがフォーム送信
+   ↓
+2. API: 409 Conflict（既存ディレクトリ検出）
+   ↓
+3. 確認ダイアログ表示（黄色Alert + 赤色「上書きする」ボタン）
+   ↓
+4. ユーザーが選択
+   ├─ キャンセル → Alert表示（エラーメッセージ）
+   └─ 上書き → `overwrite: true`フラグで再送信
+       ↓
+     API: `fs.rmSync()`で既存削除 → 新規作成
+       ↓
+     成功レスポンス
+```
+
+### 実装詳細
+
+#### CommitForm.tsx（`src/components/commit/CommitForm.tsx`）
+
+**State追加**（L41-42）:
+```typescript
+const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
+const [pendingRequest, setPendingRequest] = useState<CommitAnswers | null>(null);
+```
+
+**API呼び出しロジック分離**（L93-141）:
+```typescript
+const executeCommit = async (data: CommitAnswers, overwrite: boolean = false) => {
+  // 409 Conflict検出時に確認ダイアログ表示
+  if (response.status === 409 && !overwrite) {
+    setPendingRequest(data);
+    setShowOverwriteConfirm(true);
+    setLoading(false);
+    return;
+  }
+  // その他のエラーハンドリング...
+};
+```
+
+**確認ダイアログ**（L279-302）:
+```tsx
+<Modal
+  opened={showOverwriteConfirm}
+  onClose={handleOverwriteCancel}
+  title="アーカイブ上書き確認"
+  size="md"
+  centered
+  closeOnClickOutside={false}
+  withCloseButton={false}
+>
+  <Stack gap="md">
+    <Alert color="yellow" title="警告">
+      このアーカイブは既に存在します。上書きすると既存のデータが完全に削除されます。
+    </Alert>
+
+    <Group justify="flex-end" mt="md">
+      <Button variant="default" onClick={handleOverwriteCancel}>
+        キャンセル
+      </Button>
+      <Button color="red" onClick={handleOverwriteConfirm} loading={loading}>
+        上書きする
+      </Button>
+    </Group>
+  </Stack>
+</Modal>
+```
+
+**UI設計の根拠**:
+- `closeOnClickOutside={false}`: 誤操作防止（モーダル外クリックで閉じない）
+- `withCloseButton={false}`: 明示的な選択を強制（×ボタン非表示）
+- Alert + 警告色: 危険性を視覚的に強調
+- ボタン配置: キャンセル（左）、上書き（右、赤色）
+- loading state: 二重送信防止
+
+#### API Endpoint（`src/app/api/commit/route.ts`）
+
+**型定義拡張**（L21-28）:
+```typescript
+interface CommitRequestBody {
+  commitMessage: string;
+  subject: string;
+  segmentId: string;
+  scheduleType: 'immediate' | 'scheduled';
+  scheduledAt?: string;
+  overwrite?: boolean; // 追加
+}
+```
+
+**上書きロジック実装**（L213-240）:
+```typescript
+if (fs.existsSync(archiveDir)) {
+  if (!overwrite) {
+    // 上書き未承認 → 409 Conflict
+    return NextResponse.json(
+      {
+        success: false,
+        message: `アーカイブ ${dd}-${commitMessage} は既に存在します`,
+      },
+      { status: 409 }
+    );
+  }
+
+  // 上書き承認済み → 既存ディレクトリ削除
+  console.log('[API /commit] 既存アーカイブを削除中...', archiveDir);
+  try {
+    fs.rmSync(archiveDir, { recursive: true, force: true });
+    console.log('[API /commit] 既存アーカイブ削除完了');
+  } catch (deleteError) {
+    console.error('[API /commit] アーカイブ削除エラー:', deleteError);
+    return NextResponse.json(
+      {
+        success: false,
+        message: '既存アーカイブの削除に失敗しました。ファイルがロックされている可能性があります。',
+      },
+      { status: 500 }
+    );
+  }
+}
+```
+
+### エラーハンドリング
+
+#### 通常エラー（400, 500など）
+
+```
+ユーザー送信
+  ↓
+API処理（バリデーション/処理エラー）
+  ↓
+CommitForm: result State更新
+  ↓
+Alert表示（赤色、エラーメッセージ）
+```
+
+#### アーカイブ既存エラー（409）
+
+```
+ユーザー送信
+  ↓
+API: 409 Conflict返却
+  ↓
+CommitForm: showOverwriteConfirm = true
+  ↓
+確認ダイアログ表示
+  ├─ キャンセル → Alert表示（エラーメッセージ）
+  └─ 上書き → overwrite: true で再送信
+       ↓
+     API: 既存削除 → 新規作成
+       ↓
+     成功レスポンス
+```
+
+#### 削除失敗エラー（500）
+
+```
+上書き承認 → API呼び出し
+  ↓
+fs.rmSync() エラー（権限不足/ロック）
+  ↓
+500エラー + 詳細メッセージ
+  ↓
+Alert表示「既存アーカイブの削除に失敗しました...」
+```
+
+### セキュリティ考慮事項
+
+#### ディレクトリトラバーサル対策
+
+現在の実装は安全:
+- `commitMessage`のバリデーション（L48-52）で`/\:*?"<>|`を禁止
+- `path.join()`で安全にパス結合
+- `fs.existsSync()`でディレクトリ存在確認後に削除
+
+#### レースコンディション対策
+
+**潜在的リスク**: 同時に2つのリクエストが同じアーカイブを上書き
+
+**緩和策**（現実装で十分）:
+- Git pushが最終的な排他制御として機能
+- 同一ブランチで同時コミットは失敗する
+- GitHub ActionsのCheckワークフローで検証
+
+### CLI版との一貫性
+
+| 項目 | CLI (`commit.ts` L660-683) | GUI（本実装） |
+|------|---------------------------|--------------|
+| 確認UI | `inquirer.prompt()` | Mantine Modal |
+| 削除処理 | `fs.rmSync()` 同一 | `fs.rmSync()` 同一 |
+| エラーハンドリング | プロセス終了 | 500エラー返却 |
+| ユーザー体験 | ターミナル対話 | GUIダイアログ |
+
+### パフォーマンス影響
+
+#### APIレスポンスタイム
+
+- 通常フロー: 変更なし
+- 上書きフロー: `fs.rmSync()`のオーバーヘッド（通常 < 100ms）
+- S3アップロード時間が支配的（数百ms〜数秒）
+
+**結論**: 体感上の影響なし
+
+#### ネットワークリクエスト
+
+- 通常: 1回（POST /api/commit）
+- 上書き: 2回（初回 → 409 → 再送信）
+
+**結論**: 上書きは例外的な操作なので許容範囲
 
 ---
 

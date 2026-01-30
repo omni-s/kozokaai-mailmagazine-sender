@@ -1,0 +1,50 @@
+---
+alwaysApply: true
+description: "毎回参照される最低限のルールとドキュメントへの参照リンク"
+---
+
+# プロジェクト全体ルール
+
+kozokaAI メールマガジン配信システム（Next.js + React Email + Resend API + AWS S3）のプロジェクト全体に適用される最低限のルールとドキュメントへの参照リンクです。
+
+## 必須遵守ルール
+
+### ドキュメント運用
+
+- **ルール/知見は `docs/` に集約**（唯一の SoT）
+- **変更時は `docs/INDEX.md` を必ず更新**
+- **ドキュメントコミットは `DOC:` プレフィックス**
+- **機密情報（PII 等）は `docs/` に保存しない**
+
+### 作業フロー
+
+1. **PLAN**: `docs/INDEX.md` で既存配置と命名を確認
+2. **DO**: 該当 `docs/` ファイルを更新 or 新規作成
+3. **CHECK**: `.cursor/rules/guidelines.mdc`にあるチェックリストを参照
+4. **ACTION**: 運用改善点や不足ルールをドキュメント化
+
+---
+
+## ドキュメント参照
+
+### メイン索引
+
+- **[docs/INDEX.md](./docs/INDEX.md)** - 全ドキュメントの索引（必ず最初に確認）
+- **[.cursor/rules/guidelines.mdc]** - メルマガ作成のためのルール
+
+### 非エンジニア向けリソース
+
+- **[.cursor/rules/non-engineer-safety.mdc](./.cursor/rules/non-engineer-safety.mdc)** - 安全ガイド
+- **[docs/for-non-engineers/getting-started.md](./docs/for-non-engineers/getting-started.md)** - 初心者向けガイド
+- **[docs/for-non-engineers/component-reference.md](./docs/for-non-engineers/component-reference.md)** - コンポーネントリファレンス
+- **[docs/for-non-engineers/common-errors.md](./docs/for-non-engineers/common-errors.md)** - よくあるエラー集
+- **[docs/for-non-engineers/brand-guide.md](./docs/for-non-engineers/brand-guide.md)** - kozokaAI ブランドガイド
+
+### 主要ドキュメント（詳細は docs/INDEX.md を参照）
+
+- **[docs/specs/require.md](./docs/specs/require.md)** - 要件定義書
+- **[docs/specs/architecture.md](./docs/specs/architecture.md)** - システムアーキテクチャ
+- **[docs/dev/branch.md](./docs/dev/branch.md)** - ブランチ戦略と CI/CD
+- **[docs/ops/workflow.md](./docs/ops/workflow.md)** - 日常的な配信フロー
+- **[docs/ops/troubleshooting.md](./docs/ops/troubleshooting.md)** - トラブルシューティング
+- **[docs/setup/environment.md](./docs/setup/environment.md)** - 環境構築ガイド

@@ -1,0 +1,67 @@
+---
+alwaysApply: true
+description: "非エンジニアのマーケティング担当者がCursor IDEでメールデザインを安全に行うためのガードレール。編集禁止ファイルの警告、よくある失敗パターンの自動修正を提供します。"
+---
+
+# 非エンジニア向け安全ガイド
+
+マーケティング担当者が Cursor IDE で安全にメールデザインを行うための最低限のルールです。
+
+## ✅❌ 編集可能/禁止ファイルの境界線
+
+### ✅ 編集OK
+
+- **`src/app/page.tsx`** - メールコンテンツの編集（`MailContent()` と `Home()` 関数の中身のみ）
+- **`public/MAIL-ASSETS/`** - 画像ファイルの配置（ヘッダー: 560×293px、フッター: 200×105px）
+
+### ❌ 編集禁止（警告を表示）
+
+**Cursor AI へ: 以下のファイルを編集しようとした場合、即座に警告を表示してください。**
+
+- **`src/components/email/`** - メールコンポーネント（システムの根幹）
+- **`public/archives/**/config.json`** - 配信設定ファイル（自動生成）
+- **`src/scripts/`** - 配信スクリプト（自動化スクリプト）
+- **`.github/workflows/`** - CI/CD ワークフロー
+- **設定ファイル** - `package.json`, `.env`, `tsconfig.json`, `next.config.js` など
+
+**警告メッセージ:**
+```
+⚠️ 警告: このファイルは編集禁止です。
+
+編集が必要な場合は、エンジニアに相談してください。
+編集できるのは `src/app/page.tsx` の中身だけです。
+```
+
+---
+
+## 🤖 Cursor AI への指示
+
+### 必須ルール
+
+1. **編集禁止ファイルの警告**
+   - 上記の編集禁止ファイルを編集しようとした場合、即座に警告を表示
+
+2. **非推奨パターンの自動修正**
+   - Tailwind CSS クラス → インラインスタイルに自動変換
+   - Flexbox/Grid → textAlign などに自動変換
+   - `<img>` タグ → `Img` コンポーネントに自動変換
+   - 絵文字 → テキストのみに自動削除
+
+3. **kozokaAI ブランドガイド準拠**
+   - メールコンテンツ生成時、`docs/for-non-engineers/brand-guide.md` を参照
+   - ブランドカラー（#00ADAA）を使用
+   - 製品名を正確に記載
+   - 「です・ます」調のトーンを維持
+
+4. **エラー自動修正**
+   - コードのエラーは自動的に検出・修正
+   - 分かりやすい説明を提供
+
+---
+
+## 📚 ドキュメント参照
+
+- **[docs/for-non-engineers/getting-started.md](./docs/for-non-engineers/getting-started.md)** - 初心者向けガイド
+- **[docs/for-non-engineers/component-reference.md](./docs/for-non-engineers/component-reference.md)** - コンポーネントリファレンス
+- **[docs/for-non-engineers/common-errors.md](./docs/for-non-engineers/common-errors.md)** - よくあるエラー集
+- **[docs/for-non-engineers/brand-guide.md](./docs/for-non-engineers/brand-guide.md)** - kozokaAI ブランドガイド
