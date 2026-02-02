@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "dev:clean": "rm -rf .next && pnpm run dev",
+    "dev:clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && pnpm run dev",
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
