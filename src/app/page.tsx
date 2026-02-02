@@ -18,8 +18,8 @@ import { CommitForm } from '@/components/commit/CommitForm';
  * このファイルを編集してメールをデザインします。
  * `pnpm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
  *
- * 画像は public/MAIL-ASSETS/ に配置してください。
- * 例: <Img src="/MAIL-ASSETS/hero.jpg" alt="Hero Image" width="600" />
+ * 画像は public/mail-assets/YYYY/MM/DD/ に配置してください。
+ * 例: <Img src="/mail-assets/2026/01/28/hero.jpg" alt="Hero Image" width="600" />
  */
 
 /**
@@ -44,7 +44,7 @@ function MailContentBody() {
               <tr>
                 <td style={{ backgroundColor: '#ffffff', padding: 0, textAlign: 'center' }}>
                   <Img
-                    src="/MAIL-ASSETS/kozokaAI_logo.png"
+                    src="/mail-assets/2026/01/28/260128/kozokaAI_logo.png"
                     alt="kozokaAI"
                     width="200"
                     height="41"
@@ -92,7 +92,7 @@ function MailContentBody() {
               <tr>
                 <td style={{ backgroundColor: '#ffffff', padding: 0 }}>
                   <Img
-                    src="/MAIL-ASSETS/活用中 note_バナー.png"
+                    src="/mail-assets/2026/01/28/260128/活用中 note_バナー.png"
                     alt="活用中 note_バナー"
                     width="560"
                     height="293"
@@ -235,7 +235,7 @@ function MailContentBody() {
                 </td>
                 <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                   <Img
-                    src="/MAIL-ASSETS/注注くん.png"
+                    src="/mail-assets/2026/01/28/260128/注注くん.png"
                     alt="注注くん"
                     width="130"
                     height="130"
@@ -293,7 +293,7 @@ function MailContentBody() {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/MAIL-ASSETS/260128.png"
+                    src="/mail-assets/2026/01/28/260128/260128.png"
                     alt="【YouTube】製品紹介動画を公開しました！"
                     width="200"
                     height="103"
@@ -378,7 +378,7 @@ function MailContentBody() {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/MAIL-ASSETS/吉野くん.png"
+                    src="/mail-assets/2026/01/28/260128/吉野くん.png"
                     alt="「大会」に出まくって派手に暴れるGrokの戦略"
                     width="200"
                     height="103"
@@ -462,7 +462,7 @@ function MailContentBody() {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/MAIL-ASSETS/ITトレンドEXPO.jpg"
+                    src="/mail-assets/2026/01/28/260128/ITトレンドEXPO.jpg"
                     alt="kozokaAIがイベントに出展します！"
                     width="200"
                     height="103"
@@ -642,7 +642,7 @@ export default function Home() {
                 <tr>
                   <td style={{ backgroundColor: '#ffffff', padding: 0, textAlign: 'center' }}>
                     <Img
-                      src="/MAIL-ASSETS/kozokaAI_logo.png"
+                      src="/mail-assets/2026/01/28/260128/kozokaAI_logo.png"
                       alt="kozokaAI"
                       width="200"
                       height="41"
@@ -690,7 +690,7 @@ export default function Home() {
                 <tr>
                   <td style={{ backgroundColor: '#ffffff', padding: 0 }}>
                     <Img
-                      src="/MAIL-ASSETS/活用中 note_バナー.png"
+                      src="/mail-assets/2026/01/28/260128/活用中 note_バナー.png"
                       alt="活用中 note_バナー"
                       width="560"
                       height="293"
@@ -833,7 +833,7 @@ export default function Home() {
                   </td>
                   <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                     <Img
-                      src="/MAIL-ASSETS/注注くん.png"
+                      src="/mail-assets/2026/01/28/260128/注注くん.png"
                       alt="注注くん"
                       width="130"
                       height="130"
@@ -891,7 +891,7 @@ export default function Home() {
                 <tr>
                   <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                     <Img
-                      src="/MAIL-ASSETS/260128.png"
+                      src="/mail-assets/2026/01/28/260128/260128.png"
                       alt="【YouTube】製品紹介動画を公開しました！"
                       width="200"
                       height="103"
@@ -975,7 +975,7 @@ export default function Home() {
                 <tr>
                   <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                     <Img
-                      src="/MAIL-ASSETS/吉野くん.png"
+                      src="/mail-assets/2026/01/28/260128/吉野くん.png"
                       alt="「大会」に出まくって派手に暴れるGrokの戦略"
                       width="200"
                       height="103"
@@ -1059,7 +1059,7 @@ export default function Home() {
                 <tr>
                   <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                     <Img
-                      src="/MAIL-ASSETS/ITトレンドEXPO.jpg"
+                      src="/mail-assets/2026/01/28/260128/ITトレンドEXPO.jpg"
                       alt="kozokaAIがイベントに出展します！✨"
                       width="200"
                       height="103"
