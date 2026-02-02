@@ -5,6 +5,7 @@ import path from 'path';
 import { format, parse, isValid } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
 import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from '@/lib/s3';
+import { copyRelativeImports } from '@/lib/resolve-relative-imports';
 
 /**
  * プロジェクトルート
@@ -248,6 +249,16 @@ export async function POST(request: NextRequest) {
     fs.copyFileSync(DRAFT_FILE, mailFile);
 
     console.log('[API /commit] mail.tsx コピー完了');
+
+    // 5.5. 相対インポートファイルのコピー
+    const mailFileContent = fs.readFileSync(mailFile, 'utf-8');
+    const sourceDir = path.dirname(DRAFT_FILE);
+    const { copied, warnings } = copyRelativeImports(mailFileContent, sourceDir, archiveDir);
+
+    if (copied.length > 0) {
+      console.log(`[API /commit] 相対インポートファイルをコピー: ${copied.join(', ')}`);
+    }
+    warnings.forEach((w) => console.warn(`[API /commit] 警告: ${w}`));
 
     // 6. mail.html の生成（別プロセスで実行）
     console.log('[API /commit] mail.html 変換開始...');
