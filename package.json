@@ -12,6 +12,7 @@
     "commit": "tsx src/scripts/commit.ts",
     "reset-draft": "tsx src/scripts/reset-draft.ts",
     "reply-email": "tsx src/scripts/send-reply-email.ts",
+    "import-contacts": "tsx src/scripts/import-contacts.ts",
     "postinstall": "node scripts/fix-lightningcss.js"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "@react-email/render": "^2.0.0",
     "@tabler/icons-react": "3.26.0",
     "chalk": "^5.4.1",
+    "csv-parse": "^6.1.0",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.2.3",

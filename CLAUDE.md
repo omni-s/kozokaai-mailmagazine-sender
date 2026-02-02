@@ -43,6 +43,7 @@ Resend メール配信システム。Next.js + React Email + Resend API + AWS S3
 - **Zod**: スキーマ検証
 - **tsx**: TypeScript実行
 - **date-fns-tz**: タイムゾーン変換（JST ↔ UTC）
+- **csv-parse**: CSVパース（Contact一括インポート用）
 
 ---
 
@@ -93,6 +94,21 @@ pnpm run commit
 5. `src/app/draft/page.tsx` を初期テンプレートにリセット
 6. Git commit & push（コミットメッセージ: `MAIL: {message}`）
 
+### コンタクトインポート
+
+```bash
+# CSVファイルからResend Contactを一括インポート
+pnpm run import-contacts
+```
+
+対話形式で以下を入力:
+- CSVファイルパス
+- Resend Audience ID（UUID形式）
+- カスタムプロパティの型・fallback値（該当カラムがある場合）
+
+レート制限（2 req/sec）を考慮し、667ms間隔でAPIを呼び出す。
+4000件の場合、約44分で完了する。
+
 ---
 
 ## アーキテクチャ概要
@@ -118,9 +134,11 @@ kozokaai-mailmagazine-sender/
 │   │   ├── resend.ts           # Resend SDK初期化
 │   │   ├── s3.ts               # S3 Client初期化
 │   │   ├── config-schema.ts    # Zodスキーマ（config.json検証）
+│   │   ├── csv-parser.ts       # CSV解析・カラムマッピング
 │   │   └── utils.ts            # Tailwind utilities
 │   └── scripts/                # CLI・自動化スクリプト
 │       ├── commit.ts           # pnpm run commit
+│       ├── import-contacts.ts  # pnpm run import-contacts
 │       ├── validate-archive.ts # GitHub Actions: バリデーション
 │       ├── upload-to-s3.ts     # GitHub Actions: S3アップロード
 │       ├── send-test-email.ts  # GitHub Actions: テスト送信
