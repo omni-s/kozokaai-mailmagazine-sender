@@ -7,6 +7,7 @@ import * as path from "path";
 import { execSync } from "child_process";
 import chalk from "chalk";
 import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from "../lib/s3";
+import { copyRelativeImports } from "../lib/resolve-relative-imports";
 
 /**
  * pnpm run commit メインスクリプト
@@ -698,6 +699,16 @@ async function main() {
 
   updateStepStatus("move-mail", "success");
   console.log(chalk.green("✓ mail.tsx 移動"));
+
+  // 6.1. 相対インポートファイルのコピー
+  const mailFileContent = fs.readFileSync(mailFile, "utf-8");
+  const sourceDir = path.dirname(DRAFT_FILE);
+  const { copied: copiedImports, warnings: importWarnings } = copyRelativeImports(mailFileContent, sourceDir, archiveDir);
+
+  if (copiedImports.length > 0) {
+    console.log(chalk.green(`✓ 相対インポートファイルをコピー: ${copiedImports.join(', ')}`));
+  }
+  importWarnings.forEach((w) => console.warn(chalk.yellow(`  警告: ${w}`)));
 
   // 6.5. mail.tsx → mail.html 変換（Turbopack制限回避）
   console.log(chalk.cyan("mail.tsx を HTML に変換中..."));
