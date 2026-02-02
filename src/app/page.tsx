@@ -629,6 +629,7 @@ export default function Home() {
   return (
     <>
       {/* メールプレビュー（preview={true}でブラウザ表示用） */}
+      <div className="email-preview-wrapper">
       <EmailWrapper
         preview={true}
         previewText="株式会社kozokaAIからのお知らせです。AIを活用した業務効率化ソリューションの最新情報をお届けします。"
@@ -1205,6 +1206,7 @@ export default function Home() {
           </EmailText>
         </EmailSection>
       </EmailWrapper>
+      </div>
 
       {/* 配信準備ボタン */}
       <Container size="sm" mt="xl" mb="xl">
