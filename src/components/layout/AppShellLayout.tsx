@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { AppShell, Box } from '@mantine/core';
+import { AppShell, Box, ActionIcon } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { IconLayoutSidebarLeftExpand } from '@tabler/icons-react';
 import { Sidebar } from './Sidebar';
+import { useArchiveAccordionState } from '@/hooks/useArchiveAccordionState';
 import type { MailArchive } from '@/lib/archive-loader';
 import styles from './AppShellLayout.module.css';
 
@@ -18,8 +20,11 @@ export interface AppShellLayoutProps {
 
 export function AppShellLayout({ archives, children }: AppShellLayoutProps) {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
-  const [desktopOpened] = useDisclosure(true);
+  const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const accordionState = useArchiveAccordionState();
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -59,13 +64,37 @@ export function AppShellLayout({ archives, children }: AppShellLayoutProps) {
             archives={archives}
             mobileOpened={mobileOpened}
             toggleMobile={toggleMobile}
+            toggleDesktop={toggleDesktop}
+            accordionState={accordionState}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
           />
-          {/* リサイズハンドル */}
-          <Box className={styles.resizeHandle} onMouseDown={handleMouseDown} />
+          {/* リサイズハンドル（サイドバー表示時のみ） */}
+          {desktopOpened && (
+            <Box className={styles.resizeHandle} onMouseDown={handleMouseDown} />
+          )}
         </Box>
       </AppShell.Navbar>
 
       <AppShell.Main style={{ overflow: 'auto', height: '100vh' }}>
+        {/* サイドバー再表示ボタン（デスクトップ非表示時のみ） */}
+        {!desktopOpened && (
+          <ActionIcon
+            variant="default"
+            onClick={toggleDesktop}
+            size="lg"
+            aria-label="サイドバーを開く"
+            visibleFrom="sm"
+            style={{
+              position: 'fixed',
+              top: 16,
+              left: 16,
+              zIndex: 100,
+            }}
+          >
+            <IconLayoutSidebarLeftExpand size={18} />
+          </ActionIcon>
+        )}
         {children}
       </AppShell.Main>
     </AppShell>

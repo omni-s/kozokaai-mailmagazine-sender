@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { NavLink, Badge, Collapse, Button, Box, Text, Group } from '@mantine/core';
 import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
 import type { MailArchive } from '@/lib/archive-loader';
@@ -15,6 +16,10 @@ interface GroupedArchive {
 
 interface ArchiveAccordionProps {
   archives: MailArchive[];
+  expandedYears: string[];
+  expandedMonths: string[];
+  toggleYear: (year: string) => void;
+  toggleMonth: (yearMonth: string) => void;
 }
 
 const groupArchivesByYearMonth = (archives: MailArchive[]): GroupedArchive[] => {
@@ -42,23 +47,15 @@ const groupArchivesByYearMonth = (archives: MailArchive[]): GroupedArchive[] => 
     .sort((a, b) => b.year.localeCompare(a.year));
 };
 
-export function ArchiveAccordion({ archives }: ArchiveAccordionProps) {
-  const [expandedYears, setExpandedYears] = useState<string[]>([]);
-  const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
-
+export function ArchiveAccordion({
+  archives,
+  expandedYears,
+  expandedMonths,
+  toggleYear,
+  toggleMonth,
+}: ArchiveAccordionProps) {
+  const pathname = usePathname();
   const groupedArchives = useMemo(() => groupArchivesByYearMonth(archives), [archives]);
-
-  const toggleYear = (year: string) => {
-    setExpandedYears(prev =>
-      prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
-    );
-  };
-
-  const toggleMonth = (yearMonth: string) => {
-    setExpandedMonths(prev =>
-      prev.includes(yearMonth) ? prev.filter(ym => ym !== yearMonth) : [...prev, yearMonth]
-    );
-  };
 
   if (archives.length === 0) {
     return (
@@ -116,25 +113,31 @@ export function ArchiveAccordion({ archives }: ArchiveAccordionProps) {
 
                       <Collapse in={isMonthExpanded}>
                         <Box pl="sm" mt="xs" id={`month-${yearMonth}-content`}>
-                          {monthArchives.map((archive) => (
-                            <NavLink
-                              key={archive.path}
-                              href={`/archives/${archive.yyyy}/${archive.mm}/${archive.ddMsg}`}
-                              label={
-                                <Box>
-                                  <Text size="xs" lineClamp={1}>{archive.subject}</Text>
-                                  <Group gap="xs" mt={4}>
-                                    <Badge
-                                      variant={archive.sentAt ? 'filled' : 'light'}
-                                      size="xs"
-                                    >
-                                      {archive.sentAt ? '送信済み' : '未送信'}
-                                    </Badge>
-                                  </Group>
-                                </Box>
-                              }
-                            />
-                          ))}
+                          {monthArchives.map((archive) => {
+                            const archivePath = `/archives/${archive.yyyy}/${archive.mm}/${archive.ddMsg}`;
+                            const isActive = pathname === archivePath;
+
+                            return (
+                              <NavLink
+                                key={archive.path}
+                                href={archivePath}
+                                active={isActive}
+                                label={
+                                  <Box>
+                                    <Text size="xs" lineClamp={1}>{archive.subject}</Text>
+                                    <Group gap="xs" mt={4}>
+                                      <Badge
+                                        variant={archive.sentAt ? 'filled' : 'light'}
+                                        size="xs"
+                                      >
+                                        {archive.sentAt ? '送信済み' : '未送信'}
+                                      </Badge>
+                                    </Group>
+                                  </Box>
+                                }
+                              />
+                            );
+                          })}
                         </Box>
                       </Collapse>
                     </Box>
