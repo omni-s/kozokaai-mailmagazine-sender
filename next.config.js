@@ -4,6 +4,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  serverExternalPackages: ['esbuild', 'esbuild-register'],
 };
 
 module.exports = nextConfig;

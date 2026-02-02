@@ -33,3 +33,16 @@ h6 {
   padding-left: 1rem;
   padding-right: 1rem;
 }
+
+/* ダークモード メールプレビュー シミュレーション */
+.email-preview-wrapper {
+  transition: filter 200ms ease-in-out;
+}
+
+[data-mantine-color-scheme="dark"] .email-preview-wrapper {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+[data-mantine-color-scheme="dark"] .email-preview-wrapper img {
+  filter: invert(0.9) hue-rotate(180deg);
+}
