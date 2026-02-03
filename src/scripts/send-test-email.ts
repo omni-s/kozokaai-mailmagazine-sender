@@ -226,7 +226,7 @@ async function sendTestEmail(
   recipientEmail: string,
   segmentId?: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const fromEmail = process.env.RESEND_TEST_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
   try {
     // TEST_SEGMENT_IDが設定されている場合、Segment一斉送信
