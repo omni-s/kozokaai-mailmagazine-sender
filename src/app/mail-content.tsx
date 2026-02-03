@@ -539,7 +539,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
       <EmailSection>
         <EmailCard backgroundColor="#ffffff" padding="20px">
           <EmailText variant="muted" style={{ fontSize: '13px', color: '#666666', lineHeight: '1.6', textAlign: 'center' }}>
-            株式会社kozokaAI  kozokaAI BOOSTマガジン事務局<br />
+            株式会社kozokaAI  『kozokaAI BOOSTマガジン事務局』<br />
             COMPANY：
           <a
               href="https://www.kozoka-ai.co.jp/"

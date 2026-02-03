@@ -4,21 +4,10 @@ import React from 'react';
 import { Modal, Button, Container, Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { CommitForm } from '@/components/commit/CommitForm';
-import { MailContentBody } from './mail-content';
+import { MailContentBody, MailContent } from './mail-content';
 
-/**
- * メールテンプレート作業用ファイル
- *
- * このファイルを編集してメールをデザインします。
- * `pnpm run commit` 実行時に archives/ へ移動され、このファイルは初期テンプレートにリセットされます。
- *
- * 画像は public/mail-assets/YYYY/MM/DD/ に配置してください。
- * 例: <Img src="/mail-assets/2026/01/28/hero.jpg" alt="Hero Image" width="600" />
- */
-
-// MailContentは別ファイル（mail-content.tsx）に移動しました
-// commit.tsで使用するため、再エクスポート
-export { MailContent } from './mail-content';
+// commit.ts でHTML生成に使用するため、再エクスポート
+export { MailContent };
 
 /**
  * ホーム画面（プレビュー + 配信準備UI）
