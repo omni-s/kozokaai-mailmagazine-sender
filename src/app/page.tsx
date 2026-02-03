@@ -4,10 +4,7 @@ import React from 'react';
 import { Modal, Button, Container, Box } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { CommitForm } from '@/components/commit/CommitForm';
-import { MailContentBody, MailContent } from './mail-content';
-
-// commit.ts でHTML生成に使用するため、再エクスポート
-export { MailContent };
+import { MailContentBody } from './mail-content';
 
 /**
  * ホーム画面（プレビュー + 配信準備UI）

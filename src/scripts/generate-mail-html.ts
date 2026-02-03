@@ -18,16 +18,21 @@ async function generateMailHtml(mailTsxPath: string, outputHtmlPath: string): Pr
     const { register } = await import('esbuild-register/dist/node');
     register({ target: 'node18', format: 'cjs' });
 
+    // mail-content.tsx から MailContent を読み込む
+    // mail.tsx と同じディレクトリにコピーされている
+    const archiveDir = path.dirname(mailTsxPath);
+    const mailContentPath = path.join(archiveDir, 'mail-content.tsx');
+    const resolvedPath = path.resolve(mailContentPath);
+
     // requireのキャッシュをクリア
-    const resolvedPath = path.resolve(mailTsxPath);
     delete require.cache[require.resolve(resolvedPath)];
 
-    // mail.tsx を require で読み込み（MailContent 名前付きエクスポートを使用）
+    // mail-content.tsx を require で読み込み（MailContent 名前付きエクスポートを使用）
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { MailContent } = require(resolvedPath);
 
     if (!MailContent) {
-      throw new Error('MailContent コンポーネントが見つかりません。export function MailContent() を確認してください。');
+      throw new Error('MailContent コンポーネントが見つかりません。mail-content.tsx の export function MailContent() を確認してください。');
     }
 
     const MailComponent = MailContent;

@@ -192,6 +192,74 @@ export async function uploadDirectoryToS3(
 }
 
 /**
+ * ディレクトリ内のすべてのファイルをS3に再帰的にアップロード
+ *
+ * @param localDir - ローカルディレクトリパス
+ * @param s3Prefix - S3のプレフィックス（ディレクトリパス）
+ * @param bucketName - S3バケット名（環境変数から取得）
+ * @returns アップロード結果のリスト
+ */
+export async function uploadDirectoryToS3Recursive(
+  localDir: string,
+  s3Prefix: string,
+  bucketName?: string
+): Promise<
+  Array<{
+    file: string;
+    success: boolean;
+    url?: string;
+    error?: string;
+  }>
+> {
+  const results: Array<{
+    file: string;
+    success: boolean;
+    url?: string;
+    error?: string;
+  }> = [];
+
+  async function processDirectory(currentDir: string, currentPrefix: string) {
+    try {
+      // ディレクトリ存在チェック
+      if (!fs.existsSync(currentDir)) {
+        console.error(`Directory not found: ${currentDir}`);
+        return;
+      }
+
+      // ディレクトリ内のファイル一覧取得
+      const entries = fs.readdirSync(currentDir);
+
+      // 各エントリを処理
+      for (const entry of entries) {
+        const localPath = path.join(currentDir, entry);
+        const stat = fs.statSync(localPath);
+
+        if (stat.isDirectory()) {
+          // サブディレクトリを再帰的に処理
+          await processDirectory(localPath, `${currentPrefix}/${entry}`);
+        } else {
+          // ファイルをアップロード
+          const s3Key = `${currentPrefix}/${entry}`;
+          const result = await uploadFileToS3(localPath, s3Key, bucketName);
+
+          // ファイルパスは相対パスで記録
+          const relativePath = path.relative(localDir, localPath);
+          results.push({
+            file: relativePath.replace(/\\/g, '/'),
+            ...result,
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Directory Upload Error:', error);
+    }
+  }
+
+  await processDirectory(localDir, s3Prefix);
+  return results;
+}
+
+/**
  * アーカイブメタデータ（mail.tsx, mail.html, config.json）をS3にアップロード
  * @param archiveDir - アーカイブディレクトリ（src/archives/YYYY/MM/DD-MSG）
  * @param s3Prefix - S3プレフィックス（archives/YYYY/MM/DD-MSG）
