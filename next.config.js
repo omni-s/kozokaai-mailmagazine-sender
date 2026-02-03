@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -20,7 +23,6 @@ const nextConfig = {
     
     // より確実な方法: カスタムローダー関数を直接定義
     // null-loaderが利用できない場合のフォールバック
-    const path = require('path');
     config.module.rules.push({
       test: /\.(md|exe|d\.ts)$/,
       include: /node_modules/,
