@@ -1,0 +1,111 @@
+﻿
+> kozokaai-mailmagazine-sender@0.1.0 build C:\Users\Fujiwara Koharu\Desktop\My Progects\kozokaai-mailmagazine-sender
+> next build --webpack
+
+笆ｲ Next.js 16.1.4 (webpack)
+- Environments: .env
+
+  Creating an optimized production build ...
+node.exe : <w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performan
+ce (consider using Buffer instead and decode when needed)
+発生場所 C:\Users\Fujiwara Koharu\AppData\Roaming\npm\pnpm.ps1:24 文字:5
++     & "node$exe"  "$basedir/node_modules/pnpm/bin/pnpm.cjs" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (<w> [webpack.ca...de when needed):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (144kiB) impacts deserialization performance (conside
+r using Buffer instead and decode when needed)
+Failed to compile.
+
+./node_modules/.pnpm/esbuild@0.27.2/node_modules/esbuild/lib/main.d.ts
+Module parse failed: Unexpected token (1:7)
+File was processed with these loaders:
+ * ./node_modules/.pnpm/next@16.1.4_@babel+core@7.2_795185d4d8aa919df0c6d7b1b45ef0b6/node_modules/next/dist/build/webpa
+ck/loaders/next-flight-loader/index.js
+ * ./node_modules/.pnpm/next@16.1.4_@babel+core@7.2_795185d4d8aa919df0c6d7b1b45ef0b6/node_modules/next/dist/build/webpa
+ck/loaders/next-swc-loader.js
+You may need an additional loader to handle the result of these loaders.
+> export type Platform = 'browser' | 'node' | 'neutral'
+| export type Format = 'iife' | 'cjs' | 'esm'
+| export type Loader = 'base64' | 'binary' | 'copy' | 'css' | 'dataurl' | 'default' | 'empty' | 'file' | 'js' | 'json' 
+| 'jsx' | 'local-css' | 'text' | 'ts' | 'tsx'
+
+Import trace for requested module:
+./node_modules/.pnpm/esbuild@0.27.2/node_modules/esbuild/lib/main.d.ts
+./node_modules/.pnpm/esbuild@0.27.2/node_modules/esbuild/lib/ sync ^.*\/.*$
+./node_modules/.pnpm/esbuild@0.27.2/node_modules/esbuild/lib/main.js
+./node_modules/.pnpm/esbuild-register@3.6.0_esbuild@0.27.2/node_modules/esbuild-register/dist/node.js
+./src/app/api/commit/route.ts
+
+
+> Build failed because of webpack errors
+窶右LIFECYCLE窶・Command failed with exit code 1.

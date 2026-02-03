@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { format, parse, isValid } from 'date-fns';
 import { fromZonedTime } from 'date-fns-tz';
-import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from '@/lib/s3';
+import { uploadDirectoryToS3Recursive, uploadArchiveMetadataToS3 } from '@/lib/s3';
 import { copyRelativeImports } from '@/lib/resolve-relative-imports';
 
 /**
@@ -306,14 +306,6 @@ export async function POST(request: NextRequest) {
       } else {
         console.log('[API /commit] 警告: MAIL-ASSETS/ に画像ファイルがありません');
       }
-      // サブディレクトリが存在する場合は警告
-      const dirs = entries.filter((entry) => {
-        const entryPath = path.join(MAIL_ASSETS_DIR, entry);
-        return fs.statSync(entryPath).isDirectory();
-      });
-      if (dirs.length > 0) {
-        console.warn(`[API /commit] 警告: MAIL-ASSETS/ にサブディレクトリが検出されました: ${dirs.join(', ')}。画像はフラットに配置してください。`);
-      }
     }
 
     // 8. config.json の生成
@@ -371,7 +363,7 @@ export async function POST(request: NextRequest) {
         const files = fs.readdirSync(assetsDir);
         if (files.length > 0) {
           console.log(`[API /commit] 画像をS3にアップロード中... (${files.length}件)`);
-          const uploadResults = await uploadDirectoryToS3(assetsDir, `${s3Prefix}/assets`);
+          const uploadResults = await uploadDirectoryToS3Recursive(assetsDir, `${s3Prefix}/assets`);
           assetsResults.push(...uploadResults);
         }
       }

@@ -3,7 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { uploadDirectoryToS3, uploadArchiveMetadataToS3 } from '../lib/s3';
+import {
+  uploadDirectoryToS3,
+  uploadDirectoryToS3Recursive,
+  uploadArchiveMetadataToS3,
+} from '../lib/s3';
 
 /**
  * GitHub Actions Staging Workflow用S3アップロードスクリプト
@@ -75,6 +79,49 @@ function detectNewArchiveDirectories(): string[] {
 }
 
 /**
+ * public/mail-assets/ 配下の全ファイルをS3にアップロード
+ */
+async function uploadMailAssets(): Promise<{
+  success: number;
+  failed: number;
+  errors: UploadError[];
+}> {
+  const mailAssetsDir = path.join(PROJECT_ROOT, 'public/mail-assets');
+
+  if (!fs.existsSync(mailAssetsDir)) {
+    console.log(chalk.yellow('  警告: public/mail-assets/ ディレクトリが存在しません'));
+    return { success: 0, failed: 0, errors: [] };
+  }
+
+  console.log(chalk.cyan('mail-assets をS3にアップロード中...'));
+
+  const results = await uploadDirectoryToS3Recursive(mailAssetsDir, 'mail-assets');
+
+  let success = 0;
+  let failed = 0;
+  const errors: UploadError[] = [];
+
+  results.forEach((result) => {
+    if (result.success) {
+      console.log(chalk.green(`  ✓ ${result.file}`));
+      success++;
+    } else {
+      console.log(chalk.red(`  ✗ ${result.file}: ${result.error}`));
+      failed++;
+      errors.push({
+        dir: 'public/mail-assets',
+        message: `ファイルアップロード失敗: ${result.file}`,
+        details: result.error,
+      });
+    }
+  });
+
+  console.log(chalk.cyan(`  完了: ${success}件成功, ${failed}件失敗\n`));
+
+  return { success, failed, errors };
+}
+
+/**
  * メイン処理
  */
 async function main() {
@@ -83,21 +130,43 @@ async function main() {
   console.log(chalk.blue.bold('  S3 アップロード'));
   console.log(chalk.blue.bold('========================================\n'));
 
-  // 新規archiveディレクトリを検出
+  let hasError = false;
+  const allErrors: UploadError[] = [];
+
+  // 1. public/mail-assets/ のアップロード
+  const mailAssetsResult = await uploadMailAssets();
+  if (mailAssetsResult.failed > 0) {
+    hasError = true;
+    allErrors.push(...mailAssetsResult.errors);
+  }
+
+  // 2. 新規archiveディレクトリを検出
   const archiveDirs = detectNewArchiveDirectories();
 
   if (archiveDirs.length === 0) {
     console.log(
       chalk.yellow('新規archiveディレクトリが見つかりませんでした')
     );
-    console.log(chalk.green('✓ アップロード完了（対象なし）\n'));
+
+    // mail-assetsのみアップロードした場合の結果判定
+    if (hasError) {
+      console.log(chalk.red.bold('\n✗ S3アップロードでエラーが発生しました\n'));
+      allErrors.forEach(({ dir, message, details }) => {
+        console.log(chalk.red(`[${dir}]`));
+        console.log(chalk.red(`  メッセージ: ${message}`));
+        if (details) {
+          console.log(chalk.red(`  詳細: ${details}`));
+        }
+        console.log();
+      });
+      process.exit(1);
+    }
+
+    console.log(chalk.green('✓ アップロード完了\n'));
     process.exit(0);
   }
 
   console.log(chalk.cyan(`検出されたarchiveディレクトリ: ${archiveDirs.length}件\n`));
-
-  let hasError = false;
-  const errors: UploadError[] = [];
 
   // 各archiveディレクトリの画像をアップロード
   for (const archiveDir of archiveDirs) {
@@ -150,7 +219,7 @@ async function main() {
           console.log(chalk.red(`  ✗ ${result.file}: ${result.error}`));
           uploadFailed++;
           hasError = true;
-          errors.push({
+          allErrors.push({
             dir: archiveDir,
             message: `ファイルアップロード失敗: ${result.file}`,
             details: result.error,
@@ -168,7 +237,7 @@ async function main() {
       console.error(chalk.red(`  エラー: アップロード処理に失敗しました`));
       console.error(error);
       hasError = true;
-      errors.push({
+      allErrors.push({
         dir: archiveDir,
         message: 'アップロード処理に失敗しました',
         details: error instanceof Error ? error.message : 'Unknown error',
@@ -180,7 +249,7 @@ async function main() {
   // 結果表示
   if (hasError) {
     console.log(chalk.red.bold('\n✗ S3アップロードでエラーが発生しました\n'));
-    errors.forEach(({ dir, message, details }) => {
+    allErrors.forEach(({ dir, message, details }) => {
       console.log(chalk.red(`[${dir}]`));
       console.log(chalk.red(`  メッセージ: ${message}`));
       if (details) {
