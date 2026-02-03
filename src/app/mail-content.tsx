@@ -231,7 +231,6 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       width: '130px',
                       height: '130px',
                       display: 'block',
-                      backgroundColor: '#ffffff',
                     }}
                   />
                   <p
