@@ -17,6 +17,9 @@ importers:
       '@mantine/core':
         specifier: 7.15.0
         version: 7.15.0(@mantine/hooks@7.15.0(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@mantine/dropzone':
+        specifier: 7.15.0
+        version: 7.15.0(@mantine/core@7.15.0(@mantine/hooks@7.15.0(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mantine/hooks@7.15.0(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mantine/hooks':
         specifier: 7.15.0
         version: 7.15.0(react@19.2.3)
@@ -882,6 +885,14 @@ packages:
   '@mantine/core@7.15.0':
     resolution: {integrity: sha512-tZlRydfaEaaCNIi3tl1u+VtJxNyBoml2iCJAy6ZqcNNcjy/krJmta5lVtjUeApZfE33rkvr+3WVqGk0YjW6oSQ==}
     peerDependencies:
+      '@mantine/hooks': 7.15.0
+      react: ^18.x || ^19.x
+      react-dom: ^18.x || ^19.x
+
+  '@mantine/dropzone@7.15.0':
+    resolution: {integrity: sha512-kzCGoTu46oZAk1cnGUFafsPvmp1l56Hs6UQUPmeyPhdDyDc/CWLAiyM9y+Wjdo3YQrl/bsWDhJpvzkp0ZfRyoQ==}
+    peerDependencies:
+      '@mantine/core': 7.15.0
       '@mantine/hooks': 7.15.0
       react: ^18.x || ^19.x
       react-dom: ^18.x || ^19.x
@@ -2668,6 +2679,12 @@ packages:
     peerDependencies:
       react: ^19.2.3
 
+  react-dropzone-esm@15.2.0:
+    resolution: {integrity: sha512-pPwR8xWVL+tFLnbAb8KVH5f6Vtl397tck8dINkZ1cPMxHWH+l9dFmIgRWgbh7V7jbjIcuKXCsVrXbhQz68+dVA==}
+    engines: {node: '>= 10.13'}
+    peerDependencies:
+      react: '>= 16.8 || 18.0.0'
+
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
 
@@ -4181,6 +4198,14 @@ snapshots:
       type-fest: 4.41.0
     transitivePeerDependencies:
       - '@types/react'
+
+  '@mantine/dropzone@7.15.0(@mantine/core@7.15.0(@mantine/hooks@7.15.0(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mantine/hooks@7.15.0(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@mantine/core': 7.15.0(@mantine/hooks@7.15.0(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@mantine/hooks': 7.15.0(react@19.2.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      react-dropzone-esm: 15.2.0(react@19.2.3)
 
   '@mantine/hooks@7.15.0(react@19.2.3)':
     dependencies:
@@ -6216,6 +6241,11 @@ snapshots:
     dependencies:
       react: 19.2.3
       scheduler: 0.27.0
+
+  react-dropzone-esm@15.2.0(react@19.2.3):
+    dependencies:
+      prop-types: 15.8.1
+      react: 19.2.3
 
   react-is@16.13.1: {}
 
