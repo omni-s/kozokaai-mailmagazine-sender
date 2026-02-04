@@ -46,5 +46,6 @@
 
 /* フィードバック */
 @import '@mantine/core/styles/Loader.layer.css';
+@import '@mantine/core/styles/ModalBase.layer.css';
 @import '@mantine/core/styles/Modal.layer.css';
 @import '@mantine/core/styles/Overlay.layer.css';

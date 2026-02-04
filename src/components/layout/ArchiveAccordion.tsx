@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { NavLink, Badge, Collapse, Button, Box, Text, Group } from '@mantine/core';
-import { IconChevronDown, IconChevronRight } from '@tabler/icons-react';
+import { NavLink, Badge, Collapse, Button, Box, Text, Group, ActionIcon, Modal } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { IconChevronDown, IconChevronRight, IconTrash } from '@tabler/icons-react';
+import { useRouter } from 'next/navigation';
 import type { MailArchive } from '@/lib/archive-loader';
 
 interface GroupedArchive {
@@ -43,10 +45,45 @@ const groupArchivesByYearMonth = (archives: MailArchive[]): GroupedArchive[] => 
 };
 
 export function ArchiveAccordion({ archives }: ArchiveAccordionProps) {
+  const router = useRouter();
   const [expandedYears, setExpandedYears] = useState<string[]>([]);
   const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
+  const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
+  const [targetArchive, setTargetArchive] = useState<MailArchive | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const groupedArchives = useMemo(() => groupArchivesByYearMonth(archives), [archives]);
+
+  const handleOpenDeleteModal = (archive: MailArchive) => {
+    setTargetArchive(archive);
+    openDeleteModal();
+  };
+
+  const handleDelete = async () => {
+    if (!targetArchive) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch(
+        `/api/archives/${targetArchive.yyyy}/${targetArchive.mm}/${encodeURIComponent(targetArchive.ddMsg)}`,
+        { method: 'DELETE' }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || '削除に失敗しました');
+      }
+
+      closeDeleteModal();
+      setTargetArchive(null);
+      router.refresh();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(error instanceof Error ? error.message : '削除に失敗しました');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const toggleYear = (year: string) => {
     setExpandedYears(prev =>
@@ -71,80 +108,119 @@ export function ArchiveAccordion({ archives }: ArchiveAccordionProps) {
   }
 
   return (
-    <Box>
-      {groupedArchives.map(({ year, months }) => {
-        const isYearExpanded = expandedYears.includes(year);
+    <>
+      <Box>
+        {groupedArchives.map(({ year, months }) => {
+          const isYearExpanded = expandedYears.includes(year);
 
-        return (
-          <Box key={year} mb="xs">
-            <Button
-              variant="subtle"
-              fullWidth
-              justify="space-between"
-              onClick={() => toggleYear(year)}
-              rightSection={
-                isYearExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />
-              }
-              aria-expanded={isYearExpanded}
-              aria-controls={`year-${year}-content`}
-            >
-              {year}年
-            </Button>
+          return (
+            <Box key={year} mb="xs">
+              <Button
+                variant="subtle"
+                color="turquoise"
+                fullWidth
+                justify="space-between"
+                onClick={() => toggleYear(year)}
+                rightSection={
+                  isYearExpanded ? <IconChevronDown size={16} /> : <IconChevronRight size={16} />
+                }
+                aria-expanded={isYearExpanded}
+                aria-controls={`year-${year}-content`}
+              >
+                {year}年
+              </Button>
 
-            <Collapse in={isYearExpanded}>
-              <Box pl="sm" mt="xs" id={`year-${year}-content`}>
-                {months.map(({ month, archives: monthArchives }) => {
-                  const yearMonth = `${year}-${month}`;
-                  const isMonthExpanded = expandedMonths.includes(yearMonth);
+              <Collapse in={isYearExpanded}>
+                <Box pl="sm" mt="xs" id={`year-${year}-content`}>
+                  {months.map(({ month, archives: monthArchives }) => {
+                    const yearMonth = `${year}-${month}`;
+                    const isMonthExpanded = expandedMonths.includes(yearMonth);
 
-                  return (
-                    <Box key={yearMonth} mb="xs">
-                      <Button
-                        variant="subtle"
-                        fullWidth
-                        justify="space-between"
-                        size="sm"
-                        onClick={() => toggleMonth(yearMonth)}
-                        rightSection={
-                          isMonthExpanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />
-                        }
-                        aria-expanded={isMonthExpanded}
-                        aria-controls={`month-${yearMonth}-content`}
-                      >
-                        {Number(month)}月
-                      </Button>
+                    return (
+                      <Box key={yearMonth} mb="xs">
+                        <Button
+                          variant="subtle"
+                          color="turquoise"
+                          fullWidth
+                          justify="space-between"
+                          size="sm"
+                          onClick={() => toggleMonth(yearMonth)}
+                          rightSection={
+                            isMonthExpanded ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />
+                          }
+                          aria-expanded={isMonthExpanded}
+                          aria-controls={`month-${yearMonth}-content`}
+                        >
+                          {Number(month)}月
+                        </Button>
 
-                      <Collapse in={isMonthExpanded}>
-                        <Box pl="sm" mt="xs" id={`month-${yearMonth}-content`}>
-                          {monthArchives.map((archive) => (
-                            <NavLink
-                              key={archive.path}
-                              href={`/archives/${archive.yyyy}/${archive.mm}/${archive.ddMsg}`}
-                              label={
-                                <Box>
-                                  <Text size="xs" lineClamp={1}>{archive.subject}</Text>
-                                  <Group gap="xs" mt={4}>
-                                    <Badge
-                                      variant={archive.sentAt ? 'filled' : 'light'}
-                                      size="xs"
-                                    >
-                                      {archive.sentAt ? '送信済み' : '未送信'}
-                                    </Badge>
-                                  </Group>
-                                </Box>
-                              }
-                            />
-                          ))}
-                        </Box>
-                      </Collapse>
-                    </Box>
-                  );
-                })}
-              </Box>
-            </Collapse>
-          </Box>
-        );
-      })}
-    </Box>
+                        <Collapse in={isMonthExpanded}>
+                          <Box pl="sm" mt="xs" id={`month-${yearMonth}-content`}>
+                            {monthArchives.map((archive) => (
+                              <Group key={archive.path} gap="xs" wrap="nowrap" align="flex-start">
+                                <NavLink
+                                  href={`/archives/${archive.yyyy}/${archive.mm}/${archive.ddMsg}`}
+                                  label={
+                                    <Box>
+                                      <Text size="xs" lineClamp={1}>{archive.subject}</Text>
+                                      <Group gap="xs" mt={4}>
+                                        <Badge
+                                          variant={archive.sentAt ? 'filled' : 'light'}
+                                          size="xs"
+                                        >
+                                          {archive.sentAt ? '送信済み' : '未送信'}
+                                        </Badge>
+                                      </Group>
+                                    </Box>
+                                  }
+                                  style={{ flex: 1 }}
+                                />
+                                <ActionIcon
+                                  variant="subtle"
+                                  color="red"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    handleOpenDeleteModal(archive);
+                                  }}
+                                  style={{ marginTop: 8 }}
+                                >
+                                  <IconTrash size={14} />
+                                </ActionIcon>
+                              </Group>
+                            ))}
+                          </Box>
+                        </Collapse>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Collapse>
+            </Box>
+          );
+        })}
+      </Box>
+
+      <Modal
+        opened={deleteModalOpened}
+        onClose={closeDeleteModal}
+        title="アーカイブを削除"
+        centered
+      >
+        <Text size="sm">「{targetArchive?.subject}」を削除しますか？</Text>
+        <Text c="red" size="xs" mt="xs">
+          この操作は取り消せません。S3からも完全に削除されます。
+        </Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={closeDeleteModal}>
+            キャンセル
+          </Button>
+          <Button color="red" onClick={handleDelete} loading={deleting}>
+            削除
+          </Button>
+        </Group>
+      </Modal>
+    </>
   );
 }

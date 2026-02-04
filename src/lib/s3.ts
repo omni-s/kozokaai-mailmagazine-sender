@@ -1,4 +1,10 @@
-import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  ListObjectsV2Command,
+  GetObjectCommand,
+  PutObjectCommand,
+  DeleteObjectsCommand,
+} from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -661,4 +667,40 @@ export async function loadMailHtmlFromS3(
     }
     return { error: 'Unknown error' };
   }
+}
+
+/**
+ * S3からアーカイブディレクトリを削除
+ *
+ * @param archivePath - "YYYY/MM/DD-MSG" 形式
+ */
+export async function deleteArchiveFromS3(archivePath: string): Promise<void> {
+  const bucket = process.env.S3_BUCKET_NAME;
+
+  if (!bucket) {
+    throw new Error('S3_BUCKET_NAME is not set');
+  }
+
+  // ListObjectsV2でアーカイブ配下の全オブジェクトを列挙
+  const prefix = `archives/${archivePath}/`;
+  const listCommand = new ListObjectsV2Command({
+    Bucket: bucket,
+    Prefix: prefix,
+  });
+  const listResponse = await getS3Client().send(listCommand);
+
+  if (!listResponse.Contents || listResponse.Contents.length === 0) {
+    return; // 削除対象なし
+  }
+
+  // DeleteObjectsCommandでバルク削除（1000件上限対応）
+  const objects = listResponse.Contents
+    .filter((obj) => obj.Key)
+    .map((obj) => ({ Key: obj.Key! }));
+
+  const deleteCommand = new DeleteObjectsCommand({
+    Bucket: bucket,
+    Delete: { Objects: objects },
+  });
+  await getS3Client().send(deleteCommand);
 }
