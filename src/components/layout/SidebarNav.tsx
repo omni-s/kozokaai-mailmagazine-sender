@@ -3,6 +3,7 @@
 import { NavLink } from '@mantine/core';
 import { usePathname } from 'next/navigation';
 import { IconMail, IconHelp } from '@tabler/icons-react';
+import styles from './SidebarNav.module.css';
 
 const navItems = [
   { href: '/', label: 'メール編集', icon: IconMail },
@@ -13,7 +14,7 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav role="navigation" aria-label="メインナビゲーション">
+    <nav role="navigation" aria-label="メインナビゲーション" className={styles.nav}>
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -21,9 +22,15 @@ export function SidebarNav() {
             key={item.href}
             href={item.href}
             label={item.label}
-            leftSection={<item.icon size={20} />}
+            leftSection={<item.icon size={18} stroke={1.5} />}
             active={isActive}
             aria-current={isActive ? 'page' : undefined}
+            className={styles.navLink}
+            classNames={{
+              root: styles.navLinkRoot,
+              label: styles.navLinkLabel,
+              section: styles.navLinkSection,
+            }}
           />
         );
       })}

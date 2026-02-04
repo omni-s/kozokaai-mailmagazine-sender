@@ -1,40 +1,63 @@
 .sidebar {
   background: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
-  border-right: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  border-right: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
-  border-bottom: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
-  background-color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-7));
+  padding: var(--mantine-spacing-lg) var(--mantine-spacing-md);
+  border-bottom: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+  flex-shrink: 0;
 }
 
 .logo {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.logoIcon {
-  color: white;
-  font-weight: 700;
-  font-size: 18px;
+  flex-shrink: 0;
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .title {
   font-weight: 600;
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: 13px;
+  line-height: 1.4;
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-gray-0));
 }
 
 .version {
-  font-size: 10px;
-  color: var(--mantine-color-dimmed);
-  line-height: 1;
+  font-size: 11px;
+  font-weight: 500;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-3));
+  line-height: 1.2;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--mantine-spacing-sm) 0;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-3));
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md);
+  margin-bottom: var(--mantine-spacing-xs);
 }
 
 .footer {
   padding: var(--mantine-spacing-md);
-  border-top: 1px solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  border-top: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-8));
+  flex-shrink: 0;
 }

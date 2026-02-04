@@ -1,0 +1,51 @@
+/* ===========================================
+ * Mantine CSS 分割インポート
+ *
+ * 注意: コンポーネント追加時は対応するCSSも追加すること
+ * 依存関係:
+ *   - Select → Input, Combobox, ScrollArea, CloseButton
+ *   - Modal → Overlay, Paper, CloseButton
+ *   - TextInput → Input
+ * =========================================== */
+
+/* グローバルスタイル（必須） */
+@import '@mantine/core/styles/global.layer.css';
+
+/* レイアウト系 */
+@import '@mantine/core/styles/AppShell.layer.css';
+@import '@mantine/core/styles/Container.layer.css';
+@import '@mantine/core/styles/Center.layer.css';
+@import '@mantine/core/styles/Group.layer.css';
+@import '@mantine/core/styles/Stack.layer.css';
+@import '@mantine/core/styles/SimpleGrid.layer.css';
+
+/* ナビゲーション */
+@import '@mantine/core/styles/NavLink.layer.css';
+
+/* ボタン・入力系 */
+@import '@mantine/core/styles/UnstyledButton.layer.css';
+@import '@mantine/core/styles/Button.layer.css';
+@import '@mantine/core/styles/ActionIcon.layer.css';
+@import '@mantine/core/styles/Burger.layer.css';
+@import '@mantine/core/styles/Input.layer.css';
+@import '@mantine/core/styles/Combobox.layer.css';
+@import '@mantine/core/styles/CloseButton.layer.css';
+@import '@mantine/core/styles/ScrollArea.layer.css';
+
+/* 表示系 */
+@import '@mantine/core/styles/Text.layer.css';
+@import '@mantine/core/styles/Title.layer.css';
+@import '@mantine/core/styles/Code.layer.css';
+@import '@mantine/core/styles/Badge.layer.css';
+@import '@mantine/core/styles/Avatar.layer.css';
+@import '@mantine/core/styles/Card.layer.css';
+@import '@mantine/core/styles/Paper.layer.css';
+@import '@mantine/core/styles/Alert.layer.css';
+@import '@mantine/core/styles/Divider.layer.css';
+@import '@mantine/core/styles/List.layer.css';
+
+/* フィードバック */
+@import '@mantine/core/styles/Loader.layer.css';
+@import '@mantine/core/styles/ModalBase.layer.css';
+@import '@mantine/core/styles/Modal.layer.css';
+@import '@mantine/core/styles/Overlay.layer.css';

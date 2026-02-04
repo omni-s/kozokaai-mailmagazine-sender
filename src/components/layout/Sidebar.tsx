@@ -26,55 +26,61 @@ export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) 
 
   return (
     <Stack gap={0} h="100%" className={styles.sidebar}>
-      {/* ヘッダーセクション（旧SidebarHeader統合） */}
-      <Box className={styles.header} p="md">
-        <Group justify="space-between" wrap="nowrap">
-          <Group gap="sm">
+      {/* ヘッダーセクション */}
+      <Box className={styles.header}>
+        <Group justify="space-between" wrap="nowrap" mb="md">
+          <Group gap="xs" wrap="nowrap">
             <Burger
               opened={mobileOpened}
               onClick={toggleMobile}
               hiddenFrom="sm"
               size="sm"
             />
-            <div className={styles.logo}>
-              <Image
-                src="/icon.webp"
-                alt="kozokaAI Logo"
-                width={32}
-                height={32}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                }}
-              />
-            </div>
-            <div>
-              <div className={styles.title}>kozokaAI メールデザインシステム</div>
-              <div className={styles.version}>v0.1.0</div>
-            </div>
+            <ActionIcon
+              variant="subtle"
+              onClick={() => toggleColorScheme()}
+              size="md"
+              aria-label="Toggle color scheme"
+            >
+              {mounted ? (
+                colorScheme === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />
+              ) : (
+                <Box style={{ width: 16, height: 16 }} />
+              )}
+            </ActionIcon>
           </Group>
+        </Group>
 
-          <ActionIcon
-            variant="default"
-            onClick={() => toggleColorScheme()}
-            size="lg"
-            aria-label="Toggle color scheme"
-          >
-            {mounted ? (
-              colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />
-            ) : (
-              <Box style={{ width: 18, height: 18 }} />
-            )}
-          </ActionIcon>
+        <Group gap="sm" wrap="nowrap">
+          <div className={styles.logo}>
+            <Image
+              src="/icon.webp"
+              alt="kozokaAI Logo"
+              width={40}
+              height={40}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+              }}
+            />
+          </div>
+          <Stack gap={2}>
+            <Text className={styles.title}>
+              kozokaAI メルマガ作成
+            </Text>
+            <Text className={styles.version}>
+              v0.1.0
+            </Text>
+          </Stack>
         </Group>
       </Box>
 
       {/* ナビゲーション・アーカイブセクション */}
-      <Box style={{ flex: 1, overflowY: 'auto' }}>
+      <Box className={styles.content}>
         <SidebarNav />
-        <Box mt="xl" px="sm">
-          <Text size="xs" fw={600} tt="uppercase" c="dimmed" px="sm" mb="xs">
+        <Box mt="lg" px="xs">
+          <Text className={styles.sectionTitle}>
             配信履歴
           </Text>
           <ArchiveAccordion archives={archives} />
@@ -83,7 +89,9 @@ export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) 
 
       {/* フッター */}
       <Box className={styles.footer}>
-        <Text size="xs" c="dimmed">© 2026 kozokaAI</Text>
+        <Text size="xs" c="dimmed" ta="center">
+          © 2026 kozokaAI
+        </Text>
       </Box>
     </Stack>
   );

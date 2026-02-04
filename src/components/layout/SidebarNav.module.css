@@ -1,0 +1,77 @@
+.nav {
+  padding: 0 var(--mantine-spacing-xs);
+}
+
+.navLink {
+  transition: all 150ms ease;
+}
+
+.navLinkRoot {
+  border-radius: var(--mantine-radius-md);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  font-weight: 500;
+  font-size: 14px;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-2));
+  transition: all 150ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.navLinkRoot:hover {
+  background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-gray-0));
+}
+
+.navLinkRoot[data-active] {
+  background: light-dark(
+    var(--mantine-color-turquoise-0),
+    var(--mantine-color-dark-5)
+  );
+  color: light-dark(
+    var(--mantine-color-turquoise-7),
+    var(--mantine-color-turquoise-4)
+  );
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.navLinkRoot[data-active]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: light-dark(
+    var(--mantine-color-turquoise-6),
+    var(--mantine-color-turquoise-5)
+  );
+  border-radius: 0 2px 2px 0;
+}
+
+.navLinkRoot[data-active]:hover {
+  background: light-dark(
+    var(--mantine-color-turquoise-1),
+    var(--mantine-color-dark-4)
+  );
+}
+
+.navLinkLabel {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.navLinkSection {
+  margin-right: var(--mantine-spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navLinkRoot[data-active] .navLinkSection {
+  color: light-dark(
+    var(--mantine-color-turquoise-6),
+    var(--mantine-color-turquoise-4)
+  );
+}

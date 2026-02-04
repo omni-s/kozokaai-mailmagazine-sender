@@ -1,4 +1,4 @@
-@import '@mantine/core/styles.css';
+@import '../styles/mantine-imports.css';
 
 /* AppShell レイアウトの高さ制御 */
 html {
