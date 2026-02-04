@@ -331,7 +331,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
-                      href="https://youtu.be/dEWx8ps9meI?si=2gxYLcUGEVbaFY4Y"
+                      href="https://youtu.be/dEWx8ps9meI?si=2gxYLcUGEVbaFY4Y&rel=0"
                       target="_blank"
                       rel="noopener noreferrer"
                     style={{
@@ -602,7 +602,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
         </EmailText>
         <EmailText variant="muted" style={{ fontSize: '11px', color: '#999999', lineHeight: '1.6', marginTop: '12px' }}>
           株式会社kozokaAI<br />
-          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17階
+          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
         </EmailText>
       </EmailSection>
     </EmailWrapper>
