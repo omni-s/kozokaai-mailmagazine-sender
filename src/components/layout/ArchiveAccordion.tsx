@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { NavLink, Badge, Collapse, Button, Box, Text, Group, ActionIcon, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconChevronDown, IconChevronRight, IconTrash } from '@tabler/icons-react';
 import type { MailArchive } from '@/lib/archive-loader';
-import { deleteArchive } from '@/app/actions/archive';
 
 interface GroupedArchive {
   year: string;
@@ -45,6 +45,7 @@ const groupArchivesByYearMonth = (archives: MailArchive[]): GroupedArchive[] => 
 };
 
 export function ArchiveAccordion({ archives }: ArchiveAccordionProps) {
+  const router = useRouter();
   const [expandedYears, setExpandedYears] = useState<string[]>([]);
   const [expandedMonths, setExpandedMonths] = useState<string[]>([]);
   const [deleteModalOpened, { open: openDeleteModal, close: closeDeleteModal }] = useDisclosure(false);
@@ -63,14 +64,19 @@ export function ArchiveAccordion({ archives }: ArchiveAccordionProps) {
 
     setDeleting(true);
     try {
-      await deleteArchive(
-        targetArchive.yyyy,
-        targetArchive.mm,
-        encodeURIComponent(targetArchive.ddMsg)
+      const response = await fetch(
+        `/api/archives/${targetArchive.yyyy}/${targetArchive.mm}/${encodeURIComponent(targetArchive.ddMsg)}`,
+        { method: 'DELETE' }
       );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || '削除に失敗しました');
+      }
 
       closeDeleteModal();
       setTargetArchive(null);
+      router.refresh();
     } catch (error) {
       console.error('Delete error:', error);
       alert(error instanceof Error ? error.message : '削除に失敗しました');
