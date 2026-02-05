@@ -40,7 +40,7 @@ export default function Home() {
         )}
         styles={{ content: { overflow: 'visible' }, body: { overflow: 'visible' } }}
       >
-        <CommitForm onSuccess={close} />
+        <CommitForm />
       </Modal>
     </>
   );

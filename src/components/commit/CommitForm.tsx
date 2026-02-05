@@ -15,17 +15,13 @@ export interface CommitAnswers {
   scheduledAt?: string; // ISO 8601形式（JSTで入力、UTCに変換）
 }
 
-interface CommitFormProps {
-  onSuccess?: () => void;
-}
-
 interface ApiResponse {
   success: boolean;
   message: string;
   archiveDir?: string;
 }
 
-export function CommitForm({ onSuccess }: CommitFormProps) {
+export function CommitForm() {
   const [answers, setAnswers] = useState<CommitAnswers>({
     commitMessage: '',
     subject: '',
