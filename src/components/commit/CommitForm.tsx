@@ -282,11 +282,24 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
           />
         )}
 
-        {/* 送信ボタン */}
+        {/* 送信ボタン / 成功時CTA */}
         <Group justify="flex-end" mt="md">
-          <Button type="submit" loading={loading} size="md">
-            {loading ? '配信準備中...' : '配信準備を開始'}
-          </Button>
+          {result?.success ? (
+            <Button
+              component="a"
+              href="https://github.com/omni-s/kozokaai-mailmagazine-sender"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="md"
+              color="green"
+            >
+              GitHubで確認
+            </Button>
+          ) : (
+            <Button type="submit" loading={loading} size="md">
+              {loading ? '配信準備中...' : '配信準備を開始'}
+            </Button>
+          )}
         </Group>
 
         {/* 結果表示 */}
@@ -302,20 +315,7 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
                 アーカイブ: <code>{result.archiveDir}</code>
               </div>
             )}
-            {result.success ? (
-              <Button
-                component="a"
-                href="https://github.com/omni-s/kozokaai-mailmagazine-sender"
-                target="_blank"
-                rel="noopener noreferrer"
-                mt="md"
-                size="sm"
-                variant="light"
-                color="green"
-              >
-                GitHubで確認
-              </Button>
-            ) : (
+            {!result.success && (
               <Button
                 mt="md"
                 size="sm"
