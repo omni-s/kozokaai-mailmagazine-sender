@@ -28,13 +28,16 @@ export default function Home() {
         </Box>
       </Container>
 
-      {/* 配信準備Modal */}
+      {/* 配信準備Modal（Select ドロップダウンがクリップされないよう overflow: visible を設定） */}
       <Modal
         opened={opened}
         onClose={close}
         title="配信準備"
         size="lg"
         centered
+        scrollAreaComponent={({ children, ...rest }: React.ComponentPropsWithRef<'div'>) => (
+          <div {...rest} style={{ ...rest.style, overflow: 'visible' }}>{children}</div>
+        )}
         styles={{ content: { overflow: 'visible' }, body: { overflow: 'visible' } }}
       >
         <CommitForm onSuccess={close} />
