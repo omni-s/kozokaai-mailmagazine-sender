@@ -29,7 +29,14 @@ export default function Home() {
       </Container>
 
       {/* 配信準備Modal */}
-      <Modal opened={opened} onClose={close} title="配信準備" size="lg" centered>
+      <Modal
+        opened={opened}
+        onClose={close}
+        title="配信準備"
+        size="lg"
+        centered
+        styles={{ content: { overflow: 'visible' }, body: { overflow: 'visible' } }}
+      >
         <CommitForm onSuccess={close} />
       </Modal>
     </>

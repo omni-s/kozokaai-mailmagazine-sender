@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TextInput, Button, Select, Stack, Group, Alert, Modal } from '@mantine/core';
 import { format, parse, isValid } from 'date-fns';
 
@@ -29,7 +29,7 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
   const [answers, setAnswers] = useState<CommitAnswers>({
     commitMessage: '',
     subject: '',
-    segmentId: 'a355a0bd-32fa-4ef4-b6d5-7341f702d35b',
+    segmentId: '',
     scheduleType: 'immediate',
     scheduledAt: '',
   });
@@ -37,9 +37,38 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ApiResponse | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Segment一覧取得用State
+  const [segments, setSegments] = useState<{ id: string; name: string }[]>([]);
+  const [segmentsLoading, setSegmentsLoading] = useState(false);
+  const [segmentsError, setSegmentsError] = useState('');
+
   // 上書き確認用State
   const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<CommitAnswers | null>(null);
+
+  // Segment一覧を取得
+  useEffect(() => {
+    const fetchSegments = async () => {
+      setSegmentsLoading(true);
+      setSegmentsError('');
+      try {
+        const res = await fetch('/api/import-contacts/segments');
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Segment一覧の取得に失敗しました');
+        }
+        const data = await res.json();
+        setSegments(data.segments ?? []);
+      } catch (err) {
+        setSegmentsError(
+          err instanceof Error ? err.message : 'Segment一覧の取得に失敗しました'
+        );
+      } finally {
+        setSegmentsLoading(false);
+      }
+    };
+    fetchSegments();
+  }, []);
 
   /**
    * バリデーション関数
@@ -62,7 +91,7 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
     // Segment ID
     const segmentId = answers.segmentId.trim();
     if (segmentId.length === 0) {
-      newErrors.segmentId = 'Segment IDは必須です';
+      newErrors.segmentId = 'Segmentを選択してください';
     } else if (
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(segmentId)
     ) {
@@ -205,16 +234,22 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
           disabled={loading}
         />
 
-        {/* Resend Segment ID */}
-        <TextInput
-          label="Resend Segment ID"
-          placeholder="a355a0bd-32fa-4ef4-b6d5-7341f702d35b"
-          description="Resendで作成したAudienceのSegment ID（UUID形式）"
-          value={answers.segmentId}
-          onChange={(e) => handleFieldChange('segmentId', e.target.value)}
-          error={errors.segmentId}
+        {/* Resend Segment */}
+        <Select
+          label="Resend Segment"
+          placeholder="Segmentを選択してください"
+          description="Resendで作成したAudienceのSegment"
+          data={segments.map((s) => ({
+            value: s.id,
+            label: `${s.name}（${s.id.slice(0, 8)}...）`,
+          }))}
+          value={answers.segmentId || null}
+          onChange={(value) => handleFieldChange('segmentId', value || '')}
+          error={errors.segmentId || segmentsError}
           required
-          disabled={loading}
+          disabled={loading || segmentsLoading}
+          searchable
+          comboboxProps={{ withinPortal: false }}
         />
 
         {/* 配信タイミング */}
@@ -230,6 +265,7 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
             handleFieldChange('scheduleType', value as 'immediate' | 'scheduled')
           }
           disabled={loading}
+          comboboxProps={{ withinPortal: false }}
         />
 
         {/* 配信日時（予約配信の場合のみ表示） */}
@@ -266,20 +302,30 @@ export function CommitForm({ onSuccess }: CommitFormProps) {
                 アーカイブ: <code>{result.archiveDir}</code>
               </div>
             )}
-            <Button
-              mt="md"
-              size="sm"
-              variant="light"
-              color={result.success ? 'green' : 'red'}
-              onClick={() => {
-                setResult(null);
-                if (result.success && onSuccess) {
-                  onSuccess();
-                }
-              }}
-            >
-              OK
-            </Button>
+            {result.success ? (
+              <Button
+                component="a"
+                href="https://github.com/omni-s/kozokaai-mailmagazine-sender"
+                target="_blank"
+                rel="noopener noreferrer"
+                mt="md"
+                size="sm"
+                variant="light"
+                color="green"
+              >
+                GitHubで確認
+              </Button>
+            ) : (
+              <Button
+                mt="md"
+                size="sm"
+                variant="light"
+                color="red"
+                onClick={() => setResult(null)}
+              >
+                OK
+              </Button>
+            )}
           </Alert>
         )}
       </Stack>
