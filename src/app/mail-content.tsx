@@ -57,7 +57,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               fontFamily: 'sans-serif',
             }}
           >
-            AIで現場をブースト！AIが"業務を動かす"瞬間を毎号お届けします。
+            AIで現場をブースト！AIが"業務を動かす"瞬間を毎号お届けします!
           </p>
           <div style={{ marginTop: '5px', marginBottom: '5px' }}>
             <hr
