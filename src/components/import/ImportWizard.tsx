@@ -7,7 +7,7 @@ import type { PropertyConfig, ImportCompleteEvent, ColumnAnalysisJson } from '@/
 import { UploadStep } from './steps/UploadStep';
 import { PreviewStep } from './steps/PreviewStep';
 import { PropertyConfigStep } from './steps/PropertyConfigStep';
-import { AudienceStep } from './steps/AudienceStep';
+import { SegmentStep } from './steps/SegmentStep';
 import { ExecuteStep } from './steps/ExecuteStep';
 import { ResultStep } from './steps/ResultStep';
 
@@ -48,7 +48,7 @@ export function ImportWizard() {
           columnName: col,
           key: toPropertyKey(col),
           type: 'string' as const,
-          fallbackValue: null,
+          fallbackValue: '未設定',
         }));
         setPropertyConfigs(initialConfigs);
       }
@@ -94,6 +94,18 @@ export function ImportWizard() {
     setImportResult(result);
     setActive(5);
   }, []);
+
+  // 失敗分のみ再インポート
+  const handleRetryFailed = useCallback(() => {
+    if (!importResult || !columnAnalysis) return;
+    const failedEmails = new Set(importResult.failures.map(f => f.email));
+    const emailCol = columnAnalysis.emailColumn;
+    if (!emailCol) return;
+    const filteredRecords = records.filter(r => failedEmails.has(r[emailCol]?.trim()));
+    setRecords(filteredRecords);
+    setImportResult(null);
+    setActive(4);
+  }, [importResult, columnAnalysis, records]);
 
   // 最初からやり直す
   const handleReset = useCallback(() => {
@@ -160,8 +172,8 @@ export function ImportWizard() {
             />
           </Stepper.Step>
 
-          <Stepper.Step label="Audience選択" description="インポート先">
-            <AudienceStep
+          <Stepper.Step label="Segment選択" description="インポート先">
+            <SegmentStep
               audienceId={audienceId}
               onChange={handleAudienceChange}
               onConfirm={handleAudienceConfirm}
@@ -181,7 +193,7 @@ export function ImportWizard() {
           </Stepper.Step>
 
           <Stepper.Completed>
-            <ResultStep result={importResult} onReset={handleReset} />
+            <ResultStep result={importResult} onReset={handleReset} onRetryFailed={handleRetryFailed} />
           </Stepper.Completed>
         </Stepper>
       </Paper>

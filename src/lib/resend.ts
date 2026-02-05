@@ -57,11 +57,19 @@ export async function listSegments() {
   try {
     const { data, error } = await resend.segments.list();
 
+    // デバッグログ: 実際のAPI応答を確認
+    console.log('[listSegments] API response:', JSON.stringify({ data, error }, null, 2));
+
     if (error) {
       console.error('Resend API Error:', error);
       return [];
     }
 
+    // Resend SDK v6.6.0: data = { object: 'list', data: Segment[], has_more: boolean }
+    // 配列として直接返ってくる場合も考慮
+    if (Array.isArray(data)) {
+      return data;
+    }
     return data?.data || [];
   } catch (error) {
     console.error('Failed to list segments:', error);

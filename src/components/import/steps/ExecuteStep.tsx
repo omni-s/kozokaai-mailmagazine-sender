@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { Stack, Text, Group, Button, Progress, Paper, Alert } from '@mantine/core';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Stack, Text, Group, Button, Progress, Paper, Alert, Loader } from '@mantine/core';
 import { IconArrowLeft, IconAlertTriangle } from '@tabler/icons-react';
 import type {
   PropertyConfig,
@@ -17,6 +17,41 @@ interface ExecuteStepProps {
   columnAnalysis: ColumnAnalysisJson | null;
   onComplete: (result: ImportCompleteEvent) => void;
   onBack: () => void;
+}
+
+/**
+ * SSEチャンクからイベントをパースする
+ *
+ * バッファを受け取り、パース済みイベントと残りのバッファを返す。
+ * 複数の data: 行が1チャンクに含まれるケースにも対応。
+ */
+function parseSSEBuffer(buffer: string): { events: ImportEvent[]; remaining: string } {
+  const events: ImportEvent[] = [];
+  const segments = buffer.split('\n\n');
+  const remaining = segments.pop() || '';
+
+  for (const segment of segments) {
+    // 各セグメント内を行単位で処理（複数 data: 行が連結される場合に対応）
+    for (const rawLine of segment.split('\n')) {
+      const line = rawLine.trim();
+      if (!line) continue;
+      // SSEコメント行をスキップ（フラッシュ用パディング対策）
+      if (line.startsWith(':')) continue;
+      if (!line.startsWith('data: ')) continue;
+
+      const json = line.slice(6).trim();
+      if (!json) continue;
+
+      try {
+        const event: ImportEvent = JSON.parse(json);
+        events.push(event);
+      } catch (e) {
+        console.error('[ExecuteStep] SSE parse error:', e, 'raw:', json);
+      }
+    }
+  }
+
+  return { events, remaining };
 }
 
 /**
@@ -37,19 +72,35 @@ export function ExecuteStep({
     failCount: 0,
   });
   const [error, setError] = useState<string | null>(null);
-  const [started, setStarted] = useState(false);
+  const startedRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  // onComplete を ref で安定化（useEffect の依存配列から除外）
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
+  // 最新の progress を ref で保持（ストリーム完了時のフォールバック用）
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+
+  const handleComplete = useCallback((event: ImportCompleteEvent) => {
+    onCompleteRef.current(event);
+  }, []);
 
   // インポート開始
   useEffect(() => {
-    if (started || !columnAnalysis) return;
-    setStarted(true);
+    if (!columnAnalysis) return;
+    if (startedRef.current) return;
+    startedRef.current = true;
 
     const controller = new AbortController();
     abortRef.current = controller;
 
     async function runImport() {
+      let completeCalled = false;
+
       try {
+        console.log('[ExecuteStep] Starting import request...');
         const res = await fetch('/api/import-contacts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -62,9 +113,19 @@ export function ExecuteStep({
           signal: controller.signal,
         });
 
+        console.log('[ExecuteStep] Response status:', res.status, res.ok);
+        console.log('[ExecuteStep] Content-Type:', res.headers.get('content-type'));
+
         if (!res.ok) {
-          const data = await res.json();
-          setError(data.error || `HTTP ${res.status}`);
+          // Content-Type に応じてエラーメッセージを取得
+          const contentType = res.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const data = await res.json();
+            setError(data.error || `HTTP ${res.status}`);
+          } else {
+            const text = await res.text();
+            setError(`HTTP ${res.status}: ${text.substring(0, 200)}`);
+          }
           return;
         }
 
@@ -79,39 +140,78 @@ export function ExecuteStep({
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) {
+            console.log('[ExecuteStep] Stream ended (done=true)');
+            break;
+          }
 
-          buffer += decoder.decode(value, { stream: true });
+          const chunk = decoder.decode(value, { stream: true });
+          console.log('[ExecuteStep] Chunk received, length:', chunk.length);
+          buffer += chunk;
 
-          const lines = buffer.split('\n\n');
-          buffer = lines.pop() || '';
+          const { events, remaining } = parseSSEBuffer(buffer);
+          buffer = remaining;
 
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const json = line.slice(6);
+          for (const event of events) {
+            console.log('[ExecuteStep] Event:', event.type, event);
 
-            try {
-              const event: ImportEvent = JSON.parse(json);
-
-              if (event.type === 'progress') {
-                setProgress({
-                  current: event.current,
-                  total: event.total,
-                  successCount: event.successCount,
-                  failCount: event.failCount,
-                });
-              } else if (event.type === 'complete') {
-                onComplete(event);
-              } else if (event.type === 'error') {
-                setError(event.message);
-              }
-            } catch (e) {
-              console.error('SSE parse error:', e, json);
+            if (event.type === 'progress') {
+              setProgress({
+                current: event.current,
+                total: event.total,
+                successCount: event.successCount,
+                failCount: event.failCount,
+              });
+            } else if (event.type === 'complete') {
+              completeCalled = true;
+              handleComplete(event);
+            } else if (event.type === 'error') {
+              setError(event.message);
             }
+          }
+        }
+
+        // 残りのバッファを処理（ストリーム終了後に未処理データがある場合）
+        if (buffer.trim()) {
+          console.log('[ExecuteStep] Processing remaining buffer:', buffer.substring(0, 200));
+          const { events } = parseSSEBuffer(buffer + '\n\n');
+          for (const event of events) {
+            console.log('[ExecuteStep] Remaining event:', event.type, event);
+            if (event.type === 'progress') {
+              setProgress({
+                current: event.current,
+                total: event.total,
+                successCount: event.successCount,
+                failCount: event.failCount,
+              });
+            } else if (event.type === 'complete') {
+              completeCalled = true;
+              handleComplete(event);
+            } else if (event.type === 'error') {
+              setError(event.message);
+            }
+          }
+        }
+
+        // complete イベントを受信しないままストリームが終了した場合のフォールバック
+        if (!completeCalled) {
+          const p = progressRef.current;
+          console.warn('[ExecuteStep] Stream ended without complete event. Fallback triggered.');
+          if (p.current > 0) {
+            handleComplete({
+              type: 'complete',
+              total: p.total,
+              successCount: p.successCount,
+              failCount: p.failCount,
+              failures: [],
+            });
+          } else {
+            setError('ストリームが予期せず終了しました。サーバーログを確認してください。');
           }
         }
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
+          console.error('[ExecuteStep] Import error:', err);
           setError(err instanceof Error ? err.message : 'Unknown error');
         }
       }
@@ -121,8 +221,9 @@ export function ExecuteStep({
 
     return () => {
       controller.abort();
+      startedRef.current = false;
     };
-  }, [started, records, audienceId, propertyConfigs, columnAnalysis, onComplete]);
+  }, [records, audienceId, propertyConfigs, columnAnalysis, handleComplete]);
 
   const percent = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
 
@@ -148,9 +249,12 @@ export function ExecuteStep({
 
   return (
     <Stack gap="lg" mt="md">
-      <Text size="lg" fw={500} ta="center">
-        インポート中...
-      </Text>
+      <Group justify="center" gap="md">
+        <Loader size="md" />
+        <Text size="lg" fw={500}>
+          インポート中...
+        </Text>
+      </Group>
 
       <Paper shadow="xs" p="md" withBorder>
         <Stack gap="sm">

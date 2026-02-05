@@ -1,18 +1,19 @@
 'use client';
 
 import { Stack, Text, Group, Button, Paper, Alert, Table, ScrollArea } from '@mantine/core';
-import { IconCheck, IconAlertTriangle, IconRefresh } from '@tabler/icons-react';
+import { IconCheck, IconAlertTriangle, IconRefresh, IconReload } from '@tabler/icons-react';
 import type { ImportCompleteEvent } from '@/lib/import-contacts-schema';
 
 interface ResultStepProps {
   result: ImportCompleteEvent | null;
   onReset: () => void;
+  onRetryFailed?: () => void;
 }
 
 /**
  * Step 6: 結果表示
  */
-export function ResultStep({ result, onReset }: ResultStepProps) {
+export function ResultStep({ result, onReset, onRetryFailed }: ResultStepProps) {
   if (!result) {
     return (
       <Stack gap="lg" mt="md">
@@ -102,6 +103,16 @@ export function ResultStep({ result, onReset }: ResultStepProps) {
       )}
 
       <Group justify="center" mt="md">
+        {result.failures.length > 0 && onRetryFailed && (
+          <Button
+            leftSection={<IconReload size={16} />}
+            variant="light"
+            color="yellow"
+            onClick={onRetryFailed}
+          >
+            失敗分を再インポート（{result.failures.length}件）
+          </Button>
+        )}
         <Button leftSection={<IconRefresh size={16} />} onClick={onReset}>
           別のCSVをインポートする
         </Button>

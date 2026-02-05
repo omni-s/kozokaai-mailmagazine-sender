@@ -186,112 +186,73 @@ export async function POST(request: Request) {
 
   const resend = new Resend(apiKey);
 
-  // SSE ストリームを開始
+  // SSE ストリームを開始（TransformStreamでバッファリング問題を解決）
   const encoder = new TextEncoder();
+  const { readable, writable } = new TransformStream();
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      const sendEvent = (event: ImportEvent) => {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
-      };
+  // 非同期で処理を実行
+  (async () => {
+    const writer = writable.getWriter();
 
+    let writerClosed = false;
+
+    const sendEvent = async (event: ImportEvent) => {
+      if (writerClosed) return;
       try {
-        // カスタムプロパティを作成
-        const propResult = await ensureProperties(resend, propertyConfigs);
-        if (!propResult.success) {
-          sendEvent({ type: 'error', message: propResult.error || 'Failed to create properties' });
-          controller.close();
-          return;
-        }
+        const payload = `data: ${JSON.stringify(event)}\n\n`;
+        await writer.write(encoder.encode(payload));
+      } catch {
+        writerClosed = true;
+      }
+    };
 
-        // 標準フィールドのマッピングを逆引きで準備
-        const fieldToColumn = new Map<string, string>();
-        for (const [csvCol, field] of columnAnalysis.standard) {
-          fieldToColumn.set(field, csvCol);
-        }
+    try {
+      // SSEバッファリング対策: コメント行パディングで即座にフラッシュを促す
+      await writer.write(encoder.encode(': ping\n\n'));
 
-        const total = records.length;
-        let successCount = 0;
-        let failCount = 0;
-        const failures: Array<{ email: string; error: string }> = [];
+      console.log(`[import-contacts] Import started: ${records.length} records → audience ${audienceId}`);
 
-        for (let i = 0; i < total; i++) {
-          const record = records[i];
-          const loopStart = Date.now();
+      // 初期進捗イベントを即座に送信
+      await sendEvent({
+        type: 'progress',
+        current: 0,
+        total: records.length,
+        successCount: 0,
+        failCount: 0,
+      });
 
-          const email = columnAnalysis.emailColumn
-            ? record[columnAnalysis.emailColumn]?.trim()
-            : undefined;
+      // カスタムプロパティを作成
+      const propResult = await ensureProperties(resend, propertyConfigs);
+      if (!propResult.success) {
+        await sendEvent({ type: 'error', message: propResult.error || 'Failed to create properties' });
+        return;
+      }
 
-          if (!email) {
-            failures.push({ email: '(empty)', error: 'emailが空です' });
-            failCount++;
+      // 標準フィールドのマッピングを逆引きで準備
+      const fieldToColumn = new Map<string, string>();
+      for (const [csvCol, field] of columnAnalysis.standard) {
+        fieldToColumn.set(field, csvCol);
+      }
 
-            if ((i + 1) % PROGRESS_INTERVAL === 0 || i + 1 === total) {
-              sendEvent({
-                type: 'progress',
-                current: i + 1,
-                total,
-                successCount,
-                failCount,
-              });
-            }
-            continue;
-          }
+      const total = records.length;
+      let successCount = 0;
+      let failCount = 0;
+      const failures: Array<{ email: string; error: string }> = [];
 
-          const firstNameCol = fieldToColumn.get('firstName');
-          const lastNameCol = fieldToColumn.get('lastName');
-          const unsubscribedCol = fieldToColumn.get('unsubscribed');
+      for (let i = 0; i < total; i++) {
+        const record = records[i];
+        const loopStart = Date.now();
 
-          const firstName = firstNameCol
-            ? record[firstNameCol]?.trim() || undefined
-            : undefined;
-          const lastName = lastNameCol
-            ? record[lastNameCol]?.trim() || undefined
-            : undefined;
-          const unsubscribed = unsubscribedCol
-            ? parseBooleanValue(record[unsubscribedCol] || '')
-            : undefined;
+        const email = columnAnalysis.emailColumn
+          ? record[columnAnalysis.emailColumn]?.trim()
+          : undefined;
 
-          // カスタムプロパティ取得
-          let properties: Record<string, string | number | null> | undefined;
-          if (propertyConfigs.length > 0) {
-            properties = {};
-            for (const config of propertyConfigs) {
-              const rawValue = record[config.columnName]?.trim();
-              if (rawValue === undefined || rawValue === '') {
-                properties[config.key] = config.fallbackValue;
-              } else if (config.type === 'number') {
-                const num = Number(rawValue);
-                properties[config.key] = isNaN(num)
-                  ? config.fallbackValue
-                  : num;
-              } else {
-                properties[config.key] = rawValue;
-              }
-            }
-          }
+        if (!email) {
+          failures.push({ email: '(empty)', error: 'emailが空です' });
+          failCount++;
 
-          const result = await createContactWithRetry(
-            resend,
-            audienceId,
-            email,
-            firstName,
-            lastName,
-            unsubscribed,
-            properties
-          );
-
-          if (result.success) {
-            successCount++;
-          } else {
-            failCount++;
-            failures.push({ email, error: result.error || 'Unknown error' });
-          }
-
-          // 進捗イベント送信（10件ごと or 最後）
           if ((i + 1) % PROGRESS_INTERVAL === 0 || i + 1 === total) {
-            sendEvent({
+            await sendEvent({
               type: 'progress',
               current: i + 1,
               total,
@@ -300,35 +261,119 @@ export async function POST(request: Request) {
             });
           }
 
-          // スロットリング
-          const elapsed = Date.now() - loopStart;
-          if (elapsed < THROTTLE_MS && i < total - 1) {
-            await sleep(THROTTLE_MS - elapsed);
+          if (writerClosed) {
+            console.log(`[import-contacts] Client disconnected at (${i + 1}/${total}). Stopping.`);
+            break;
+          }
+          continue;
+        }
+
+        const firstNameCol = fieldToColumn.get('firstName');
+        const lastNameCol = fieldToColumn.get('lastName');
+        const unsubscribedCol = fieldToColumn.get('unsubscribed');
+
+        const firstName = firstNameCol
+          ? record[firstNameCol]?.trim() || undefined
+          : undefined;
+        const lastName = lastNameCol
+          ? record[lastNameCol]?.trim() || undefined
+          : undefined;
+        const unsubscribed = unsubscribedCol
+          ? parseBooleanValue(record[unsubscribedCol] || '')
+          : undefined;
+
+        // カスタムプロパティ取得
+        let properties: Record<string, string | number | null> | undefined;
+        if (propertyConfigs.length > 0) {
+          properties = {};
+          for (const config of propertyConfigs) {
+            const rawValue = record[config.columnName]?.trim();
+            if (rawValue === undefined || rawValue === '') {
+              properties[config.key] = config.fallbackValue;
+            } else if (config.type === 'number') {
+              const num = Number(rawValue);
+              properties[config.key] = isNaN(num)
+                ? config.fallbackValue
+                : num;
+            } else {
+              properties[config.key] = rawValue;
+            }
           }
         }
 
-        // 完了イベント
-        sendEvent({
-          type: 'complete',
-          total,
-          successCount,
-          failCount,
-          failures,
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        sendEvent({ type: 'error', message });
-      } finally {
-        controller.close();
-      }
-    },
-  });
+        const result = await createContactWithRetry(
+          resend,
+          audienceId,
+          email,
+          firstName,
+          lastName,
+          unsubscribed,
+          properties
+        );
 
-  return new Response(stream, {
+        if (result.success) {
+          successCount++;
+          console.log(`[import-contacts] ✓ (${i + 1}/${total}) ${email}`);
+        } else {
+          failCount++;
+          failures.push({ email, error: result.error || 'Unknown error' });
+          console.error(`[import-contacts] ✗ (${i + 1}/${total}) ${email}: ${result.error}`);
+        }
+
+        // 進捗イベント送信（10件ごと or 最後）
+        if ((i + 1) % PROGRESS_INTERVAL === 0 || i + 1 === total) {
+          await sendEvent({
+            type: 'progress',
+            current: i + 1,
+            total,
+            successCount,
+            failCount,
+          });
+        }
+
+        // クライアント切断検知 → ループ終了
+        if (writerClosed) {
+          console.log(`[import-contacts] Client disconnected at (${i + 1}/${total}). Stopping.`);
+          break;
+        }
+
+        // スロットリング
+        const elapsed = Date.now() - loopStart;
+        if (elapsed < THROTTLE_MS && i < total - 1) {
+          await sleep(THROTTLE_MS - elapsed);
+        }
+      }
+
+      console.log(`[import-contacts] Import completed: ${successCount} success, ${failCount} failed / ${total} total`);
+
+      // 完了イベント
+      await sendEvent({
+        type: 'complete',
+        total,
+        successCount,
+        failCount,
+        failures,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      await sendEvent({ type: 'error', message });
+    } finally {
+      if (!writerClosed) {
+        try {
+          await writer.close();
+        } catch {
+          // Stream already closed (client disconnected)
+        }
+      }
+    }
+  })();
+
+  return new Response(readable, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
     },
   });
 }

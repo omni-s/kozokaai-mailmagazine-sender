@@ -13,13 +13,13 @@ import {
 } from '@mantine/core';
 import { IconArrowRight, IconArrowLeft, IconAlertTriangle } from '@tabler/icons-react';
 
-interface Audience {
+interface Segment {
   id: string;
   name: string;
   createdAt: string;
 }
 
-interface AudienceStepProps {
+interface SegmentStepProps {
   audienceId: string;
   onChange: (id: string) => void;
   onConfirm: () => void;
@@ -27,24 +27,26 @@ interface AudienceStepProps {
 }
 
 /**
- * Step 4: Audience 選択
+ * Step 4: Segment 選択
+ *
+ * Resend Segment（旧Audience）を選択するステップ
  */
-export function AudienceStep({
+export function SegmentStep({
   audienceId,
   onChange,
   onConfirm,
   onBack,
-}: AudienceStepProps) {
-  const [audiences, setAudiences] = useState<Audience[]>([]);
+}: SegmentStepProps) {
+  const [segments, setSegments] = useState<Segment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [manualInput, setManualInput] = useState(false);
 
-  // Audience 一覧を取得
+  // Segment 一覧を取得
   useEffect(() => {
-    async function fetchAudiences() {
+    async function fetchSegments() {
       try {
-        const res = await fetch('/api/import-contacts/audiences');
+        const res = await fetch('/api/import-contacts/segments');
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
@@ -52,7 +54,13 @@ export function AudienceStep({
         if (data.error) {
           throw new Error(data.error);
         }
-        setAudiences(data.audiences || []);
+        const fetchedSegments = data.segments || [];
+        setSegments(fetchedSegments);
+
+        // Segment が 0件の場合は手動入力モードに切り替え
+        if (fetchedSegments.length === 0) {
+          setManualInput(true);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
@@ -60,7 +68,7 @@ export function AudienceStep({
       }
     }
 
-    fetchAudiences();
+    fetchSegments();
   }, []);
 
   // UUID バリデーション
@@ -73,7 +81,7 @@ export function AudienceStep({
       <Stack gap="lg" mt="md" align="center">
         <Loader />
         <Text size="sm" c="dimmed">
-          Audience一覧を取得中...
+          Segment一覧を取得中...
         </Text>
       </Stack>
     );
@@ -84,26 +92,27 @@ export function AudienceStep({
       {error && (
         <Alert
           icon={<IconAlertTriangle size={16} />}
-          title="Audience一覧の取得に失敗しました"
+          title="Segment一覧の取得に失敗しました"
           color="yellow"
         >
           {error}
         </Alert>
       )}
 
-      {!manualInput && audiences.length > 0 ? (
+      {!manualInput && segments.length > 0 ? (
         <>
           <Select
-            label="Audience を選択"
+            label="Segment を選択"
             placeholder="選択してください"
-            data={audiences.map((a) => ({
-              value: a.id,
-              label: a.name,
+            data={segments.map((s) => ({
+              value: s.id,
+              label: s.name,
             }))}
             value={audienceId}
             onChange={(value) => onChange(value || '')}
             searchable
             clearable
+            comboboxProps={{ withinPortal: false }}
           />
           <Button variant="subtle" size="xs" onClick={() => setManualInput(true)}>
             UUIDを直接入力する
@@ -112,7 +121,7 @@ export function AudienceStep({
       ) : (
         <>
           <TextInput
-            label="Audience ID (UUID)"
+            label="Segment ID (UUID)"
             placeholder="例: 78261eea-8f8b-4381-83c6-79fa7120f1cf"
             value={audienceId}
             onChange={(e) => onChange(e.currentTarget.value.trim())}
@@ -120,7 +129,12 @@ export function AudienceStep({
               audienceId && !isValidUUID ? 'UUID形式で入力してください' : null
             }
           />
-          {audiences.length > 0 && (
+          {segments.length === 0 && !error && (
+            <Text size="xs" c="dimmed">
+              Resendに登録されたSegmentがないため、UUIDを直接入力してください。
+            </Text>
+          )}
+          {segments.length > 0 && (
             <Button
               variant="subtle"
               size="xs"

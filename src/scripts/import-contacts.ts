@@ -280,12 +280,15 @@ async function main() {
         {
           type: 'input',
           name: 'fallbackInput',
-          message: `「${columnName}」のfallback値（空欄でnull）:`,
+          message: propertyType === 'string'
+            ? `「${columnName}」のfallback値（空欄で「未設定」）:`
+            : `「${columnName}」のfallback値（空欄でnull）:`,
           default: '',
         },
       ]);
 
-      let fallbackValue: string | number | null = null;
+      let fallbackValue: string | number | null =
+        propertyType === 'string' ? '未設定' : null;
       if (fallbackInput.trim() !== '') {
         if (propertyType === 'number') {
           const num = Number(fallbackInput.trim());

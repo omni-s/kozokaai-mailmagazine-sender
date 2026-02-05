@@ -116,12 +116,13 @@ export function PropertyConfigStep({
                 <Radio.Group
                   label="型"
                   value={config.type}
-                  onChange={(value) =>
+                  onChange={(value) => {
+                    const newType = value as 'string' | 'number';
                     updateConfig(index, {
-                      type: value as 'string' | 'number',
-                      fallbackValue: null,
-                    })
-                  }
+                      type: newType,
+                      fallbackValue: newType === 'string' ? '未設定' : null,
+                    });
+                  }}
                 >
                   <Group mt="xs">
                     <Radio value="string" label="string（テキスト）" />
@@ -133,12 +134,12 @@ export function PropertyConfigStep({
               {config.type === 'string' ? (
                 <TextInput
                   label="Fallback値"
-                  description="値が空の場合に使用（空欄でnull）"
+                  description="値が空の場合に使用（空欄で「未設定」）"
                   placeholder="例: 未設定"
                   value={(config.fallbackValue as string) || ''}
                   onChange={(e) =>
                     updateConfig(index, {
-                      fallbackValue: e.currentTarget.value || null,
+                      fallbackValue: e.currentTarget.value || '未設定',
                     })
                   }
                 />

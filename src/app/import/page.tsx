@@ -11,7 +11,7 @@ export const metadata = {
  */
 export default function ImportPage() {
   return (
-    <Stack gap="md">
+    <Stack gap="md" p="xl">
       <div>
         <Title order={1} size="h2">
           コンタクト一括登録
