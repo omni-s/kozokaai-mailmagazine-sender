@@ -1,15 +1,29 @@
 import { Resend } from 'resend';
 
 /**
- * Resend SDK初期化
+ * Resend Client（遅延初期化）
  *
- * 環境変数 RESEND_API_KEY が必要
+ * 必要な環境変数:
+ * - RESEND_API_KEY
  */
-if (!process.env.RESEND_API_KEY) {
-  throw new Error('RESEND_API_KEY environment variable is not set');
-}
+let resendInstance: Resend | null = null;
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+/**
+ * Resend Clientを取得（初回呼び出し時に初期化）
+ */
+export function getResendClient(): Resend {
+  if (resendInstance) {
+    return resendInstance;
+  }
+
+  // 環境変数チェック（初回のみ）
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY environment variable is not set');
+  }
+
+  resendInstance = new Resend(process.env.RESEND_API_KEY);
+  return resendInstance;
+}
 
 /**
  * Resend Segment存在確認
@@ -21,7 +35,7 @@ export async function checkSegmentExists(
   segmentId: string
 ): Promise<boolean> {
   try {
-    const { data, error } = await resend.segments.get(segmentId);
+    const { data, error } = await getResendClient().segments.get(segmentId);
 
     if (error) {
       console.error('Resend API Error:', error);
@@ -55,7 +69,7 @@ export async function checkAudienceExists(
  */
 export async function listSegments() {
   try {
-    const { data, error } = await resend.segments.list();
+    const { data, error } = await getResendClient().segments.list();
 
     // デバッグログ: 実際のAPI応答を確認
     console.log('[listSegments] API response:', JSON.stringify({ data, error }, null, 2));
