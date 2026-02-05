@@ -576,6 +576,31 @@ Error: Access Denied (S3)
    - S3 → バケット → アクセス許可
    - パブリックアクセスのブロックがすべてオフか確認
 
+#### S3削除で「S3の削除権限がありません」と表示される
+
+**エラーメッセージ**:
+```
+S3の削除権限がありません。AWS IAMポリシーを確認してください。
+```
+
+**原因**: IAMユーザーに `s3:DeleteObject` 権限が付与されていない
+
+**対処法**:
+
+1. AWS Console → IAM → Users → `kai-cicd-marketing-github-actions-mail-uploader`
+2. 該当ポリシーに `s3:DeleteObject` アクションを追加
+3. Resource は `arn:aws:s3:::kozokaai-mail-assets/archives/*` に限定
+
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "s3:DeleteObject"
+  ],
+  "Resource": "arn:aws:s3:::kozokaai-mail-assets/archives/*"
+}
+```
+
 ---
 
 #### テストメール送信失敗
@@ -964,4 +989,4 @@ mainブランチに直接pushすることでStaging Workflowをスキップで�
 
 ---
 
-最終更新日: 2025-12-29
+最終更新日: 2026-02-05

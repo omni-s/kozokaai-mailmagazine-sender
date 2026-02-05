@@ -28,51 +28,48 @@ export function Sidebar({ archives, mobileOpened, toggleMobile }: SidebarProps) 
     <Stack gap={0} h="100%" className={styles.sidebar}>
       {/* ヘッダーセクション */}
       <Box className={styles.header}>
-        <Group justify="space-between" wrap="nowrap" mb="md">
-          <Group gap="xs" wrap="nowrap">
-            <Burger
-              opened={mobileOpened}
-              onClick={toggleMobile}
-              hiddenFrom="sm"
-              size="sm"
-            />
-            <ActionIcon
-              variant="subtle"
-              onClick={() => toggleColorScheme()}
-              size="md"
-              aria-label="Toggle color scheme"
-            >
-              {mounted ? (
-                colorScheme === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />
-              ) : (
-                <Box style={{ width: 16, height: 16 }} />
-              )}
-            </ActionIcon>
-          </Group>
-        </Group>
+        {/* モバイルBurger（デスクトップでは非表示） */}
+        <Box hiddenFrom="sm" mb="md">
+          <Burger opened={mobileOpened} onClick={toggleMobile} size="sm" />
+        </Box>
 
-        <Group gap="sm" wrap="nowrap">
-          <div className={styles.logo}>
-            <Image
-              src="/icon.webp"
-              alt="kozokaAI Logo"
-              width={40}
-              height={40}
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-              }}
-            />
-          </div>
-          <Stack gap={2}>
-            <Text className={styles.title}>
-              kozokaAI メルマガ作成
-            </Text>
-            <Text className={styles.version}>
-              v0.1.0
-            </Text>
-          </Stack>
+        {/* ロゴ + タイトル + カラースキーマ */}
+        <Group gap="sm" wrap="nowrap" justify="space-between">
+          <Group gap="sm" wrap="nowrap">
+            <div className={styles.logo}>
+              <Image
+                src="/icon.webp"
+                alt="kozokaAI Logo"
+                width={40}
+                height={40}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                }}
+              />
+            </div>
+            <Stack gap={2}>
+              <Text className={styles.title}>
+                kozokaAI メルマガ作成
+              </Text>
+              <Text className={styles.version}>
+                v0.1.0
+              </Text>
+            </Stack>
+          </Group>
+          <ActionIcon
+            variant="subtle"
+            onClick={() => toggleColorScheme()}
+            size="md"
+            aria-label="Toggle color scheme"
+          >
+            {mounted ? (
+              colorScheme === 'dark' ? <IconSun size={16} /> : <IconMoon size={16} />
+            ) : (
+              <Box style={{ width: 16, height: 16 }} />
+            )}
+          </ActionIcon>
         </Group>
       </Box>
 

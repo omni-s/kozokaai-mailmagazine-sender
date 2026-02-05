@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { resend } from '../lib/resend';
+import { getResendClient } from '../lib/resend';
 import { type Config } from '../lib/config-schema';
 import {
   getTargetArchiveFromS3,
@@ -92,7 +92,7 @@ async function sendProductionEmail(
 
   try {
     // Step 1: Broadcast を作成
-    const { data: createData, error: createError } = await resend.broadcasts.create({
+    const { data: createData, error: createError } = await getResendClient().broadcasts.create({
       name: `Broadcast - ${subject}`,
       segmentId: segmentId,
       from: fromEmail,
@@ -115,7 +115,7 @@ async function sendProductionEmail(
     }
 
     // Step 2: Broadcast を送信
-    const { data: sendData, error: sendError } = await resend.broadcasts.send(createData.id);
+    const { data: sendData, error: sendError } = await getResendClient().broadcasts.send(createData.id);
 
     if (sendError) {
       return {

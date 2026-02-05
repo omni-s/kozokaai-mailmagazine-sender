@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { resend } from '../lib/resend';
+import { getResendClient } from '../lib/resend';
 import {
   parseCSV,
   analyzeColumns,
@@ -87,7 +87,7 @@ async function createContactWithRetry(
   retries: number = 0,
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const { error } = await resend.contacts.create({
+    const { error } = await getResendClient().contacts.create({
       audienceId,
       email,
       firstName: firstName || undefined,
@@ -280,12 +280,15 @@ async function main() {
         {
           type: 'input',
           name: 'fallbackInput',
-          message: `「${columnName}」のfallback値（空欄でnull）:`,
+          message: propertyType === 'string'
+            ? `「${columnName}」のfallback値（空欄で「未設定」）:`
+            : `「${columnName}」のfallback値（空欄でnull）:`,
           default: '',
         },
       ]);
 
-      let fallbackValue: string | number | null = null;
+      let fallbackValue: string | number | null =
+        propertyType === 'string' ? '未設定' : null;
       if (fallbackInput.trim() !== '') {
         if (propertyType === 'number') {
           const num = Number(fallbackInput.trim());
@@ -357,13 +360,13 @@ async function main() {
     // 既存プロパティを取得
     let existingKeys: Set<string> = new Set();
     try {
-      const { data: listData, error: listError } = await resend.contactProperties.list();
+      const { data: listData, error: listError } = await getResendClient().contactProperties.list();
       if (listError) {
         console.error(chalk.red(`プロパティ一覧の取得に失敗: ${listError.message}`));
         process.exit(1);
       }
       if (listData?.data) {
-        existingKeys = new Set(listData.data.map((p) => p.key));
+        existingKeys = new Set(listData.data.map((p: { key: string }) => p.key));
       }
     } catch (err) {
       console.error(chalk.red(`プロパティ一覧の取得に失敗: ${err instanceof Error ? err.message : err}`));
@@ -381,7 +384,7 @@ async function main() {
           ? { key: config.key, type: 'string' as const, fallbackValue: config.fallbackValue as string | null | undefined }
           : { key: config.key, type: 'number' as const, fallbackValue: config.fallbackValue as number | null | undefined };
 
-        const { error } = await resend.contactProperties.create(createOptions);
+        const { error } = await getResendClient().contactProperties.create(createOptions);
 
         if (error) {
           console.error(chalk.red(`  プロパティ "${config.key}" の作成に失敗: ${error.message}`));

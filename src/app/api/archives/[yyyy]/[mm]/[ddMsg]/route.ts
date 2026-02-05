@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { deleteArchiveFromS3 } from '@/lib/s3';
 
 export async function DELETE(
@@ -35,12 +36,23 @@ export async function DELETE(
     const archivePath = `${yyyy}/${mm}/${decodedDdMsg}`;
     await deleteArchiveFromS3(archivePath);
 
+    // Full Route Cache を無効化（サイドバーの archives 再取得のため）
+    revalidatePath('/', 'layout');
+
     return NextResponse.json({ success: true, message: 'アーカイブを削除しました' });
   } catch (error) {
     console.error('Archive delete error:', error);
+
+    const message = error instanceof Error ? error.message : '';
+    const isAccessDenied = message.includes('AccessDenied');
+
     return NextResponse.json(
-      { error: 'アーカイブの削除に失敗しました' },
-      { status: 500 }
+      {
+        error: isAccessDenied
+          ? 'S3の削除権限がありません。AWS IAMポリシーを確認してください。'
+          : 'アーカイブの削除に失敗しました',
+      },
+      { status: isAccessDenied ? 403 : 500 }
     );
   }
 }

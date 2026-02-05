@@ -14,3 +14,22 @@
 .resizeHandle:active {
   background: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
 }
+
+.expandHandle {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 48px;
+  border-radius: 0 6px 6px 0;
+  background: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
+  cursor: pointer;
+  z-index: 100;
+  transition: background-color 150ms ease, width 150ms ease;
+}
+
+.expandHandle:hover {
+  width: 16px;
+  background: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4));
+}
