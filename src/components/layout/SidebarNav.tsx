@@ -2,11 +2,12 @@
 
 import { NavLink } from '@mantine/core';
 import { usePathname } from 'next/navigation';
-import { IconMail, IconHelp } from '@tabler/icons-react';
+import { IconMail, IconHelp, IconUpload } from '@tabler/icons-react';
 import styles from './SidebarNav.module.css';
 
 const navItems = [
   { href: '/', label: 'メール編集', icon: IconMail },
+  { href: '/import', label: 'コンタクト一括登録', icon: IconUpload },
   { href: '/help', label: '使い方', icon: IconHelp },
 ];
 

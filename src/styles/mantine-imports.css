@@ -49,3 +49,25 @@
 @import '@mantine/core/styles/ModalBase.layer.css';
 @import '@mantine/core/styles/Modal.layer.css';
 @import '@mantine/core/styles/Overlay.layer.css';
+
+/* ステッパー（ウィザード用） */
+@import '@mantine/core/styles/Stepper.layer.css';
+
+/* プログレスバー */
+@import '@mantine/core/styles/Progress.layer.css';
+
+/* テーブル（CSVプレビュー用） */
+@import '@mantine/core/styles/Table.layer.css';
+
+/* ドロップゾーン（ファイルアップロード用） */
+@import '@mantine/dropzone/styles.layer.css';
+
+/* チェックボックス・ラジオ（プロパティ設定用） */
+@import '@mantine/core/styles/Checkbox.layer.css';
+@import '@mantine/core/styles/Radio.layer.css';
+
+/* 数値入力（fallback値用） */
+@import '@mantine/core/styles/NumberInput.layer.css';
+
+/* インライン入力（Radio, Checkbox用） */
+@import '@mantine/core/styles/InlineInput.layer.css';

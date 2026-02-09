@@ -683,6 +683,8 @@ export async function deleteArchiveFromS3(archivePath: string): Promise<void> {
 
   // ListObjectsV2でアーカイブ配下の全オブジェクトを列挙
   const prefix = `archives/${archivePath}/`;
+  console.log(`[S3 Delete] Listing objects with prefix: ${prefix} in bucket: ${bucket}`);
+
   const listCommand = new ListObjectsV2Command({
     Bucket: bucket,
     Prefix: prefix,
@@ -690,7 +692,8 @@ export async function deleteArchiveFromS3(archivePath: string): Promise<void> {
   const listResponse = await getS3Client().send(listCommand);
 
   if (!listResponse.Contents || listResponse.Contents.length === 0) {
-    return; // 削除対象なし
+    console.warn(`[S3 Delete] No objects found with prefix: ${prefix}`);
+    return;
   }
 
   // DeleteObjectsCommandでバルク削除（1000件上限対応）
@@ -698,9 +701,22 @@ export async function deleteArchiveFromS3(archivePath: string): Promise<void> {
     .filter((obj) => obj.Key)
     .map((obj) => ({ Key: obj.Key! }));
 
+  console.log(`[S3 Delete] Deleting ${objects.length} objects:`);
+  objects.forEach((obj) => console.log(`  - ${obj.Key}`));
+
   const deleteCommand = new DeleteObjectsCommand({
     Bucket: bucket,
     Delete: { Objects: objects },
   });
-  await getS3Client().send(deleteCommand);
+  const deleteResponse = await getS3Client().send(deleteCommand);
+
+  // 削除結果の検証
+  if (deleteResponse.Errors && deleteResponse.Errors.length > 0) {
+    const errorDetails = deleteResponse.Errors
+      .map((e) => `${e.Key}: ${e.Code} - ${e.Message}`)
+      .join('; ');
+    throw new Error(`S3 deletion failed: ${errorDetails}`);
+  }
+
+  console.log(`[S3 Delete] Successfully deleted ${deleteResponse.Deleted?.length ?? 0} objects from ${prefix}`);
 }

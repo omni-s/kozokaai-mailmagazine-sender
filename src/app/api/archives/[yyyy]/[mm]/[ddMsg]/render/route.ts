@@ -1,20 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 
-/**
- * S3 Client初期化
- */
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'ap-northeast-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
-
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME!;
-const S3_BASE_URL = process.env.S3_BUCKET_URL!;
-
 // 画像パス置換関数
 function replaceImagePaths(
   html: string,
@@ -37,6 +23,25 @@ export async function GET(
   try {
     const { yyyy, mm, ddMsg } = await params;
 
+    // 環境変数を実行時に読み取り（ビルド時のエラーを回避）
+    const s3BucketName = process.env.S3_BUCKET_NAME;
+    const s3BaseUrl = process.env.S3_BUCKET_URL;
+
+    if (!s3BucketName || !s3BaseUrl) {
+      return NextResponse.json(
+        { error: 'S3環境変数が設定されていません' },
+        { status: 500 }
+      );
+    }
+
+    const s3Client = new S3Client({
+      region: process.env.AWS_REGION || 'ap-northeast-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      },
+    });
+
     // URLエンコードされている可能性があるためデコード
     let decodedDdMsg: string;
     try {
@@ -48,7 +53,7 @@ export async function GET(
     // S3からmail.htmlを取得
     const htmlKey = `archives/${yyyy}/${mm}/${decodedDdMsg}/mail.html`;
     const command = new GetObjectCommand({
-      Bucket: S3_BUCKET_NAME,
+      Bucket: s3BucketName,
       Key: htmlKey,
     });
 
@@ -64,7 +69,7 @@ export async function GET(
     let html = await response.Body.transformToString();
 
     // 画像パス置換（S3 URL）- URLエンコードしてブラウザからのアクセスを確保
-    html = replaceImagePaths(html, S3_BASE_URL, yyyy, mm, encodeURIComponent(decodedDdMsg));
+    html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, encodeURIComponent(decodedDdMsg));
 
     return new NextResponse(html, {
       status: 200,

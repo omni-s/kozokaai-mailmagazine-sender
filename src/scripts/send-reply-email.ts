@@ -13,7 +13,7 @@
  *   - 本文（HTML）
  */
 
-import { resend } from '@/lib/resend';
+import { getResendClient } from '@/lib/resend';
 import inquirer from 'inquirer';
 import dotenv from 'dotenv';
 
@@ -65,7 +65,7 @@ async function sendReplyEmail() {
   console.log('\n送信中...\n');
 
   // Resend Emails API で個別送信
-  const { data, error } = await resend.emails.send({
+  const { data, error } = await getResendClient().emails.send({
     from: fromEmail,
     to: answers.to,
     subject: subject,

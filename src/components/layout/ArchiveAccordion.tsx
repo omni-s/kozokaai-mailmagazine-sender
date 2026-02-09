@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { NavLink, Badge, Collapse, Button, Box, Text, Group, ActionIcon, Modal } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconChevronDown, IconChevronRight, IconTrash } from '@tabler/icons-react';
-import { useRouter } from 'next/navigation';
 import type { MailArchive } from '@/lib/archive-loader';
 
 interface GroupedArchive {

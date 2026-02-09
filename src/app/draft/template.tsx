@@ -168,7 +168,7 @@ export default function Home() {
 
       {/* 配信準備Modal */}
       <Modal opened={opened} onClose={close} title="配信準備" size="lg" centered>
-        <CommitForm onSuccess={close} />
+        <CommitForm />
       </Modal>
     </>
   );
