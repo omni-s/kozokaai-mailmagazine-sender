@@ -18,7 +18,7 @@ importers:
         specifier: 7.15.0
         version: 7.15.0(@mantine/hooks@7.15.0(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mantine/dropzone':
-        specifier: 7.15.0
+        specifier: ^7.15.0
         version: 7.15.0(@mantine/core@7.15.0(@mantine/hooks@7.15.0(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mantine/hooks@7.15.0(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@mantine/hooks':
         specifier: 7.15.0
