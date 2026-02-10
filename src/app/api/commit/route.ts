@@ -283,7 +283,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 7. assets/ の移動（ファイルのみコピー、ディレクトリはスキップ）
+    // 7. assets/ の移動（再帰コピー、fs.cpSync はWindows+日本語ファイル名でクラッシュするため手動実装）
+    function copyDirRecursive(src: string, dest: string): void {
+      fs.mkdirSync(dest, { recursive: true });
+      const entries = fs.readdirSync(src);
+      entries.forEach((entry) => {
+        const srcPath = path.join(src, entry);
+        const destPath = path.join(dest, entry);
+        const stat = fs.statSync(srcPath);
+        if (stat.isDirectory()) {
+          copyDirRecursive(srcPath, destPath);
+        } else {
+          fs.copyFileSync(srcPath, destPath);
+        }
+      });
+    }
+
     if (fs.existsSync(MAIL_ASSETS_DIR)) {
       const entries = fs.readdirSync(MAIL_ASSETS_DIR);
       if (entries.length > 0) {
@@ -294,10 +309,8 @@ export async function POST(request: NextRequest) {
           const stat = fs.statSync(srcPath);
 
           if (stat.isDirectory()) {
-            // ディレクトリの場合は再帰的にコピー
-            fs.cpSync(srcPath, destPath, { recursive: true });
+            copyDirRecursive(srcPath, destPath);
           } else {
-            // ファイルの場合は通常のコピー
             fs.copyFileSync(srcPath, destPath);
           }
           // 元ファイルは削除しない（再編集時のため保持）

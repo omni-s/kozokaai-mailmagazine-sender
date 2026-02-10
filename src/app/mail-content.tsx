@@ -79,7 +79,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               <tr>
                 <td style={{ backgroundColor: '#ffffff', padding: 0 }}>
                   <Img
-                    src="/mail-assets/2026/01/28/活用中 note_バナー.png"
+                    src="/mail-assets/2026/02/12/活用中 note_バナ_47.png"
                     alt="活用中 note_バナー"
                     width="560"
                     height="293"
@@ -110,9 +110,8 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
             fontFamily: 'sans-serif',
           }}
         >
-          ChatGPTの登場以降、<br />
-          「AIが仕事を変える」という言葉を聞かない日はなくなりました。<br />
-          しかし一方で、企業の現場ではこんな声をよく耳にします。
+          GoogleのNotebookLMいいですよね。<br />
+          僕は、特に音声解説が気に入っています。
         </p>
         <p
           style={{
@@ -124,54 +123,26 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
             fontFamily: 'sans-serif',
           }}
         >
-          ・導入したが、使う人が限られている<br />
-          ・PoCまでで、本採用に至らなかった
+          なぜかというと「なにかを要約する」「別の形式に変換する」など、自分の考えを整理したり膨らませるのに使えるんですよね。<br />
+          またポッドキャスト風に二人の掛け合いにしてくれるので、頭にもすんなり入ってきますし、ビジネスにも使えるんじゃないかなぁと思っています。
         </p>
         <p
-            style={{
+          style={{
             fontSize: '15px',
-              color: '#333333',
+            color: '#333333',
             lineHeight: '1.8',
             marginBottom: '16px',
-              marginTop: 0,
-              fontFamily: 'sans-serif',
-            }}
-          >
-          多くの企業はここで「教育が足りない」「現場の意識が低い」と結論づけがちですが、私はそうは思っていません。
-        </p>
-          <p
-            style={{
-              fontSize: '15px',
-              color: '#333333',
-              lineHeight: '1.8',
-              marginBottom: '16px',
-              marginTop: 0,
-              fontFamily: 'sans-serif',
-            }}
-          >
-          問題は人ではなく、「設計」にあると考えています。
-          </p>
-          <p
-            style={{
-              fontSize: '15px',
-              color: '#333333',
-              lineHeight: '1.8',
-              marginBottom: '16px',
-              marginTop: 0,
-              fontFamily: 'sans-serif',
-            }}
-          >
-          noteを読む：「<a
-            href="https://note.com/shota827/n/ned657c93dcf8"
-            target="_blank"
-            rel="noopener noreferrer"
-          style={{
-              color: '#00ADAA',
-              textDecoration: 'underline',
+            marginTop: 0,
+            fontFamily: 'sans-serif',
           }}
         >
-            チャットインターフェースAIが業務に向いていない3つの理由
-          </a>」
+          本記事では、僕がやっているやり方を紹介します。<br /><br />
+          noteを読む：『<a
+            href="https://note.com/kozokaai_sano/n/n7dfae5a75340"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#00ADAA', textDecoration: 'underline' }}
+          >Google NotebookLMの音声解説で自分の考えを整理しよう</a>』
         </p>
       </EmailSection>
         
@@ -280,8 +251,8 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/2026/01/28/260128.png"
-                    alt="【YouTube】製品紹介動画を公開しました！"
+                    src="/mail-assets/2026/02/12/活用中 note_バナ_50.png"
+                    alt="Claude CodeでRPGを書いてみたら、意外と書けた話"
                     width="200"
                     height="103"
                     style={{
@@ -305,7 +276,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    【YouTube】製品紹介動画を公開しました！
+                    Claude CodeでRPGを書いてみたら、意外と書けた話
                   </h3>
                   <div style={{ marginTop: '8px', marginBottom: '8px', width: '100%' }}>
                     <hr
@@ -327,11 +298,11 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       width: '100%',
                     }}
                   >
-                    FAX受注入力、しんどくないですか？ 毎日続く手入力、確認、修正…。 その作業、AIに任せられます。 kozokaAI FAX受注入力は、 FAX受注業務をAIで自動化するソリューションです。詳しい製品紹介動画をアップしたので、是非ご覧ください！
+                    IBM i (AS/400) に携わることになり、基幹システムを支える RPG という言語を知りました。銀行や製造業など、社会インフラ級のシステムで今なお現役ですが、書き手の減少が深刻な課題です。そこで学習を兼ねて、Claude Code に RPG のコードを書かせてみました。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
-                      href="https://youtu.be/dEWx8ps9meI?si=2gxYLcUGEVbaFY4Y&rel=0"
+                      href="https://note.com/fasai_kozokaai/n/n29aab71268b9"
                       target="_blank"
                       rel="noopener noreferrer"
                     style={{
@@ -350,7 +321,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     }}
                   >
                       <span style={{ marginRight: '4px' }}>&gt;&gt;</span>
-                      動画を見る
+                      続きを読む
                   </a>
                   </div>
                 </td>
@@ -366,8 +337,8 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/2026/01/28/吉野くん.png"
-                    alt="「大会」に出まくって派手に暴れるGrokの戦略"
+                    src="/mail-assets/2026/02/12/活用中 note_バナ_47.png"
+                    alt="Google NotebookLMの音声解説で自分の考えを整理しよう"
                     width="200"
                     height="103"
                     style={{
@@ -390,7 +361,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    「大会」に出まくって派手に暴れるGrokの戦略
+                    Google NotebookLMの音声解説で自分の考えを整理しよう
                   </h3>
                   <div style={{ marginTop: '8px', marginBottom: '8px', width: '100%' }}>
                     <hr
@@ -411,11 +382,11 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    最近Grokがいろんな「大会」に出ているのをご存知ですか？トレーディング大会で優勝したり、プロゲーマーに挑戦状を出したり。今回はその事例を紹介します。
+                    GoogleのNotebookLMいいですよね。僕は特に音声解説が気に入っています。本記事では、僕がやっている音声解説のやり方を紹介します。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
-                      href="https://note.com/t_yoshino_kzk/n/nc04603cad05f"
+                      href="https://note.com/kozokaai_sano/n/n7dfae5a75340"
                       target="_blank"
                       rel="noopener noreferrer"
                     style={{
@@ -450,8 +421,8 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/2026/01/28/ITトレンドEXPO.jpg"
-                    alt="kozokaAIがイベントに出展します！✨"
+                    src="/mail-assets/2026/02/12/bootcamp .png"
+                    alt="3月3日(火)～東名阪で開催「 IBM i Bootcamp 2026 Spring」に登壇します！"
                     width="200"
                     height="103"
                     style={{
@@ -474,7 +445,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    kozokaAIがイベントに出展します！✨
+                    3月3日(火)～東名阪で開催「IBM i Bootcamp 2026 Spring」に登壇します！
                   </h3>
                   <div style={{ marginTop: '8px', marginBottom: '8px', width: '100%' }}>
                     <hr
@@ -496,12 +467,12 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     }}
                   >
                       
-3月3日(火)～3月7日(土)開催の最大級オンライン展示会「ITトレンドEXPO 2026 Spring」に出展することになりました！
-豪華出演者に加え、Amazonギフトプレゼントキャンペーンもございます！お見逃しなく！
+                      2026年3月、株式会社MONO-X が主催する特別セミナー 「IBM i Bootcamp 2026 Spring」が、東京・大阪・名古屋の3都市で開催されます。
+                      そしてこの度、弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
-                      href="https://note.kozoka.ai/n/n19573af245b2?magazine_key=ma0bd2991946f"
+                      href="https://note.kozoka.ai/n/n06ac38688890"
                       target="_blank"
                       rel="noopener noreferrer"
                     style={{
@@ -520,7 +491,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     }}
                   >
                       <span style={{ marginRight: '4px' }}>&gt;&gt;</span>
-                      詳細を見る
+                      申し込む
                   </a>
                   </div>
                 </td>
