@@ -21,7 +21,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
   return (
     <EmailWrapper
       preview={preview}
-      previewText="ChatGPTの登場以降、 「AIが仕事を変える」という言葉を聞かない日はなくなりました。 しかし一方で、企業の現場ではこんな声をよく耳にします。 導入したが、使う人が限られている。 PoCまでで、本採用に至らなかった。 多くの企業はここで「教育が足りない」「現場の意識が低い」と結論づけがちですが、私はそうは思っていません。 問題は人ではなく、「設計」にあると考えています。"
+      previewText="NotebookLMの音声解説で自分の考えを整理しよう！「要約する」「別の形式に変換する」だけじゃない、ポッドキャスト風の掛け合いで頭にすんなり入る活用法をご紹介。他にもClaude CodeでRPGを書いた話、IBM i Bootcamp 2026 Spring登壇のお知らせなど最新トピックをお届けします。"
     >
       {/* ロゴ */}
       <EmailSection marginBottom="0">
