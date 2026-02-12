@@ -227,6 +227,9 @@ async function sendTestEmail(
   segmentId?: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   const fromEmail = process.env.RESEND_TEST_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const fromName = process.env.RESEND_FROM_NAME;
+  const fromAddress = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+  const replyTo = process.env.RESEND_REPLY_TO || fromEmail;
 
   try {
     // TEST_SEGMENT_IDが設定されている場合、Segment一斉送信
@@ -235,7 +238,8 @@ async function sendTestEmail(
       const { data: createData, error: createError } = await getResendClient().broadcasts.create({
         name: `[TEST] Broadcast - ${subject}`,
         segmentId: segmentId,
-        from: fromEmail,
+        from: fromAddress,
+        replyTo: replyTo,
         subject: `[TEST] ${subject}`,
         html,
       });
@@ -272,7 +276,8 @@ async function sendTestEmail(
 
     // TEST_SEGMENT_ID未設定の場合、REVIEWER_EMAILに個別送信
     const { data, error } = await getResendClient().emails.send({
-      from: fromEmail,
+      from: fromAddress,
+      replyTo: replyTo,
       to: recipientEmail,
       subject: `[TEST] ${subject}`,
       html,

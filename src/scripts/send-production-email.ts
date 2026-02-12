@@ -220,13 +220,17 @@ async function sendProductionEmail(
   segmentId: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const fromName = process.env.RESEND_FROM_NAME;
+  const fromAddress = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+  const replyTo = process.env.RESEND_REPLY_TO || fromEmail;
 
   try {
     // Step 1: Broadcast を作成
     const { data: createData, error: createError } = await getResendClient().broadcasts.create({
       name: `Broadcast - ${subject}`,
       segmentId: segmentId,
-      from: fromEmail,
+      from: fromAddress,
+      replyTo: replyTo,
       subject: subject,
       html,
     });

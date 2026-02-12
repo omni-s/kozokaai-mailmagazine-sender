@@ -460,6 +460,8 @@ module.exports = {
 # Resend API
 RESEND_API_KEY=your_resend_api_key
 RESEND_FROM_EMAIL=your_email@example.com
+RESEND_FROM_NAME=kozokaAI BOOST マガジン
+RESEND_REPLY_TO=kozoka@kozoka-ai.co.jp
 
 # AWS S3
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
@@ -482,6 +484,8 @@ TEST_SEGMENT_ID=your_test_segment_id
 #### GitHub Secrets（機密情報）
 - RESEND_API_KEY
 - RESEND_FROM_EMAIL
+- RESEND_FROM_NAME
+- RESEND_REPLY_TO
 - REVIEWER_EMAIL
 - S3_BUCKET_URL
 - AWS_ACCESS_KEY_ID

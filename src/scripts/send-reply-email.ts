@@ -25,6 +25,8 @@ dotenv.config();
  */
 async function sendReplyEmail() {
   const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const fromName = process.env.RESEND_FROM_NAME;
+  const fromAddress = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
 
   console.log('=== Resend メール返信送信 ===\n');
 
@@ -66,10 +68,10 @@ async function sendReplyEmail() {
 
   // Resend Emails API で個別送信
   const { data, error } = await getResendClient().emails.send({
-    from: fromEmail,
+    from: fromAddress,
     to: answers.to,
     subject: subject,
-    replyTo: fromEmail, // 返信先アドレスを設定
+    replyTo: fromEmail,
     html: answers.body,
   });
 
