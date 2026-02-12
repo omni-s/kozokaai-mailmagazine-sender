@@ -484,8 +484,6 @@ TEST_SEGMENT_ID=your_test_segment_id
 #### GitHub Secrets（機密情報）
 - RESEND_API_KEY
 - RESEND_FROM_EMAIL
-- RESEND_FROM_NAME
-- RESEND_REPLY_TO
 - REVIEWER_EMAIL
 - S3_BUCKET_URL
 - AWS_ACCESS_KEY_ID
@@ -495,6 +493,8 @@ TEST_SEGMENT_ID=your_test_segment_id
 - GITHUB_TOKEN（自動設定済み）
 
 #### GitHub Variables（非機密情報）
+- RESEND_FROM_NAME（From表示名、例: `kozokaAI BOOST マガジン`）
+- RESEND_REPLY_TO（Reply-Toアドレス、例: `kozoka@kozoka-ai.co.jp`）
 - TEST_SEGMENT_ID（オプション）
 
 **設定場所**:

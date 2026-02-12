@@ -71,7 +71,7 @@ async function sendReplyEmail() {
     from: fromAddress,
     to: answers.to,
     subject: subject,
-    replyTo: fromEmail,
+    replyTo: process.env.RESEND_REPLY_TO || fromEmail,
     html: answers.body,
   });
 
@@ -85,7 +85,7 @@ async function sendReplyEmail() {
   console.log(`  - 送信先: ${answers.to}`);
   console.log(`  - 件名: ${subject}`);
   console.log(`  - 送信元: ${fromEmail}`);
-  console.log(`  - 返信先: ${fromEmail}`);
+  console.log(`  - 返信先: ${process.env.RESEND_REPLY_TO || fromEmail}`);
 }
 
 // スクリプト実行
