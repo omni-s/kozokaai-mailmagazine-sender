@@ -28,6 +28,7 @@ docs/
 │   ├── scheduled-delivery-verification.md  # 予約配信の確認方法
 │   ├── troubleshooting.md  # トラブルシューティング
 │   ├── security-updates.md # セキュリティアップデート手順
+│   ├── custom-return-path.md  # Custom Return Path 設定手順書
 │   ├── todo.md          # 本番環境設定チェックリスト
 │   └── actual-configuration.md  # 実際の設定値（.gitignore対象、テンプレート用）
 └── specs/            # 仕様関連ドキュメント
@@ -134,6 +135,11 @@ docs/
   - 頻出パターン集とトラブルシューティング
   - 脆弱性対応履歴（CVE-2025-55182: React2Shell等）
 
+- **[custom-return-path.md](./ops/custom-return-path.md)** - Custom Return Path 設定手順書
+  - 送信元（mailed-by）を `kozoka-ai.co.jp` に変更するための手順
+  - Resendダッシュボード設定 + DNS レコード追加（MX、TXT）
+  - 検証方法とトラブルシューティング
+
 - **[todo.md](./ops/todo.md)** - 本番環境設定と初回配信チェックリスト
   - 本番環境への設定（AWS S3、Resend、GitHub Secrets、Environments）
   - デプロイテスト（ローカル確認、アーカイブ作成、GitHub Actions確認）
@@ -181,4 +187,4 @@ docs/
 
 ---
 
-最終更新日: 2026-01-21
+最終更新日: 2026-02-12
