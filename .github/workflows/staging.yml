@@ -36,7 +36,6 @@ jobs:
           RESEND_FROM_EMAIL: ${{ secrets.RESEND_FROM_EMAIL }}
           RESEND_FROM_NAME: ${{ vars.RESEND_FROM_NAME }}
           RESEND_REPLY_TO: ${{ vars.RESEND_REPLY_TO }}
-          REVIEWER_EMAIL: ${{ secrets.REVIEWER_EMAIL }}
           TEST_SEGMENT_ID: ${{ vars.TEST_SEGMENT_ID }}
           S3_BUCKET_URL: ${{ secrets.S3_BUCKET_URL }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

@@ -12,9 +12,7 @@ import { validateConfig, type Config } from '../lib/config-schema';
  * 最新コミットのメッセージから対象archiveを特定し、以下を実行:
  * 1. S3からmail.htmlとconfig.jsonを取得
  * 2. 画像パス置換（/mail-assets/ → S3 URL）
- * 3. Resend APIでテストメール送信
- *    - TEST_SEGMENT_ID設定時: Segment一斉送信（broadcasts API）
- *    - 未設定時: REVIEWER_EMAILに個別送信
+ * 3. Resend APIでテストメール送信（TEST_SEGMENT_ID必須、Segment一斉送信）
  */
 
 const PROJECT_ROOT = process.cwd();
@@ -213,18 +211,16 @@ async function loadMailHtmlFromS3(
 }
 
 /**
- * Resend API でテストメール送信
+ * Resend API でテストメール送信（Segment一斉送信）
  *
  * @param html - メールHTML
  * @param subject - 件名
- * @param recipientEmail - 送信先メールアドレス（個別送信時のみ使用）
- * @param segmentId - Segment ID（オプション。指定時はSegment一斉送信）
+ * @param segmentId - Segment ID
  */
 async function sendTestEmail(
   html: string,
   subject: string,
-  recipientEmail: string,
-  segmentId?: string
+  segmentId: string
 ): Promise<{ success: boolean; id?: string; error?: string }> {
   const fromEmail = process.env.RESEND_TEST_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
   const fromName = process.env.RESEND_FROM_NAME;
@@ -232,62 +228,44 @@ async function sendTestEmail(
   const replyTo = process.env.RESEND_REPLY_TO || fromEmail;
 
   try {
-    // TEST_SEGMENT_IDが設定されている場合、Segment一斉送信
-    if (segmentId) {
-      // Step 1: Broadcast を作成
-      const { data: createData, error: createError } = await getResendClient().broadcasts.create({
-        name: `[TEST] Broadcast - ${subject}`,
-        segmentId: segmentId,
-        from: fromAddress,
-        replyTo: replyTo,
-        subject: `[TEST] ${subject}`,
-        html,
-      });
-
-      if (createError) {
-        return {
-          success: false,
-          error: createError.message || 'Broadcast作成エラー',
-        };
-      }
-
-      if (!createData?.id) {
-        return {
-          success: false,
-          error: 'Broadcast IDが取得できませんでした',
-        };
-      }
-
-      // Step 2: Broadcast を送信
-      const { data: sendData, error: sendError } = await getResendClient().broadcasts.send(createData.id);
-
-      if (sendError) {
-        return {
-          success: false,
-          error: sendError.message || 'Broadcast送信エラー',
-        };
-      }
-
-      return {
-        success: true,
-        id: sendData?.id || createData.id,
-      };
-    }
-
-    // TEST_SEGMENT_ID未設定の場合、REVIEWER_EMAILに個別送信
-    const { data, error } = await getResendClient().emails.send({
+    // Step 1: Broadcast を作成
+    const { data: createData, error: createError } = await getResendClient().broadcasts.create({
+      name: `[TEST] Broadcast - ${subject}`,
+      segmentId: segmentId,
       from: fromAddress,
       replyTo: replyTo,
-      to: recipientEmail,
       subject: `[TEST] ${subject}`,
       html,
     });
 
-    if (error) {
-      return { success: false, error: error.message };
+    if (createError) {
+      return {
+        success: false,
+        error: createError.message || 'Broadcast作成エラー',
+      };
     }
 
-    return { success: true, id: data?.id };
+    if (!createData?.id) {
+      return {
+        success: false,
+        error: 'Broadcast IDが取得できませんでした',
+      };
+    }
+
+    // Step 2: Broadcast を送信
+    const { data: sendData, error: sendError } = await getResendClient().broadcasts.send(createData.id);
+
+    if (sendError) {
+      return {
+        success: false,
+        error: sendError.message || 'Broadcast送信エラー',
+      };
+    }
+
+    return {
+      success: true,
+      id: sendData?.id || createData.id,
+    };
   } catch (error) {
     return {
       success: false,
@@ -316,18 +294,10 @@ async function main() {
     process.exit(1);
   }
 
-  // TEST_SEGMENT_ID（オプション）
   const testSegmentId = process.env.TEST_SEGMENT_ID;
-
-  // REVIEWER_EMAIL（TEST_SEGMENT_ID未設定時は必須）
-  const reviewerEmail = process.env.REVIEWER_EMAIL;
-
-  if (!testSegmentId && !reviewerEmail) {
+  if (!testSegmentId) {
     console.error(
-      chalk.red('エラー: TEST_SEGMENT_ID または REVIEWER_EMAIL のいずれかを設定してください')
-    );
-    console.error(
-      chalk.yellow('ヒント: TEST_SEGMENT_ID を設定すると、Segment一斉送信でテストできます')
+      chalk.red('エラー: TEST_SEGMENT_ID 環境変数が設定されていません')
     );
     process.exit(1);
   }
@@ -439,7 +409,7 @@ async function main() {
 
   // 4. テストメール送信
   console.log(chalk.cyan('テストメールを送信中...'));
-  const sendResult = await sendTestEmail(html, config.subject, reviewerEmail || '', testSegmentId);
+  const sendResult = await sendTestEmail(html, config.subject, testSegmentId);
 
   if (!sendResult.success) {
     errors.push({
@@ -466,13 +436,8 @@ async function main() {
   console.log(chalk.green('✓ テストメール送信'));
   console.log(chalk.gray(`  送信ID: ${sendResult.id}`));
 
-  if (testSegmentId) {
-    console.log(chalk.gray(`  送信方法: Segment一斉送信`));
-    console.log(chalk.gray(`  Test Segment ID: ${testSegmentId}`));
-  } else {
-    console.log(chalk.gray(`  送信方法: 個別送信`));
-    console.log(chalk.gray(`  送信先: ${reviewerEmail}`));
-  }
+  console.log(chalk.gray(`  送信方法: Segment一斉送信`));
+  console.log(chalk.gray(`  Test Segment ID: ${testSegmentId}`));
 
   console.log(chalk.gray(`  件名: [TEST] ${config.subject}`));
 
