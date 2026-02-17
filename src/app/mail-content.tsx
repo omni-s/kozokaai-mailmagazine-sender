@@ -251,7 +251,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/2026/02/12/活用中 note_バナ_50.png"
+                    src="/mail-assets/2026/02/12/Claude code でRPGを.png"
                     alt="Claude CodeでRPGを書いてみたら、意外と書けた話"
                     width="200"
                     height="103"
@@ -337,7 +337,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               <tr>
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
-                    src="/mail-assets/2026/02/12/活用中 note_バナ_47.png"
+                    src="/mail-assets/2026/02/19/毎日AIと仕事してるのに.png"
                     alt="Google NotebookLMの音声解説で自分の考えを整理しよう"
                     width="200"
                     height="103"
@@ -361,7 +361,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    Google NotebookLMの音声解説で自分の考えを整理しよう
+                    毎日AIと仕事してるのに、AIのことを何も知らなかった
                   </h3>
                   <div style={{ marginTop: '8px', marginBottom: '8px', width: '100%' }}>
                     <hr
@@ -382,11 +382,11 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    GoogleのNotebookLMいいですよね。僕は特に音声解説が気に入っています。本記事では、僕がやっている音声解説のやり方を紹介します。
+                    大学院までビジネスを専攻し、現在はエンジニアとして働いている私なりに、AIの現状について調べてみたことを共有したいと思い、この記事を書いています。技術的に深掘りするというよりも、AIの正体について理解を深めてみたい方向けの内容です。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
-                      href="https://note.com/kozokaai_sano/n/n7dfae5a75340"
+                      href="https://note.com/_sho5lie/n/na1dd259d6c3d"
                       target="_blank"
                       rel="noopener noreferrer"
                     style={{
