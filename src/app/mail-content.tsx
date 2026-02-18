@@ -187,12 +187,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     毎日届くFAXの入力、終わらない議事録作成、活用できていない基幹データ……。<br />
                     弊社のAIソリューションが、貴社の業務を劇的にスマートにします。
                   </p>
-                  <div style={{ marginTop: '0px', textAlign: 'center' }}>
-<<<<<<< HEAD
-                    <EmailButton href="https://kozoka.ai/waiting" target="_blank" rel="noopener noreferrer" backgroundColor="#66f9f5" color="#000000">ウェイティングリストに登録する</EmailButton>
-=======
-                    
-                  </div>
+                  
                 </td>
                 <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                   <Img
