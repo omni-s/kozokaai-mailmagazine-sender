@@ -57,7 +57,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               fontFamily: 'sans-serif',
             }}
           >
-            メールメタヘッダーのテスト
+            AIで現場をブースト！AIが"業務を動かす"瞬間を毎号お届けします！
           </p>
           <div style={{ marginTop: '5px', marginBottom: '5px' }}>
             <hr
@@ -80,7 +80,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                 <td style={{ backgroundColor: '#ffffff', padding: 0 }}>
                   <Img
                     src="/mail-assets/2026/02/12/活用中 note_バナ_47.png"
-                    alt="活用中 note_バナー"
+                    alt="AI NEWS: NotebookLMの音声解説で自分の考えを整理しよう - kozokaAIエンジニア佐野"
                     width="560"
                     height="293"
                     style={{
@@ -188,13 +188,16 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     弊社のAIソリューションが、貴社の業務を劇的にスマートにします。
                   </p>
                   <div style={{ marginTop: '0px', textAlign: 'center' }}>
-                    <EmailButton href="hhttps://kozoka.ai/waiting" target="_blank" rel="noopener noreferrer" backgroundColor="#66f9f5" color="#000000">ウェイティングリストに登録する</EmailButton>
+<<<<<<< HEAD
+                    <EmailButton href="https://kozoka.ai/waiting" target="_blank" rel="noopener noreferrer" backgroundColor="#66f9f5" color="#000000">ウェイティングリストに登録する</EmailButton>
+=======
+                    
                   </div>
                 </td>
                 <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                   <Img
                     src="/mail-assets/2026/01/28/注注くん.png"
-                    alt="注注くん"
+                    alt="FAX受注入力AI 公式キャラクター注注くん（ちゅうちゅう）"
                     width="130"
                     height="130"
                     style={{
@@ -338,7 +341,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
                     src="/mail-assets/2026/02/19/毎日AIと仕事してるのに.png"
-                    alt="Google NotebookLMの音声解説で自分の考えを整理しよう"
+                    alt="TECH BLOG #19: 毎日AIと仕事してるのに、AIのことを何も知らなかった"
                     width="200"
                     height="103"
                     style={{
@@ -346,6 +349,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       maxWidth: '200px',
                       height: 'auto',
                       display: 'block',
+                      backgroundColor: '#ffffff',
                     }}
                   />
                 </td>
@@ -430,6 +434,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       maxWidth: '200px',
                       height: 'auto',
                       display: 'block',
+                      backgroundColor: '#ffffff',
                     }}
                   />
                 </td>
@@ -466,9 +471,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                      
-                      2026年3月、株式会社MONO-X が主催する特別セミナー 「IBM i Bootcamp 2026 Spring」が、東京・大阪・名古屋の3都市で開催されます。
-                      そしてこの度、弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
+                    2026年3月、株式会社MONO-X が主催する特別セミナー「IBM i Bootcamp 2026 Spring」が、東京・大阪・名古屋の3都市で開催されます。そしてこの度、弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
@@ -573,7 +576,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
         </EmailText>
         <EmailText variant="muted" style={{ fontSize: '11px', color: '#999999', lineHeight: '1.6', marginTop: '12px' }}>
           株式会社kozokaAI<br />
-          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17階
+          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
         </EmailText>
       </EmailSection>
     </EmailWrapper>
