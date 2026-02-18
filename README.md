@@ -39,11 +39,7 @@ pnpm install
 
 ### 2. 環境変数設定
 
-`.env.example` をコピーして `.env` を作成:
-
-```bash
-cp .env.example .env
-```
+`.env` ファイルをプロジェクトルートに作成:
 
 **必須環境変数:**
 
@@ -102,7 +98,9 @@ pnpm run dev
 | コマンド | 説明 |
 |---------|------|
 | `pnpm run dev` | 開発サーバー起動 |
+| `pnpm run dev:clean` | .next キャッシュクリア + 開発サーバー起動 |
 | `pnpm run build` | Next.js ビルド |
+| `pnpm run start` | 本番モードで起動 |
 | `pnpm run lint` | ESLint 実行 |
 | `pnpm run type-check` | TypeScript 型チェック |
 | `pnpm run commit` | メールアーカイブ作成 + Git commit & push |
@@ -156,7 +154,13 @@ kozokaai-mailmagazine-sender/
 │   │   ├── import/             # Contact インポート UI
 │   │   └── help/               # ヘルプ
 │   ├── components/
-│   │   └── email/              # メール用コンポーネント（10個）
+│   │   ├── email/              # メール用コンポーネント（10個）
+│   │   ├── archive/            # アーカイブ閲覧UI
+│   │   ├── commit/             # コミットフォーム
+│   │   ├── home/               # ホーム画面
+│   │   ├── import/             # Contact インポートウィザード
+│   │   ├── layout/             # 共通レイアウト（Sidebar, Footer等）
+│   │   └── ui/                 # 汎用UIコンポーネント
 │   ├── lib/                    # SDK初期化、スキーマ、ユーティリティ（8個）
 │   └── scripts/                # CLI・自動化スクリプト（11個）
 ├── public/
@@ -170,13 +174,25 @@ kozokaai-mailmagazine-sender/
 
 詳細なドキュメントは [`docs/INDEX.md`](./docs/INDEX.md) を参照してください。
 
-| カテゴリ | 主要ドキュメント |
-|---------|-----------------|
-| 非エンジニア向け | [getting-started.md](./docs/for-non-engineers/getting-started.md), [component-reference.md](./docs/for-non-engineers/component-reference.md) |
-| 仕様 | [architecture.md](./docs/specs/architecture.md), [require.md](./docs/specs/require.md) |
-| 開発 | [branch.md](./docs/dev/branch.md) |
-| 環境構築 | [environment.md](./docs/setup/environment.md) |
-| 運用 | [workflow.md](./docs/ops/workflow.md), [troubleshooting.md](./docs/ops/troubleshooting.md) |
+| カテゴリ | ドキュメント | 概要 |
+|---------|-------------|------|
+| 非エンジニア向け | [getting-started.md](./docs/for-non-engineers/getting-started.md) | 初めてのメール作成ガイド |
+| | [component-reference.md](./docs/for-non-engineers/component-reference.md) | コンポーネントリファレンス |
+| | [common-errors.md](./docs/for-non-engineers/common-errors.md) | よくあるエラー集（診断フローチャート付き） |
+| | [brand-guide.md](./docs/for-non-engineers/brand-guide.md) | kozokaAI ブランドガイド |
+| 仕様 | [architecture.md](./docs/specs/architecture.md) | システムアーキテクチャ概要 |
+| | [require.md](./docs/specs/require.md) | 要件定義書 |
+| | [task.md](./docs/specs/task.md) | 実装タスクリスト |
+| 開発 | [branch.md](./docs/dev/branch.md) | ブランチ戦略と CI/CD ワークフロー |
+| | [devcontainer.md](./docs/dev/devcontainer.md) | Dev Container 運用終了について（歴史的記録） |
+| 環境構築 | [environment.md](./docs/setup/environment.md) | AWS, Resend, GitHub 設定ガイド |
+| 運用 | [workflow.md](./docs/ops/workflow.md) | 日常的な配信フロー |
+| | [reply-email.md](./docs/ops/reply-email.md) | メール返信機能ガイド |
+| | [scheduled-delivery-verification.md](./docs/ops/scheduled-delivery-verification.md) | 予約配信の確認方法 |
+| | [troubleshooting.md](./docs/ops/troubleshooting.md) | トラブルシューティング |
+| | [security-updates.md](./docs/ops/security-updates.md) | セキュリティアップデート手順 |
+| | [custom-return-path.md](./docs/ops/custom-return-path.md) | Custom Return Path 設定記録 |
+| | [todo.md](./docs/ops/todo.md) | 本番環境設定チェックリスト |
 
 ## ライセンス
 
