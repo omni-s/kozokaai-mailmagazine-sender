@@ -188,7 +188,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     弊社のAIソリューションが、貴社の業務を劇的にスマートにします。
                   </p>
                   <div style={{ marginTop: '0px', textAlign: 'center' }}>
-                    <EmailButton href="https://www.kozoka.ai/contact" target="_blank" rel="noopener noreferrer" backgroundColor="#66f9f5" color="#000000">問い合わせる</EmailButton>
+                    <EmailButton href="hhttps://kozoka.ai/waiting" target="_blank" rel="noopener noreferrer" backgroundColor="#66f9f5" color="#000000">ウェイティングリストに登録する</EmailButton>
                   </div>
                 </td>
                 <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
