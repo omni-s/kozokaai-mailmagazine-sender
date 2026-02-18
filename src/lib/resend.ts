@@ -100,3 +100,75 @@ export async function listSegments() {
 export async function listAudiences() {
   return listSegments();
 }
+
+/**
+ * Resend Segment詳細取得（名前含む）
+ *
+ * @param segmentId - Resend Segment ID (UUID形式)
+ * @returns Segment詳細 { id, name, created_at } または null
+ */
+export async function getSegmentDetails(
+  segmentId: string
+): Promise<{ id: string; name: string; created_at: string } | null> {
+  try {
+    const { data, error } = await getResendClient().segments.get(segmentId);
+
+    if (error) {
+      console.error('Resend API Error (getSegmentDetails):', error);
+      return null;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return { id: data.id, name: data.name, created_at: data.created_at };
+  } catch (error) {
+    console.error('Failed to get segment details:', error);
+    return null;
+  }
+}
+
+/**
+ * Segment内のContact一覧を取得
+ *
+ * contacts.list({ segmentId }) でフィルタリングする
+ *
+ * @param segmentId - Resend Segment ID (UUID形式)
+ * @param limit - 取得件数（デフォルト: 5）
+ * @returns { contacts: Contact[], hasMore: boolean }
+ */
+export async function listSegmentContacts(
+  segmentId: string,
+  limit: number = 5
+): Promise<{
+  contacts: { email: string; firstName: string | null; lastName: string | null }[];
+  hasMore: boolean;
+}> {
+  try {
+    const { data, error } = await getResendClient().contacts.list({
+      segmentId,
+      limit,
+    });
+
+    if (error) {
+      console.error('Resend API Error (listSegmentContacts):', error);
+      return { contacts: [], hasMore: false };
+    }
+
+    if (!data) {
+      return { contacts: [], hasMore: false };
+    }
+
+    const contacts = data.data.map((c) => ({
+      email: c.email,
+      firstName: c.first_name,
+      lastName: c.last_name,
+    }));
+
+    return { contacts, hasMore: data.has_more };
+  } catch (error) {
+    console.error('Failed to list segment contacts:', error);
+    return { contacts: [], hasMore: false };
+  }
+}
