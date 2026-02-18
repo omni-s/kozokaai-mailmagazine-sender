@@ -136,7 +136,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
             fontFamily: 'sans-serif',
           }}
         >
-          本記事では、僕がやっているやり方を紹介します。<br /><br />
+          本記事では、僕がやっているやり方を紹介します！！<br /><br />
           noteを読む：『<a
             href="https://note.com/kozokaai_sano/n/n7dfae5a75340"
             target="_blank"
