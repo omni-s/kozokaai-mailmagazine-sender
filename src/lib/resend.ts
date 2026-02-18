@@ -104,29 +104,48 @@ export async function listAudiences() {
 /**
  * Resend Segment詳細取得（名前含む）
  *
+ * segments.get() で取得できない場合、segments.list() から検索するフォールバックあり。
+ *
  * @param segmentId - Resend Segment ID (UUID形式)
  * @returns Segment詳細 { id, name, created_at } または null
  */
 export async function getSegmentDetails(
   segmentId: string
 ): Promise<{ id: string; name: string; created_at: string } | null> {
+  // 方法1: segments.get() で直接取得
   try {
     const { data, error } = await getResendClient().segments.get(segmentId);
 
     if (error) {
-      console.error('Resend API Error (getSegmentDetails):', error);
-      return null;
+      console.warn('[getSegmentDetails] segments.get() error:', JSON.stringify(error));
     }
 
-    if (!data) {
-      return null;
+    if (data) {
+      return { id: data.id, name: data.name, created_at: data.created_at };
     }
-
-    return { id: data.id, name: data.name, created_at: data.created_at };
   } catch (error) {
-    console.error('Failed to get segment details:', error);
-    return null;
+    console.warn('[getSegmentDetails] segments.get() exception:', error);
   }
+
+  // 方法2: フォールバック - segments.list() から検索
+  try {
+    console.log('[getSegmentDetails] Falling back to segments.list()...');
+    const segments = await listSegments();
+
+    const found = segments.find(
+      (s: { id: string; name: string }) => s.id === segmentId
+    );
+
+    if (found) {
+      return { id: found.id, name: found.name, created_at: found.created_at || '' };
+    }
+
+    console.warn(`[getSegmentDetails] Segment not found in list: ${segmentId}`);
+  } catch (error) {
+    console.error('[getSegmentDetails] segments.list() fallback failed:', error);
+  }
+
+  return null;
 }
 
 /**
