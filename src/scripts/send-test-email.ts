@@ -3,7 +3,8 @@ import { execSync } from 'child_process';
 import chalk from 'chalk';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getLatestArchiveFromS3 } from '../lib/s3';
-import { getResendClient } from '../lib/resend';
+import { writeFileSync, appendFileSync } from 'fs';
+import { getResendClient, getSegmentDetails, listSegmentContacts } from '../lib/resend';
 import { validateConfig, type Config } from '../lib/config-schema';
 
 /**
@@ -278,6 +279,96 @@ async function sendTestEmail(
 }
 
 /**
+ * メールアドレスをマスク処理する
+ * 例: kozoka@example.com → koz***@example.com
+ */
+function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!local || !domain) return '***';
+  const visible = local.length <= 3 ? local[0] : local.substring(0, 3);
+  return `${visible}***@${domain}`;
+}
+
+/**
+ * 配信確認サマリーをMarkdownで生成する
+ */
+async function generateDeliverySummary(params: {
+  config: Config;
+  archivePath: string;
+  testSegmentId: string;
+  broadcastId: string;
+}): Promise<string> {
+  const { config, archivePath, testSegmentId, broadcastId } = params;
+
+  // 本番Segment情報を取得
+  const productionSegmentId = config.segmentId || config.audienceId || 'unknown';
+  const productionSegment = await getSegmentDetails(productionSegmentId);
+  const productionSegmentName = productionSegment?.name || '(取得できませんでした)';
+
+  // 本番Segment受信者サンプルを取得
+  const { contacts, hasMore } = await listSegmentContacts(productionSegmentId, 5);
+
+  // テストSegment情報を取得
+  const testSegment = await getSegmentDetails(testSegmentId);
+  const testSegmentName = testSegment?.name || '(取得できませんでした)';
+
+  // 配信タイプを判定
+  const deliveryType = config.scheduledAt ? '予約配信' : '即時配信';
+  const scheduledDisplay = config.scheduledAt || '-';
+
+  // Markdownを構築
+  const lines: string[] = [];
+  lines.push('<!-- delivery-confirmation-bot -->');
+  lines.push('## メール配信確認サマリー');
+  lines.push('');
+  lines.push('### 配信メール情報');
+  lines.push('');
+  lines.push('| 項目 | 値 |');
+  lines.push('|------|-----|');
+  lines.push(`| 件名 | ${config.subject} |`);
+  lines.push(`| アーカイブ | \`${archivePath}\` |`);
+  lines.push(`| 配信タイプ | ${deliveryType} |`);
+  lines.push(`| 予約日時 | ${scheduledDisplay} |`);
+  lines.push('');
+  lines.push('### 本番配信先 Segment');
+  lines.push('');
+  lines.push('| 項目 | 値 |');
+  lines.push('|------|-----|');
+  lines.push(`| Segment名 | ${productionSegmentName} |`);
+  lines.push(`| Segment ID | \`${productionSegmentId}\` |`);
+  lines.push('');
+
+  if (contacts.length > 0) {
+    lines.push('**受信者サンプル（先頭5名）:**');
+    lines.push('');
+    lines.push('| # | メールアドレス |');
+    lines.push('|---|---------------|');
+    contacts.forEach((contact, index) => {
+      lines.push(`| ${index + 1} | ${maskEmail(contact.email)} |`);
+    });
+    if (hasMore) {
+      lines.push('| ... | 他にも受信者がいます |');
+    }
+    lines.push('');
+  }
+
+  lines.push('> **確認してください**: 上記の本番Segmentが正しい配信先であることを確認してください。');
+  lines.push('');
+  lines.push('### テスト配信結果');
+  lines.push('');
+  lines.push('| 項目 | 値 |');
+  lines.push('|------|-----|');
+  lines.push(`| テストSegment | ${testSegmentName} (\`${testSegmentId}\`) |`);
+  lines.push(`| Broadcast ID | \`${broadcastId}\` |`);
+  lines.push('| ステータス | 送信成功 |');
+  lines.push('');
+  lines.push('> テストメールが送信されました。受信したメールの内容を確認してください。');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
  * メイン処理
  */
 async function main() {
@@ -440,6 +531,30 @@ async function main() {
   console.log(chalk.gray(`  Test Segment ID: ${testSegmentId}`));
 
   console.log(chalk.gray(`  件名: [TEST] ${config.subject}`));
+
+  // 5. 配信確認サマリーを生成
+  console.log(chalk.cyan('\n配信確認サマリーを生成中...'));
+  try {
+    const summary = await generateDeliverySummary({
+      config,
+      archivePath,
+      testSegmentId,
+      broadcastId: sendResult.id || 'unknown',
+    });
+
+    // .delivery-summary.md に書き出し
+    writeFileSync('.delivery-summary.md', summary, 'utf-8');
+    console.log(chalk.green('✓ .delivery-summary.md を生成しました'));
+
+    // $GITHUB_STEP_SUMMARY にも書き出し（GitHub Actions環境のみ）
+    if (process.env.GITHUB_STEP_SUMMARY) {
+      appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary, 'utf-8');
+      console.log(chalk.green('✓ GitHub Step Summary に書き出しました'));
+    }
+  } catch (summaryError) {
+    // サマリー生成失敗はテスト送信成功には影響しない
+    console.log(chalk.yellow(`⚠ サマリー生成に失敗しました: ${summaryError}`));
+  }
 
   console.log(chalk.green.bold('\n✓ テストメール送信が完了しました\n'));
   process.exit(0);

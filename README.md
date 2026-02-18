@@ -1,113 +1,45 @@
 # Resend メール配信システム
 
-マーケティング担当者がCursor IDE + AIでHTMLメールをデザイン・実装し、GitOpsフローで安全にメールマガジンを配信するシステムです。
-
-## 概要
-
-このプロジェクトは、ノーコード/ローコード時代において、マーケティング担当者が技術的な知識がなくてもメールマガジンを作成・配信できることを目指しています。
+Next.js + React Email + Resend API + AWS S3 を組み合わせた、マーケティング担当者向けメールマガジン配信システムです。
+ローカルで React コンポーネントとしてメールをデザインし、Git + GitHub Actions による完全自動化された CI/CD パイプラインで安全に配信します。
 
 ### 主な機能
+
+- ローカル編集 & リアルタイムプレビュー（Next.js App Router）
+- GitOps 配信フロー（PR レビュー + Manual Approval）
+- 即時配信 / 予約配信（JST 指定、5分間隔 cron）
+- PR 配信サマリー（テスト送信結果を PR コメントに自動投稿）
+- Contact 一括インポート（CSV → Resend Contacts）
+- 返信メール送信（受信者への個別返信 CLI）
+- 配信停止機能（Resend Unsubscribe、FTC/GDPR 対応）
+
 ![kai-cicd-mail-flow](https://github.com/user-attachments/assets/54a1dda2-71e8-420d-bca6-c01b1001ab0f)
 ![kai-cicd-mail-flow-draft](https://github.com/user-attachments/assets/faf0f980-8e44-4f49-b55f-21b33166af63)
 
-- **ローカル編集**: Next.jsの開発サーバーでリアルタイムプレビューしながらメールをデザイン
-- **GitOps配信**: GitHub PRベースのレビューフローで安全に本番配信
-- **自動検証**: GitHub Actionsによる自動Lint、型チェック、画像パス検証
-- **テスト送信**: PR作成時に自動でレビュアーへテストメール送信
-- **Manual Approval**: 本番配信前に上長の承認が必須
-
 ## 技術スタック
 
-### Frontend/Template
-- **Next.js**: 16.1.0 (App Router, Turbopack)
-- **React**: 19.2.3
-- **TypeScript**: 5.9.3
+| カテゴリ | 技術 | バージョン |
+|---------|------|-----------|
+| Runtime | Node.js | 20.20.0 |
+| Framework | Next.js (App Router) | 16.1.0 |
+| Language | TypeScript | 5.9.3 |
+| UI | React + Mantine UI | 19.2.3 / 7.15.0 |
+| Email | Resend SDK + @react-email | 6.6.0 / 2.0.0 |
+| Storage | AWS S3 (SDK v3) | - |
+| CI/CD | GitHub Actions | - |
+| Validation | Zod | 3.24.1 |
 
-### Email Platform
-- **Resend API**: メール配信プラットフォーム（SDK v6.6.0）
-- **@react-email/render**: React → HTML変換（v2.0.0）
-- **@react-email/components**: メール用Reactコンポーネント
+## クイックスタート
 
-### Infrastructure
-- **AWS S3**: 画像アセット配信（SDK v3使用）
-- **GitHub Actions**: CI/CD
-
-### UI
-- **Tailwind CSS**: 3.4.17
-- **ShadcnUI**: UIコンポーネントライブラリ
-- **clsx + tailwind-merge**: クラス名管理
-
-### CLI & Validation
-- **inquirer**: 対話型CLI
-- **chalk**: ターミナル出力の色付け
-- **date-fns**: 日付処理
-- **Zod**: スキーマ検証
-
-## ディレクトリ構造
-
-```
-kozokaai-mailmagazine-sender/
-├── src/
-│   ├── app/
-│   │   ├── draft/              # ローカル編集用
-│   │   │   ├── page.tsx        # メールテンプレート編集
-│   │   │   └── template.tsx    # 初期テンプレート
-│   │   ├── layout.tsx
-│   │   ├── page.tsx            # ホーム画面
-│   │   └── globals.css
-│   ├── components/
-│   │   ├── email/              # メール用コンポーネント
-│   │   │   ├── EmailWrapper.tsx
-│   │   │   └── Img.tsx
-│   │   └── ui/                 # ShadcnUI コンポーネント
-│   │       ├── button.tsx
-│   │       └── card.tsx
-│   ├── lib/
-│   │   ├── resend.ts           # Resend SDK初期化
-│   │   ├── s3.ts               # S3 SDK初期化
-│   │   ├── config-schema.ts    # config.json Zodスキーマ
-│   │   └── utils.ts            # Tailwind utilities
-│   └── scripts/                # CLI・自動化スクリプト
-│       ├── commit.ts           # pnpm run commit
-│       ├── validate-archive.ts # GitHub Actions: バリデーション
-│       ├── upload-to-s3.ts     # GitHub Actions: S3アップロード
-│       ├── send-test-email.ts  # GitHub Actions: テスト送信
-│       └── send-production-email.ts  # GitHub Actions: 本番配信
-├── public/
-│   ├── MAIL-ASSETS/            # 作業中の画像置き場
-│   └── archives/               # メールアーカイブ
-│       └── {YYYY}/
-│           └── {MM}/
-│               └── {DD-MSG}/
-│                   ├── mail.tsx
-│                   ├── config.json
-│                   └── assets/
-├── .github/
-│   └── workflows/              # CI/CD
-│       ├── check.yml
-│       ├── staging.yml
-│       └── production.yml
-├── docs/                       # ドキュメント
-│   ├── INDEX.md
-│   ├── specs/
-│   │   ├── require.md
-│   │   └── task.md
-│   └── dev/
-│       └── branch.md
-└── README.md                   # 本ファイル
-```
-
-## セットアップ
-
-#### 1. 依存関係インストール
+### 1. 依存関係インストール
 
 ```bash
 pnpm install
 ```
 
-#### 2. 環境変数設定
+### 2. 環境変数設定
 
-`.env.example` をコピーして `.env` を作成し、以下の環境変数を設定してください。
+`.env.example` をコピーして `.env` を作成:
 
 ```bash
 cp .env.example .env
@@ -115,10 +47,12 @@ cp .env.example .env
 
 **必須環境変数:**
 
-```
+```bash
 # Resend API
 RESEND_API_KEY=your_resend_api_key
 RESEND_FROM_EMAIL=your_email@example.com
+RESEND_FROM_NAME=表示名
+RESEND_REPLY_TO=reply@example.com
 
 # AWS S3
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
@@ -127,170 +61,123 @@ AWS_REGION=ap-northeast-1
 S3_BUCKET_NAME=your_bucket_name
 S3_BUCKET_URL=https://your_bucket_name.s3.ap-northeast-1.amazonaws.com
 
-# Test Email
-REVIEWER_EMAIL=reviewer@example.com
+# Test Email（オプション: Segment一斉テスト送信）
+TEST_SEGMENT_ID=your_test_segment_id
 ```
 
-#### 3. 開発サーバー起動
+### 3. 開発サーバー起動
 
 ```bash
 pnpm run dev
+# http://localhost:3000 でプレビュー
+# http://localhost:3000/draft でメール編集
 ```
 
-ブラウザで http://localhost:3000 を開いてください。
+## 配信フロー
 
-## 使い方
+### 即時配信
 
-### ローカル制作
-
-1. http://localhost:3000/draft でメールをデザイン
-2. 画像は `public/MAIL-ASSETS/` に配置
-3. ブラウザでプレビュー確認
-4. 完成したら以下のコマンドを実行
-
-```bash
-pnpm run commit
+```
+ローカル制作 → pnpm run commit（即時配信を選択）
+  → Git push → Check Workflow → PR作成
+  → Staging Workflow（S3 Upload + テスト送信 + PR配信サマリー）
+  → レビュー・承認 → マージ
+  → Production Workflow → Manual Approval → 本番配信
+  → sentAt 自動更新
 ```
 
-対話形式で以下を入力します:
-- コミットメッセージ（例: `summer-sale`）
-- メール件名（例: `【サマーセール】最大50%OFFのお知らせ`）
-- 配信対象の宛先リスト（Resend Audience IDを選択）
+### 予約配信
 
-スクリプトが自動的に:
-- アーカイブディレクトリを作成（例: `public/archives/2024/05/20-summer-sale/`）
-- メールテンプレートと画像を移動
-- `config.json` を生成
-- Git commit & push を実行
-
-### レビュー・配信フロー
-
-#### 1. PR作成
-- ローカルでブランチを切っている場合はPR作成
-- `main` に直接pushした場合はスキップ
-
-#### 2. GitHub Actions が自動実行
-- **Check Workflow**: Lint, Type Check, Build, Validation
-- **Staging Workflow**: S3 Upload, Test Email Send（レビュアーへ）
-
-#### 3. レビュー承認 → マージ
-
-#### 4. 本番配信
-- **Production Workflow** が起動
-- **Manual Approval** が必須（上長が承認ボタンを押下）
-- 承認後、Resend Audience へ一斉送信
-- `config.json` の `sentAt` タイムスタンプを自動更新
-
-## GitHub Actions Workflows
-
-### check.yml
-**Trigger**: `main`, `feature/**` へのPush
-
-**処理内容**:
-- ESLint実行
-- TypeScript型チェック
-- Next.jsビルド
-- アーカイブバリデーション（config.json、画像パス、Audience ID確認）
-
-### staging.yml
-**Trigger**: Pull Request作成・更新
-
-**処理内容**:
-- 新規追加されたarchiveディレクトリを検出
-- 画像をS3へアップロード（public-read）
-- React → HTML変換
-- テストメール送信（`REVIEWER_EMAIL` へ）
-
-### production.yml
-**Trigger**: `main` へのマージ
-
-**処理内容**:
-- **Manual Approval待機**（GitHub Environments機能）
-- React → HTML変換
-- Resend Audience へ一斉送信
-- `config.json` の `sentAt` を更新してコミット
+```
+ローカル制作 → pnpm run commit（予約配信 + JST日時を指定）
+  → Git push → Check / Staging Workflow（同上）
+  → レビュー・承認 → マージ
+  → Production Workflow → Manual Approval → 待機
+  → Scheduled Delivery Workflow（5分ごと cron）→ 指定時刻に配信
+  → sentAt 自動更新
+```
 
 ## npm scripts
 
-```json
-{
-  "dev": "next dev",
-  "build": "next build",
-  "start": "next start",
-  "lint": "next lint",
-  "type-check": "tsc --noEmit",
-  "commit": "tsx src/scripts/commit.ts"
-}
-```
+| コマンド | 説明 |
+|---------|------|
+| `pnpm run dev` | 開発サーバー起動 |
+| `pnpm run build` | Next.js ビルド |
+| `pnpm run lint` | ESLint 実行 |
+| `pnpm run type-check` | TypeScript 型チェック |
+| `pnpm run commit` | メールアーカイブ作成 + Git commit & push |
+| `pnpm run reset-draft` | draft/page.tsx を初期テンプレートにリセット |
+| `pnpm run reply-email` | 受信者への返信メール送信（対話型 CLI） |
+| `pnpm run import-contacts` | CSV → Resend Contacts 一括インポート |
+
+## GitHub Actions
+
+| Workflow | Trigger | 概要 |
+|----------|---------|------|
+| `check.yml` | Push (`main`, `feature/**`) | Lint, Type Check, Build, Archive Validation |
+| `staging.yml` | Pull Request | S3 Upload, テスト送信, PR配信サマリー投稿 |
+| `production.yml` | `main` マージ | Manual Approval → 本番配信（即時 or 待機） |
+| `scheduled-email-delivery.yml` | cron (*/5) / 手動 | 予約配信の実行（scheduledAt 到達時に自動配信） |
 
 ## 環境変数
 
-### ローカル開発用
+### GitHub Secrets（機密情報）
 
-- `RESEND_API_KEY`: Resend APIキー
-- `RESEND_FROM_EMAIL`: 送信元メールアドレス
-- `AWS_ACCESS_KEY_ID`: AWS アクセスキーID
-- `AWS_SECRET_ACCESS_KEY`: AWS シークレットアクセスキー
-- `AWS_REGION`: AWS リージョン（例: `ap-northeast-1`）
-- `S3_BUCKET_NAME`: S3バケット名
-- `S3_BUCKET_URL`: S3バケットのベースURL
-- `REVIEWER_EMAIL`: テストメール送信先
+| 変数名 | 説明 |
+|--------|------|
+| `RESEND_API_KEY` | Resend API キー |
+| `RESEND_FROM_EMAIL` | 送信元メールアドレス |
+| `S3_BUCKET_URL` | S3 バケットの Base URL |
+| `AWS_ACCESS_KEY_ID` | AWS アクセスキー ID |
+| `AWS_SECRET_ACCESS_KEY` | AWS シークレットアクセスキー |
+| `AWS_REGION` | AWS リージョン |
+| `S3_BUCKET_NAME` | S3 バケット名 |
 
-### GitHub Actions用
+### GitHub Variables（非機密情報）
 
-上記に加えて、GitHub Secretsに以下を設定してください:
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_REGION`
-- `S3_BUCKET_NAME`
-- `S3_BUCKET_URL`
-- `REVIEWER_EMAIL`
+| 変数名 | 説明 |
+|--------|------|
+| `RESEND_FROM_NAME` | From 表示名 |
+| `RESEND_REPLY_TO` | Reply-To アドレス |
+| `TEST_SEGMENT_ID` | テスト用 Segment ID（設定時: Segment一斉テスト送信） |
 
-また、GitHub Environmentsで `production` 環境を作成し、Protection Rulesで承認者を設定してください。
+### GitHub Environments
+
+- `production` 環境を作成し、Protection Rules で承認者を設定
+
+## ディレクトリ構造
+
+```
+kozokaai-mailmagazine-sender/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── draft/              # メール編集（ローカル）
+│   │   ├── archives/           # アーカイブ閲覧
+│   │   ├── import/             # Contact インポート UI
+│   │   └── help/               # ヘルプ
+│   ├── components/
+│   │   └── email/              # メール用コンポーネント（10個）
+│   ├── lib/                    # SDK初期化、スキーマ、ユーティリティ（8個）
+│   └── scripts/                # CLI・自動化スクリプト（11個）
+├── public/
+│   ├── MAIL-ASSETS/            # 作業中の画像置き場
+│   └── archives/               # メールアーカイブ（YYYY/MM/DD-MSG/）
+├── .github/workflows/          # CI/CD（4 Workflow）
+└── docs/                       # ドキュメント（唯一の SoT）
+```
 
 ## ドキュメント
 
-プロジェクトの詳細なドキュメントは `docs/` ディレクトリに格納されています。
+詳細なドキュメントは [`docs/INDEX.md`](./docs/INDEX.md) を参照してください。
 
-- **[docs/INDEX.md](./docs/INDEX.md)**: ドキュメント索引
-- **[docs/specs/require.md](./docs/specs/require.md)**: 要件定義書
-- **[docs/specs/task.md](./docs/specs/task.md)**: 実装タスクリスト
-- **[docs/dev/branch.md](./docs/dev/branch.md)**: ブランチ戦略とCI/CD
-
-## ワークフロー図
-
-```
-ローカル制作
-    ↓
-pnpm run commit（アーカイブ・Git push）
-    ↓
-PR作成（任意）
-    ↓
-Check Workflow（Lint, Type Check, Build, Validation）
-    ↓
-Staging Workflow（S3 Upload, Test Email Send）
-    ↓
-レビュー・承認 → マージ
-    ↓
-Production Workflow（Manual Approval待機）
-    ↓
-承認ボタン押下
-    ↓
-本番配信（Resend Audience へ一斉送信）
-    ↓
-sentAt 自動更新
-```
+| カテゴリ | 主要ドキュメント |
+|---------|-----------------|
+| 非エンジニア向け | [getting-started.md](./docs/for-non-engineers/getting-started.md), [component-reference.md](./docs/for-non-engineers/component-reference.md) |
+| 仕様 | [architecture.md](./docs/specs/architecture.md), [require.md](./docs/specs/require.md) |
+| 開発 | [branch.md](./docs/dev/branch.md) |
+| 環境構築 | [environment.md](./docs/setup/environment.md) |
+| 運用 | [workflow.md](./docs/ops/workflow.md), [troubleshooting.md](./docs/ops/troubleshooting.md) |
 
 ## ライセンス
 
 MIT License
-
-## 参考リンク
-
-- [Resend公式ドキュメント](https://resend.com/docs)
-- [Next.js公式ドキュメント](https://nextjs.org/docs)
-- [@react-email/render](https://react.email/docs/utilities/render)
-- [GitHub Actions公式ドキュメント](https://docs.github.com/ja/actions)
-
