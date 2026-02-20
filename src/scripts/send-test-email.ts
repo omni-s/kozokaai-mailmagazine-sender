@@ -6,6 +6,7 @@ import { getLatestArchiveFromS3 } from '../lib/s3';
 import { writeFileSync, appendFileSync } from 'fs';
 import { getResendClient, getSegmentDetails, listSegmentContacts } from '../lib/resend';
 import { validateConfig, type Config } from '../lib/config-schema';
+import { formatInTimeZone } from 'date-fns-tz';
 
 /**
  * GitHub Actions Staging Workflow用テストメール送信スクリプト
@@ -314,7 +315,9 @@ async function generateDeliverySummary(params: {
 
   // 配信タイプを判定
   const deliveryType = config.scheduledAt ? '予約配信' : '即時配信';
-  const scheduledDisplay = config.scheduledAt || '-';
+  const scheduledDisplay = config.scheduledAt
+    ? formatInTimeZone(new Date(config.scheduledAt), 'Asia/Tokyo', 'yyyy-MM-dd HH:mm') + '（JST）'
+    : '-';
 
   // Markdownを構築
   const lines: string[] = [];

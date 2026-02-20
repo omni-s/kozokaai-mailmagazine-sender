@@ -945,26 +945,18 @@ async function main() {
     process.exit(1);
   }
 
-  // "nothing to commit" の場合
+  // "nothing to commit" の場合はエラーとして扱う
   if (commitResult.nothingToCommit) {
-    updateStepStatus("git-commit", "success");
-    console.log(chalk.yellow("  ⚠ コミット対象の変更がありません"));
-    console.log(chalk.yellow("  → S3アップロードは完了しています\n"));
-
-    // git push もスキップ
-    updateStepStatus("git-push", "success");
-    console.log(chalk.gray("  ⊘ git push スキップ（コミットなし）\n"));
-
-    // 成功時の表示
+    updateStepStatus("git-commit", "failed", "コミット対象の変更がありません");
     displayProgress();
-
-    console.log(chalk.green.bold("✓ S3アップロードが完了しました！\n"));
-    console.log(chalk.blue("アーカイブは S3 に保存されています:"));
-    console.log(chalk.blue(`  archives/${year}/${month}/${dirName}/\n`));
-    console.log(chalk.yellow("注意: src/archives/ は .gitignore で除外されているため、Gitにはコミットされません"));
-    console.log(chalk.yellow("注意: page.tsx は初期化されていません（初期化する場合は pnpm run reset-draft を実行）\n"));
-
-    process.exit(0);
+    console.log(chalk.red.bold("\n✗ コミット対象の変更がありません\n"));
+    console.log(chalk.red("考えられる原因:"));
+    console.log(chalk.red("  1. src/archives/ が .gitignore で除外されている"));
+    console.log(chalk.red("  2. アーカイブファイルの作成に失敗している"));
+    console.log(chalk.red("\n確認コマンド:"));
+    console.log(chalk.red("  $ git status"));
+    console.log(chalk.red("  $ git check-ignore -v src/archives/\n"));
+    process.exit(1);
   }
 
   updateStepStatus("git-commit", "success");

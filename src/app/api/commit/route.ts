@@ -36,6 +36,7 @@ interface GitOperationResult {
   stderr?: string;
   needsUpstream?: boolean;
   branch?: string;
+  nothingToCommit?: boolean;
 }
 
 /**
@@ -99,7 +100,7 @@ function executeGitCommit(commitMessage: string): GitOperationResult {
       fullOutput.includes('nothing to commit') ||
       fullOutput.includes('working tree clean')
     ) {
-      return { success: true };
+      return { success: true, nothingToCommit: true };
     }
 
     return {
@@ -445,6 +446,17 @@ export async function POST(request: NextRequest) {
           message: `git commit エラー: ${commitResult.error}`,
         },
         { status: 500 }
+      );
+    }
+
+    if (commitResult.nothingToCommit) {
+      console.warn('[API /commit] 警告: コミット対象の変更がありません');
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'コミット対象の変更がありません。ファイルが .gitignore で除外されている可能性があります。',
+        },
+        { status: 409 }
       );
     }
     console.log('[API /commit] git commit 完了');
