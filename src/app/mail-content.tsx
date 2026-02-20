@@ -57,7 +57,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               fontFamily: 'sans-serif',
             }}
           >
-            メールメタヘッダーのテスト
+            AIで現場をブースト！AIが“業務を動かす”瞬間を毎号お届けします。
           </p>
           <div style={{ marginTop: '5px', marginBottom: '5px' }}>
             <hr
@@ -142,7 +142,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: '#00ADAA', textDecoration: 'underline' }}
-          >Google NotebookLMの音声解説で自分の考えを整理しよう</a>』
+          >Google NotebookLM of 音声解説で自分の考えを整理しよう</a>』
         </p>
       </EmailSection>
         
@@ -187,9 +187,6 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     毎日届くFAXの入力、終わらない議事録作成、活用できていない基幹データ……。<br />
                     弊社のAIソリューションが、貴社の業務を劇的にスマートにします。
                   </p>
-                  <div style={{ marginTop: '0px', textAlign: 'center' }}>
-                    <EmailButton href="https://www.kozoka.ai/contact" target="_blank" rel="noopener noreferrer" backgroundColor="#66f9f5" color="#000000">問い合わせる</EmailButton>
-                  </div>
                 </td>
                 <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                   <Img
@@ -338,7 +335,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
                     src="/mail-assets/2026/02/19/毎日AIと仕事してるのに.png"
-                    alt="Google NotebookLMの音声解説で自分の考えを整理しよう"
+                    alt="毎日AIと仕事してるのに"
                     width="200"
                     height="103"
                     style={{
@@ -382,7 +379,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    大学院までビジネスを専攻し、現在はエンジニアとして働いている私なりに、AIの現状について調べてみたことを共有したいと思い、この記事を書いています。技術的に深掘りするというよりも、AIの正体について理解を深めてみたい方向けの内容です。
+                    大学院までビジネスを専攻し、現在はエンジニアとして働いている私なりに、AIの現状について調べてみたことを共有したいと思い、この記事を書いています。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
@@ -422,7 +419,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                 <td width="200" valign="top" style={{ paddingRight: '16px' }}>
                   <Img
                     src="/mail-assets/2026/02/12/bootcamp .png"
-                    alt="3月3日(火)～東名阪で開催「 IBM i Bootcamp 2026 Spring」に登壇します！"
+                    alt="IBM i Bootcamp 2026 Spring"
                     width="200"
                     height="103"
                     style={{
@@ -466,9 +463,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                      
-                      2026年3月、株式会社MONO-X が主催する特別セミナー 「IBM i Bootcamp 2026 Spring」が、東京・大阪・名古屋の3都市で開催されます。
-                      そしてこの度、弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
+                    弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
