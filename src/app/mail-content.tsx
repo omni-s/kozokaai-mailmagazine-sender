@@ -4,7 +4,6 @@ import React from 'react';
 import { EmailWrapper } from '@/components/email/EmailWrapper';
 import { EmailSection } from '@/components/email/EmailSection';
 import { EmailCard } from '@/components/email/EmailCard';
-import { EmailButton } from '@/components/email/EmailButton';
 import { EmailText } from '@/components/email/EmailText';
 import { EmailDivider } from '@/components/email/EmailDivider';
 import { Img } from '@/components/email/Img';
