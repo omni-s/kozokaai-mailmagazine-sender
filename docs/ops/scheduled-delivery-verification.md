@@ -139,7 +139,8 @@ aws s3 cp s3://kozokaai-MAIL-ASSETS/archives/2026/01/20-gui-delivery-test/config
   "subject": "【GUI配信テスト】予約配信機能の動作確認",
   "segmentId": "a355a0bd-32fa-4ef4-b6d5-7341f702d35b",
   "scheduledAt": "2026-01-20T06:30:00.000Z",
-  "sentAt": "2026-01-20T06:30:35.123Z"
+  "sentAt": "2026-01-20T06:30:35.123Z",
+  "status": "schedule-delivered"
 }
 ```
 
@@ -147,6 +148,7 @@ aws s3 cp s3://kozokaai-MAIL-ASSETS/archives/2026/01/20-gui-delivery-test/config
 
 | フィールド | 期待値 | 説明 |
 |-----------|--------|------|
+| `status` | `schedule-delivered` | 予約配信が完了していること |
 | `sentAt` | **null でない** | 配信が完了していること |
 | `sentAt` の形式 | ISO 8601形式 | `YYYY-MM-DDTHH:mm:ss.sssZ` |
 | `sentAt` と `scheduledAt` の差 | 5分以内 | 配信タイミングが正常であること |

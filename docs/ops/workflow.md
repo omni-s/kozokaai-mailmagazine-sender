@@ -215,10 +215,14 @@ public/archives/
 ```json
 {
   "subject": "【夏季限定】特別セール開催のお知らせ",
-  "audienceId": "aud_abc123-def456-ghi789",
-  "sentAt": null
+  "segmentId": "a355a0bd-32fa-4ef4-b6d5-7341f702d35b",
+  "scheduledAt": null,
+  "sentAt": null,
+  "status": "pending"
 }
 ```
+
+> **status フィールド**: 配信パイプラインの進捗を追跡します。詳細は [delivery-status-lifecycle.md](./delivery-status-lifecycle.md) を参照。
 
 #### 2.3.5. draft/page.tsx リセット
 
@@ -228,7 +232,7 @@ public/archives/
 
 ```bash
 git add .
-git commit -m "MAIL: Add summer-sale campaign"
+git commit -m "MAIL: summer-sale(pending)"
 git push
 ```
 
@@ -381,18 +385,22 @@ await resend.emails.send({
 ```json
 {
   "subject": "【夏季限定】特別セール開催のお知らせ",
-  "audienceId": "aud_abc123-def456-ghi789",
-  "sentAt": "2024-05-20T10:30:00.000Z"
+  "segmentId": "a355a0bd-32fa-4ef4-b6d5-7341f702d35b",
+  "scheduledAt": null,
+  "sentAt": "2024-05-20T10:30:00.000Z",
+  "status": "delivered"
 }
 ```
 
-`sentAt` に送信日時（ISO 8601形式）が記録されます。
+`sentAt` に送信日時（ISO 8601形式）が記録され、`status` が `delivered` に更新されます。
+
+> status 遷移の全体像は [delivery-status-lifecycle.md](./delivery-status-lifecycle.md) を参照。
 
 #### 4.4.5. Git commit & push
 
 ```bash
-git add public/archives/**/config.json
-git commit -m "MAIL: Update sentAt timestamps"
+git add src/archives/**/config.json
+git commit -m "MAIL: Update config(delivered)"
 git push
 ```
 
@@ -709,6 +717,7 @@ curl -X DELETE 'https://api.resend.com/contacts/{contact_id}' \
 
 ## 関連ドキュメント
 
+- **配信ステータスライフサイクル**: [docs/ops/delivery-status-lifecycle.md](./delivery-status-lifecycle.md)
 - **システムアーキテクチャ**: [docs/specs/architecture.md](../specs/architecture.md)
 - **環境構築ガイド**: [docs/setup/environment.md](../setup/environment.md)
 - **トラブルシューティング**: [docs/ops/troubleshooting.md](./troubleshooting.md)
@@ -716,4 +725,4 @@ curl -X DELETE 'https://api.resend.com/contacts/{contact_id}' \
 
 ---
 
-最終更新日: 2026-01-20
+最終更新日: 2026-02-20

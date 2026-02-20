@@ -24,6 +24,7 @@ docs/
 │   └── environment.md   # AWS、Resend、GitHub設定
 ├── ops/              # 運用ガイド
 │   ├── workflow.md      # 日常的な配信フロー
+│   ├── delivery-status-lifecycle.md  # 配信ステータスライフサイクル
 │   ├── reply-email.md   # メール返信機能ガイド
 │   ├── scheduled-delivery-verification.md  # 予約配信の確認方法
 │   ├── troubleshooting.md  # トラブルシューティング
@@ -105,6 +106,13 @@ docs/
   - 配信停止機能（Unsubscribe機能、FTC/GDPR対応、トラブルシューティング）
   - 緊急停止手順
   - 配信履歴の確認方法
+
+- **[delivery-status-lifecycle.md](./ops/delivery-status-lifecycle.md)** - 配信ステータスライフサイクル
+  - config.json の status フィールドによる配信パイプライン進捗追跡
+  - 5つの status 値（pending → tested → delivered / schedule-delivered）の遷移図と詳細
+  - 即時配信・予約配信フロー（status 遷移付き）
+  - S3 とローカルの同期メカニズム、Git コミットメッセージとの対応
+  - エラーハンドリング、後方互換性、手動リカバリ手順
 
 - **[reply-email.md](./ops/reply-email.md)** - メール返信機能ガイド
   - 受信者からの返信に対して個別に返信メールを送信
@@ -188,4 +196,4 @@ docs/
 
 ---
 
-最終更新日: 2026-02-13
+最終更新日: 2026-02-20
