@@ -220,48 +220,57 @@ export async function updateConfigSentAt(
 
 #### 実装場所
 
-`src/scripts/send-scheduled-emails.ts` L142
+`src/scripts/send-scheduled-emails.ts` L51-69
 
 #### 保護の仕組み
 
 ```typescript
-if (config.sentAt !== null) {
-  return false;  // 配信対象から除外
+// waiting-schedule-delivery 以外はスキップ
+if (config.status !== 'waiting-schedule-delivery') {
+  return false;
 }
 ```
 
 **動作**:
-- cron実行（5分ごと）でも、`sentAt !== null` のメールは除外される
-- 一度配信されたメールは、何度スクリプトが実行されても再配信されない
-- 手動で `workflow_dispatch` を実行しても、同じメールは再送されない
+- `status === 'waiting-schedule-delivery'` のアーカイブのみが配信対象
+- 配信完了後に `status` が `schedule-delivered` に遷移するため、再配信されない
+- 手動で `workflow_dispatch` を実行しても、status が遷移済みであれば再送されない
 
 #### 保護される理由
 
-1. **scheduledAt の判定**: 配信予定時刻の前後5分以内のみ対象
-2. **sentAt の判定**: `sentAt === null` のメールのみ配信
-3. **両方の条件を満たす必要がある**: ANDロジック
+1. **status の判定**: `waiting-schedule-delivery` のみ対象
+2. **scheduledAt の判定**: 配信予定時刻の前後5分以内のみ対象
+3. **全条件を満たす必要がある**: AND ロジック
+
+> status ベースの配信ライフサイクルの詳細は [delivery-status-lifecycle.md](./delivery-status-lifecycle.md) を参照。
 
 ### 配信対象の判定条件
 
 #### 3つの必須条件
 
-1. `sentAt === null` （未配信）
+1. `status === 'waiting-schedule-delivery'`（予約配信待機中）
 2. `scheduledAt` が存在する（予約配信対象）
 3. 現在時刻と `scheduledAt` の差が **0～5分以内**
 
 #### 判定ロジック
 
 ```typescript
-function isScheduledForDelivery(config: MailConfig): boolean {
-  if (config.sentAt !== null) return false;  // 既に配信済み
-  if (!config.scheduledAt) return false;     // 予約配信ではない
+// send-scheduled-emails.ts L51-69
+const targets = allArchives.filter((archive) => {
+  const config = archive.config;
 
-  const now = new Date();
-  const scheduledTime = new Date(config.scheduledAt);
-  const diffMinutes = (now.getTime() - scheduledTime.getTime()) / 1000 / 60;
+  if (config.status !== 'waiting-schedule-delivery') {
+    return false;
+  }
+  if (!config.scheduledAt) {
+    return false;
+  }
 
-  return diffMinutes >= 0 && diffMinutes <= 5;  // 0～5分以内
-}
+  const scheduledDate = new Date(config.scheduledAt);
+  const diffMinutes = (now.getTime() - scheduledDate.getTime()) / (1000 * 60);
+
+  return diffMinutes >= 0 && diffMinutes < 5;
+});
 ```
 
 #### なぜ5分以内なのか
@@ -339,14 +348,14 @@ Error: Failed to send email via Resend
 
 #### 手順
 
-**1. sentAt をリセット**
+**1. status と sentAt をリセット**
 
 ```bash
 # config.json をローカルにダウンロード
 aws s3 cp s3://<bucket>/archives/YYYY/MM/DD-MSG/config.json config.json
 
-# sentAt を null に変更
-jq '.sentAt = null' config.json > config_updated.json
+# status を waiting-schedule-delivery に、sentAt を null に変更
+jq '.status = "waiting-schedule-delivery" | .sentAt = null' config.json > config_updated.json
 
 # S3にアップロード
 aws s3 cp config_updated.json s3://<bucket>/archives/YYYY/MM/DD-MSG/config.json
@@ -360,8 +369,8 @@ aws s3 cp config_updated.json s3://<bucket>/archives/YYYY/MM/DD-MSG/config.json
 # 現在時刻（UTC）を取得
 NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
-# scheduledAt を現在時刻に更新
-jq --arg now "$NOW" '.scheduledAt = $now | .sentAt = null' config.json > config_updated.json
+# scheduledAt を現在時刻に、status と sentAt をリセット
+jq --arg now "$NOW" '.scheduledAt = $now | .sentAt = null | .status = "waiting-schedule-delivery"' config.json > config_updated.json
 
 # S3にアップロード
 aws s3 cp config_updated.json s3://<bucket>/archives/YYYY/MM/DD-MSG/config.json
@@ -467,6 +476,7 @@ GitHub Actions → **Scheduled Email Delivery** → **Run workflow** ボタン�
 
 ## 関連ドキュメント
 
+- [delivery-status-lifecycle.md](./delivery-status-lifecycle.md): 配信ステータスライフサイクル
 - [workflow.md](./workflow.md): 日常的な配信フロー
 - [troubleshooting.md](./troubleshooting.md): トラブルシューティング
 - [../specs/architecture.md](../specs/architecture.md): システムアーキテクチャ
@@ -474,4 +484,4 @@ GitHub Actions → **Scheduled Email Delivery** → **Run workflow** ボタン�
 
 ---
 
-最終更新日: 2026-01-20
+最終更新日: 2026-02-20
