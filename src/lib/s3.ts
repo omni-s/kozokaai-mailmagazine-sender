@@ -656,7 +656,14 @@ export async function updateConfigFields(
 
     await getS3Client().send(command);
 
-    // ローカル config.json も同時更新（Git commit で差分を生成するため）
+  } catch (error) {
+    console.error('S3 updateConfigFields Error:', error);
+    throw error;
+  }
+
+  // ローカル config.json も同時更新（Git commit で差分を生成するため）
+  // best-effort: S3更新成功後に実行。失敗してもS3側は更新済みなので警告のみ
+  try {
     const localPath = path.join(
       process.cwd(), 'src', 'archives', yyyy, mm, ddMsg, 'config.json'
     );
@@ -666,9 +673,8 @@ export async function updateConfigFields(
       if (updates.status !== undefined) localConfig.status = updates.status;
       fs.writeFileSync(localPath, JSON.stringify(localConfig, null, 2), 'utf-8');
     }
-  } catch (error) {
-    console.error('S3 updateConfigFields Error:', error);
-    throw error;
+  } catch (localError) {
+    console.warn('警告: ローカル config.json の更新に失敗しました（S3は更新済み）', localError);
   }
 }
 
