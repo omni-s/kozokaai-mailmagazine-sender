@@ -422,9 +422,10 @@ export async function getLatestArchiveFromS3(
 /**
  * S3から全アーカイブのconfig.jsonを取得
  *
+ * @param limit - 取得件数制限（LastModified降順で先頭N件のみconfigをロード）
  * @returns 全アーカイブのメタデータとconfig.jsonのリスト
  */
-export async function getAllArchivesFromS3(): Promise<
+export async function getAllArchivesFromS3(limit?: number): Promise<
   Array<{
     yyyy: string;
     mm: string;
@@ -453,12 +454,24 @@ export async function getAllArchivesFromS3(): Promise<
     }
 
     // config.jsonで終わるキーのみをフィルタリング
-    const configFiles = response.Contents.filter(
+    let configFiles = response.Contents.filter(
       (obj) => obj.Key && obj.Key.endsWith('/config.json')
     );
 
     if (configFiles.length === 0) {
       return [];
+    }
+
+    // LastModified降順ソート（最新が先頭）
+    configFiles.sort((a, b) => {
+      const dateA = a.LastModified?.getTime() || 0;
+      const dateB = b.LastModified?.getTime() || 0;
+      return dateB - dateA;
+    });
+
+    // limit指定時は先頭N件のみ処理（S3 API呼び出し削減）
+    if (limit && limit > 0) {
+      configFiles = configFiles.slice(0, limit);
     }
 
     // 各config.jsonを取得
