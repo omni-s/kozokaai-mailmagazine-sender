@@ -3,7 +3,8 @@ import chalk from 'chalk';
 import { writeFileSync, appendFileSync } from 'fs';
 import { getSegmentDetails, listSegmentContacts } from '../lib/resend';
 import { type Config } from '../lib/config-schema';
-import { getLatestUnsentArchive, prepareAndSendEmail } from '../lib/email-sender';
+import { getLatestPendingArchive, prepareAndSendEmail } from '../lib/email-sender';
+import { updateConfigFields } from '../lib/s3';
 import { formatInTimeZone } from 'date-fns-tz';
 
 /**
@@ -30,11 +31,11 @@ function maskEmail(email: string): string {
  */
 async function generateDeliverySummary(params: {
   config: Config;
-  archivePath: string;
+  s3ArchivePath: string;
   testSegmentId: string;
   broadcastId: string;
 }): Promise<string> {
-  const { config, archivePath, testSegmentId, broadcastId } = params;
+  const { config, s3ArchivePath, testSegmentId, broadcastId } = params;
 
   // 本番Segment情報を取得
   const productionSegmentId = config.segmentId || config.audienceId || 'unknown';
@@ -64,7 +65,7 @@ async function generateDeliverySummary(params: {
   lines.push('| 項目 | 値 |');
   lines.push('|------|-----|');
   lines.push(`| 件名 | ${config.subject} |`);
-  lines.push(`| アーカイブ | \`${archivePath}\` |`);
+  lines.push(`| アーカイブ | \`${s3ArchivePath}\` |`);
   lines.push(`| 配信タイプ | ${deliveryType} |`);
   lines.push(`| 予約日時 | ${scheduledDisplay} |`);
   lines.push('');
@@ -133,19 +134,19 @@ async function main() {
 
   const s3BaseUrl = (process.env.S3_BUCKET_URL || '').replace(/\/$/, '');
 
-  // 1. S3から最新未送信アーカイブ取得（全モード共通関数）
-  console.log(chalk.cyan('S3から最新未送信アーカイブを取得中...'));
-  const archive = await getLatestUnsentArchive();
+  // 1. S3から最新pendingアーカイブ取得
+  console.log(chalk.cyan('S3から最新pendingアーカイブを取得中...'));
+  const archive = await getLatestPendingArchive();
 
   if (!archive) {
-    console.log(chalk.yellow('未送信アーカイブが見つかりません'));
+    console.log(chalk.yellow('pendingアーカイブが見つかりません'));
     console.log(chalk.green('✓ テストメール送信完了（対象なし）\n'));
     process.exit(0);
   }
 
   const { yyyy, mm, ddMsg } = archive;
-  const archivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
-  console.log(chalk.green(`✓ 対象アーカイブ: ${archivePath}`));
+  const s3ArchivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
+  console.log(chalk.green(`✓ 対象アーカイブ: ${s3ArchivePath}`));
 
   // 2. テスト配信（全モード共通関数）
   console.log(chalk.cyan('テストメールを送信中...'));
@@ -169,12 +170,22 @@ async function main() {
   console.log(chalk.gray(`  Test Segment ID: ${testSegmentId}`));
   console.log(chalk.gray(`  件名: ${result.subject}`));
 
-  // 3. テスト固有: 配信確認サマリー生成
+  // 3. status を "tested" に更新
+  console.log(chalk.cyan('config.json の status を tested に更新中...'));
+  try {
+    await updateConfigFields(yyyy, mm, ddMsg, { status: 'tested' });
+    console.log(chalk.green('✓ status更新完了'));
+  } catch (error) {
+    console.error(chalk.red('エラー: status更新に失敗しました'), error);
+    process.exit(1);
+  }
+
+  // 4. テスト固有: 配信確認サマリー生成
   console.log(chalk.cyan('\n配信確認サマリーを生成中...'));
   try {
     const summary = await generateDeliverySummary({
       config: archive.config,
-      archivePath,
+      s3ArchivePath,
       testSegmentId,
       broadcastId: result.broadcastId || 'unknown',
     });

@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import chalk from 'chalk';
-import { updateConfigSentAt } from '../lib/s3';
-import { getLatestUnsentArchive, prepareAndSendEmail } from '../lib/email-sender';
+import { writeFileSync } from 'fs';
+import { updateConfigFields } from '../lib/s3';
+import { getLatestTestedArchive, prepareAndSendEmail } from '../lib/email-sender';
 
 /**
  * Production Dispatcher
@@ -31,21 +32,21 @@ async function main() {
 
   const s3BaseUrl = (process.env.S3_BUCKET_URL || '').replace(/\/$/, '');
 
-  // 1. S3から最新未送信アーカイブ取得（全モード共通関数）
-  console.log(chalk.cyan('S3から最新未送信アーカイブを取得中...'));
-  const archive = await getLatestUnsentArchive();
+  // 1. S3から最新testedアーカイブ取得
+  console.log(chalk.cyan('S3から最新testedアーカイブを取得中...'));
+  const archive = await getLatestTestedArchive();
 
   if (!archive) {
-    console.log(chalk.yellow('未送信アーカイブが見つかりません'));
+    console.log(chalk.yellow('testedアーカイブが見つかりません'));
     console.log(chalk.green('✓ Production Dispatcher完了（対象なし）\n'));
     process.exit(0);
   }
 
   const { yyyy, mm, ddMsg } = archive;
-  const archivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
+  const s3ArchivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
   const config = archive.config;
 
-  console.log(chalk.green(`✓ 対象アーカイブ: ${archivePath}`));
+  console.log(chalk.green(`✓ 対象アーカイブ: ${s3ArchivePath}`));
 
   // 2. scheduledAtチェック
   if (config.scheduledAt) {
@@ -57,8 +58,17 @@ async function main() {
     console.log(chalk.cyan(`  現在時刻: ${now.toISOString()} (UTC)`));
 
     if (scheduledDate > now) {
-      // 未来 → cron待ち
+      // 未来 → cron待ち（status を waiting-schedule-delivery に更新）
       console.log(chalk.cyan('\n予約配信待機中...'));
+      console.log(chalk.cyan('config.json の status を waiting-schedule-delivery に更新中...'));
+      try {
+        await updateConfigFields(yyyy, mm, ddMsg, { status: 'waiting-schedule-delivery' });
+        writeFileSync('.git-commit-message', 'MAIL: Update config(waiting-schedule-delivery)', 'utf-8');
+        console.log(chalk.green('✓ status更新完了'));
+      } catch (error) {
+        console.error(chalk.red('エラー: status更新に失敗しました'), error);
+        process.exit(1);
+      }
       console.log(chalk.cyan('  scheduled-email-delivery.yml で配信予定です\n'));
       console.log(chalk.green('✓ Production Dispatcher完了（予約配信待機）\n'));
       process.exit(0);
@@ -90,13 +100,18 @@ async function main() {
   console.log(chalk.gray(`  Segment ID: ${result.segmentId}`));
   console.log(chalk.gray(`  件名: ${result.subject}`));
 
-  // 4. sentAt更新（S3に反映）
-  console.log(chalk.cyan('config.json の sentAt を更新中...'));
+  // 4. sentAt + status 更新（S3に反映）
+  console.log(chalk.cyan('config.json の sentAt・status を更新中...'));
   try {
-    await updateConfigSentAt(yyyy, mm, ddMsg, new Date().toISOString());
-    console.log(chalk.green('✓ sentAt更新完了'));
+    await updateConfigFields(yyyy, mm, ddMsg, {
+      sentAt: new Date().toISOString(),
+      status: 'delivered',
+    });
+    writeFileSync('.git-commit-message', 'MAIL: Update config(delivered)', 'utf-8');
+    console.log(chalk.green('✓ sentAt・status更新完了'));
   } catch (error) {
-    console.error(chalk.yellow('警告: sentAt更新に失敗しました'), error);
+    console.error(chalk.red('エラー: sentAt・status更新に失敗しました'), error);
+    process.exit(1);
   }
 
   console.log(chalk.green.bold('\n✓ 本番メール配信が完了しました\n'));

@@ -186,10 +186,10 @@ aws s3 cp s3://kozokaai-MAIL-ASSETS/archives/2026/01/20-gui-delivery-test/config
 
 ```typescript
 export async function updateConfigSentAt(
-  archivePath: string,
+  s3ArchivePath: string,
   sentAt: string
 ): Promise<void> {
-  const configKey = `${archivePath}/config.json`;
+  const configKey = `${s3ArchivePath}/config.json`;
 
   // S3から既存のconfig.jsonを取得
   const getCommand = new GetObjectCommand({

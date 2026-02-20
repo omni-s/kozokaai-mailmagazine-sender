@@ -52,14 +52,24 @@ export interface SendResult {
 }
 
 /**
- * S3から最新の未送信アーカイブを取得
+ * テスト配信用: 最新の pending アーカイブを取得
  *
- * 全3モード（テスト・即時・予約）共通の特定方法。
- * S3のLastModified降順で最新10件を取得し、sentAt === null の最初のアーカイブを返す。
+ * 後方互換: status未定義かつsentAt===nullのアーカイブも対象
  */
-export async function getLatestUnsentArchive(): Promise<ArchiveWithConfig | null> {
-  const archives = await getAllArchivesFromS3(10);
-  return archives.find((a) => a.config.sentAt === null) || null;
+export async function getLatestPendingArchive(): Promise<ArchiveWithConfig | null> {
+  const archives = await getAllArchivesFromS3(30);
+  return archives.find((a) => {
+    const status = a.config.status ?? null;
+    return status === 'pending' || (status === null && a.config.sentAt === null);
+  }) || null;
+}
+
+/**
+ * 本番配信用: 最新の tested アーカイブを取得
+ */
+export async function getLatestTestedArchive(): Promise<ArchiveWithConfig | null> {
+  const archives = await getAllArchivesFromS3(30);
+  return archives.find((a) => a.config.status === 'tested') || null;
 }
 
 /**

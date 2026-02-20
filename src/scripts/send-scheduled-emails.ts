@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import chalk from 'chalk';
-import { getAllArchivesFromS3, updateConfigSentAt } from '../lib/s3';
+import { writeFileSync } from 'fs';
+import { getAllArchivesFromS3, updateConfigFields } from '../lib/s3';
 import { prepareAndSendEmail } from '../lib/email-sender';
 
 /**
@@ -46,16 +47,16 @@ async function main() {
 
   console.log(chalk.green(`✓ 全アーカイブ数: ${allArchives.length}件\n`));
 
-  // 2. 配信対象を抽出
+  // 2. 配信対象を抽出（status === "waiting-schedule-delivery" のみ）
   const targets = allArchives.filter((archive) => {
     const config = archive.config;
 
-    // 送信済みはスキップ
-    if (config.sentAt !== null) {
+    // waiting-schedule-delivery 以外はスキップ
+    if (config.status !== 'waiting-schedule-delivery') {
       return false;
     }
 
-    // scheduledAt がない場合はスキップ（即時配信対象）
+    // scheduledAt がない場合はスキップ（不整合データ）
     if (!config.scheduledAt) {
       return false;
     }
@@ -109,10 +110,14 @@ async function main() {
       console.log(chalk.green('✓ 本番メール配信'));
       console.log(chalk.gray(`  送信ID: ${result.broadcastId}`));
 
-      // sentAt更新（S3に反映）
-      console.log(chalk.cyan('config.json の sentAt を更新中...'));
-      await updateConfigSentAt(yyyy, mm, ddMsg, new Date().toISOString());
-      console.log(chalk.green('✓ sentAt更新完了'));
+      // sentAt + status 更新（S3に反映）
+      console.log(chalk.cyan('config.json の sentAt・status を更新中...'));
+      await updateConfigFields(yyyy, mm, ddMsg, {
+        sentAt: new Date().toISOString(),
+        status: 'schedule-delivered',
+      });
+      writeFileSync('.git-commit-message', 'MAIL: Update config(schedule-delivered)', 'utf-8');
+      console.log(chalk.green('✓ sentAt・status更新完了'));
 
       successCount++;
     } catch (error) {

@@ -56,7 +56,8 @@ jobs:
             echo "No changes to commit"
           else
             git add src/archives/**/config.json
-            git commit -m "MAIL: Update sentAt timestamps" || echo "No changes to commit"
+            COMMIT_MSG=$(cat .git-commit-message 2>/dev/null || echo "MAIL: Update config")
+            git commit -m "$COMMIT_MSG" || echo "No changes to commit"
             git push
           fi
         env:

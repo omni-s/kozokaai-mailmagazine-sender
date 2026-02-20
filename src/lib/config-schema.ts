@@ -53,6 +53,27 @@ export const ConfigSchema = z
      * string: 送信済み（送信日時）
      */
     sentAt: z.string().nullable(),
+
+    /**
+     * 配信ステータス
+     * - pending: コミット直後（テスト未実施）
+     * - tested: テスト配信済み（本番配信可能）
+     * - delivered: 即時配信済み
+     * - waiting-schedule-delivery: 予約配信待機中
+     * - schedule-delivered: 予約配信済み
+     *
+     * 後方互換: 既存の config.json（status未定義）も通過する
+     */
+    status: z
+      .enum([
+        "pending",
+        "tested",
+        "delivered",
+        "waiting-schedule-delivery",
+        "schedule-delivered",
+      ])
+      .nullable()
+      .optional(),
   })
   .refine((data) => data.segmentId || data.audienceId, {
     message: "segmentId または audienceId のいずれかは必須です",
@@ -63,6 +84,19 @@ export const ConfigSchema = z
  * Config型定義
  */
 export type Config = z.infer<typeof ConfigSchema>;
+
+/**
+ * 配信ステータス定数
+ */
+export const CONFIG_STATUS = {
+  PENDING: 'pending',
+  TESTED: 'tested',
+  DELIVERED: 'delivered',
+  WAITING_SCHEDULE: 'waiting-schedule-delivery',
+  SCHEDULE_DELIVERED: 'schedule-delivered',
+} as const;
+
+export type ConfigStatus = typeof CONFIG_STATUS[keyof typeof CONFIG_STATUS];
 
 /**
  * config.jsonのバリデーション関数
