@@ -239,7 +239,7 @@ if (config.status !== 'waiting-schedule-delivery') {
 #### 保護される理由
 
 1. **status の判定**: `waiting-schedule-delivery` のみ対象
-2. **scheduledAt の判定**: 配信予定時刻の前後5分以内のみ対象
+2. **scheduledAt の判定**: 配信予定時刻が現在時刻以前であること（上限なし）
 3. **全条件を満たす必要がある**: AND ロジック
 
 > status ベースの配信ライフサイクルの詳細は [delivery-status-lifecycle.md](./delivery-status-lifecycle.md) を参照。
@@ -250,12 +250,12 @@ if (config.status !== 'waiting-schedule-delivery') {
 
 1. `status === 'waiting-schedule-delivery'`（予約配信待機中）
 2. `scheduledAt` が存在する（予約配信対象）
-3. 現在時刻と `scheduledAt` の差が **0～5分以内**
+3. `scheduledAt` が現在時刻以前（上限なし）
 
 #### 判定ロジック
 
 ```typescript
-// send-scheduled-emails.ts L51-69
+// send-scheduled-emails.ts L51-67
 const targets = allArchives.filter((archive) => {
   const config = archive.config;
 
@@ -267,17 +267,16 @@ const targets = allArchives.filter((archive) => {
   }
 
   const scheduledDate = new Date(config.scheduledAt);
-  const diffMinutes = (now.getTime() - scheduledDate.getTime()) / (1000 * 60);
 
-  return diffMinutes >= 0 && diffMinutes < 5;
+  return scheduledDate <= now;
 });
 ```
 
-#### なぜ5分以内なのか
+#### なぜ上限なしなのか
 
-- Scheduled Email Delivery ワークフローは **5分ごと** に実行される
-- cronの実行タイミングによるズレを吸収するため
-- 配信予定時刻を過ぎても、次のcron実行（最大5分後）で確実に配信される
+- `status === 'waiting-schedule-delivery'` による重複送信防止が機能するため、時間上限は不要
+- GitHub Actions の cron は正確に5分間隔で実行される保証がなく、遅延によりウィンドウを逃すリスクがあった
+- 過去の `scheduledAt` を指定した場合でも、確実に配信される
 
 ---
 
@@ -361,22 +360,7 @@ jq '.status = "waiting-schedule-delivery" | .sentAt = null' config.json > config
 aws s3 cp config_updated.json s3://<bucket>/archives/YYYY/MM/DD-MSG/config.json
 ```
 
-**2. scheduledAt を現在時刻に更新（オプション）**
-
-配信予定時刻が5分以上前の場合、`scheduledAt` も更新する必要があります:
-
-```bash
-# 現在時刻（UTC）を取得
-NOW=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
-
-# scheduledAt を現在時刻に、status と sentAt をリセット
-jq --arg now "$NOW" '.scheduledAt = $now | .sentAt = null | .status = "waiting-schedule-delivery"' config.json > config_updated.json
-
-# S3にアップロード
-aws s3 cp config_updated.json s3://<bucket>/archives/YYYY/MM/DD-MSG/config.json
-```
-
-**3. 手動実行**
+**2. 手動実行**
 
 GitHub Actions → **Scheduled Email Delivery** → **Run workflow** ボタンをクリック
 
@@ -393,7 +377,8 @@ GitHub Actions → **Scheduled Email Delivery** → **Run workflow** ボタン�
 **回答**:
 - Scheduled Email Delivery ワークフローは5分ごとに実行されます
 - 最大5分の遅延が発生する可能性があります
-- 5分以上経過しても配信されない場合は、上記のチェックリストを確認してください
+- `status` が `waiting-schedule-delivery` になっているか確認してください
+- 上記のチェックリストに沿って確認してください
 
 #### Q2. sentAt が更新されているのにメールが届かない
 

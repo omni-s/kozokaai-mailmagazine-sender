@@ -232,7 +232,7 @@ production-dispatcher.ts（scheduledAt > 現在時刻 → ログ出力のみ）
   ↓
 Scheduled Email Delivery Workflow（5分ごとcron）
   ↓
-send-scheduled-emails.ts（scheduledAt <= 現在時刻 → 配信実行）
+send-scheduled-emails.ts（scheduledAt <= 現在時刻 → 配信実行、上限なし）
   ↓
 本番配信（Resend Audience へ一斉送信）
   ↓
@@ -445,8 +445,8 @@ module.exports = {
 - **Manual Approval不要**（無人実行）
 - `send-scheduled-emails.ts` を実行
   - S3から全config.jsonを取得
-  - `scheduledAt` が現在時刻±5分以内のアーカイブを抽出
-  - 重複送信防止: `sentAt !== null` の場合はスキップ
+  - `scheduledAt` が現在時刻以前のアーカイブを抽出（上限なし）
+  - 重複送信防止: `status !== 'waiting-schedule-delivery'` の場合はスキップ
   - Resend Audience へ一斉送信
 - `config.json` の `sentAt` を更新してコミット
 

@@ -9,7 +9,7 @@ import { prepareAndSendEmail } from '../lib/email-sender';
  *
  * 予約配信スクリプト（cron workflowから実行）
  * - S3から全config.jsonを取得
- * - scheduledAt が現在時刻±5分以内のアーカイブを配信
+ * - scheduledAt が現在時刻以前のアーカイブを配信
  * - 重複送信防止: sentAt !== null の場合はスキップ
  */
 
@@ -63,10 +63,8 @@ async function main() {
 
     const scheduledDate = new Date(config.scheduledAt);
 
-    // 配信時刻判定: scheduledAt <= 現在時刻 かつ scheduledAt > 現在時刻 - 5分
-    const diffMinutes = (now.getTime() - scheduledDate.getTime()) / (1000 * 60);
-
-    return diffMinutes >= 0 && diffMinutes < 5;
+    // 配信時刻判定: scheduledAt <= 現在時刻（上限なし、status による重複送信防止で安全）
+    return scheduledDate <= now;
   });
 
   if (targets.length === 0) {
