@@ -811,6 +811,7 @@ async function main() {
     segmentId: answers.segmentId,
     scheduledAt: scheduledAt,
     sentAt: null,
+    status: "pending",
   };
 
   console.log(chalk.cyan("config.json を生成中..."));
@@ -934,7 +935,7 @@ async function main() {
 
   // git commit
   updateStepStatus("git-commit", "running");
-  const commitMsg = `MAIL: ${answers.commitMessage}`;
+  const commitMsg = `MAIL: ${answers.commitMessage}(pending)`;
   console.log(chalk.gray(`  $ git commit -m "${commitMsg}"`));
 
   const commitResult = executeGitCommit(commitMsg);

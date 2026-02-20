@@ -399,7 +399,7 @@ export async function getLatestArchiveFromS3(
 
       // パスが不正またはマッチしない場合は次を試す
       if (!directoryName) {
-        console.warn(`警告: 不正なアーカイブパス: ${file.Key}`);
+        console.warn(`警告: 不正なS3アーカイブパス: ${file.Key}`);
       }
     }
 
@@ -422,9 +422,10 @@ export async function getLatestArchiveFromS3(
 /**
  * S3から全アーカイブのconfig.jsonを取得
  *
+ * @param limit - 取得件数制限（LastModified降順で先頭N件のみconfigをロード）
  * @returns 全アーカイブのメタデータとconfig.jsonのリスト
  */
-export async function getAllArchivesFromS3(): Promise<
+export async function getAllArchivesFromS3(limit?: number): Promise<
   Array<{
     yyyy: string;
     mm: string;
@@ -453,12 +454,24 @@ export async function getAllArchivesFromS3(): Promise<
     }
 
     // config.jsonで終わるキーのみをフィルタリング
-    const configFiles = response.Contents.filter(
+    let configFiles = response.Contents.filter(
       (obj) => obj.Key && obj.Key.endsWith('/config.json')
     );
 
     if (configFiles.length === 0) {
       return [];
+    }
+
+    // LastModified降順ソート（最新が先頭）
+    configFiles.sort((a, b) => {
+      const dateA = a.LastModified?.getTime() || 0;
+      const dateB = b.LastModified?.getTime() || 0;
+      return dateB - dateA;
+    });
+
+    // limit指定時は先頭N件のみ処理（S3 API呼び出し削減）
+    if (limit && limit > 0) {
+      configFiles = configFiles.slice(0, limit);
     }
 
     // 各config.jsonを取得
@@ -477,7 +490,7 @@ export async function getAllArchivesFromS3(): Promise<
       const match = file.Key.match(pattern);
 
       if (!match) {
-        console.warn(`警告: 不正なアーカイブパス: ${file.Key}`);
+        console.warn(`警告: 不正なS3アーカイブパス: ${file.Key}`);
         continue;
       }
 
@@ -599,6 +612,73 @@ export async function updateConfigSentAt(
 }
 
 /**
+ * S3のconfig.jsonの任意フィールドを更新
+ *
+ * @param yyyy - 年
+ * @param mm - 月
+ * @param ddMsg - 日-メッセージ
+ * @param updates - 更新するフィールド（sentAt, status など）
+ */
+export async function updateConfigFields(
+  yyyy: string,
+  mm: string,
+  ddMsg: string,
+  updates: { sentAt?: string; status?: string }
+): Promise<void> {
+  const bucket = process.env.S3_BUCKET_NAME;
+
+  if (!bucket) {
+    throw new Error('S3_BUCKET_NAME is not set');
+  }
+
+  try {
+    // S3からconfig.jsonを取得
+    const config = await loadConfigFromS3(yyyy, mm, ddMsg);
+
+    // 指定されたフィールドを上書き
+    if (updates.sentAt !== undefined) {
+      config.sentAt = updates.sentAt;
+    }
+    if (updates.status !== undefined) {
+      (config as Record<string, unknown>).status = updates.status;
+    }
+
+    // S3に書き戻す
+    const s3Key = `archives/${yyyy}/${mm}/${ddMsg}/config.json`;
+
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: s3Key,
+      Body: JSON.stringify(config, null, 2),
+      ContentType: 'application/json',
+      ACL: 'public-read',
+    });
+
+    await getS3Client().send(command);
+
+  } catch (error) {
+    console.error('S3 updateConfigFields Error:', error);
+    throw error;
+  }
+
+  // ローカル config.json も同時更新（Git commit で差分を生成するため）
+  // best-effort: S3更新成功後に実行。失敗してもS3側は更新済みなので警告のみ
+  try {
+    const localPath = path.join(
+      process.cwd(), 'src', 'archives', yyyy, mm, ddMsg, 'config.json'
+    );
+    if (fs.existsSync(localPath)) {
+      const localConfig = JSON.parse(fs.readFileSync(localPath, 'utf-8'));
+      if (updates.sentAt !== undefined) localConfig.sentAt = updates.sentAt;
+      if (updates.status !== undefined) localConfig.status = updates.status;
+      fs.writeFileSync(localPath, JSON.stringify(localConfig, null, 2), 'utf-8');
+    }
+  } catch (localError) {
+    console.warn('警告: ローカル config.json の更新に失敗しました（S3は更新済み）', localError);
+  }
+}
+
+/**
  * S3から対象アーカイブを取得（directoryName指定版）
  *
  * @param directoryName - ディレクトリ名
@@ -672,9 +752,9 @@ export async function loadMailHtmlFromS3(
 /**
  * S3からアーカイブディレクトリを削除
  *
- * @param archivePath - "YYYY/MM/DD-MSG" 形式
+ * @param s3ArchivePath - "YYYY/MM/DD-MSG" 形式
  */
-export async function deleteArchiveFromS3(archivePath: string): Promise<void> {
+export async function deleteArchiveFromS3(s3ArchivePath: string): Promise<void> {
   const bucket = process.env.S3_BUCKET_NAME;
 
   if (!bucket) {
@@ -682,7 +762,7 @@ export async function deleteArchiveFromS3(archivePath: string): Promise<void> {
   }
 
   // ListObjectsV2でアーカイブ配下の全オブジェクトを列挙
-  const prefix = `archives/${archivePath}/`;
+  const prefix = `archives/${s3ArchivePath}/`;
   console.log(`[S3 Delete] Listing objects with prefix: ${prefix} in bucket: ${bucket}`);
 
   const listCommand = new ListObjectsV2Command({

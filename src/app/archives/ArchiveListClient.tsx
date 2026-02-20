@@ -57,7 +57,7 @@ export function ArchiveListClient({ archives }: ArchiveListClientProps) {
           </Center>
         ) : (
           filteredArchives.map((archive) => (
-            <ArchiveCard key={archive.path} archive={archive} />
+            <ArchiveCard key={archive.s3Path} archive={archive} />
           ))
         )}
       </Stack>

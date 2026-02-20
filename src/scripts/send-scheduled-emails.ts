@@ -1,11 +1,8 @@
 import 'dotenv/config';
 import chalk from 'chalk';
-import { getResendClient } from '../lib/resend';
-import {
-  getAllArchivesFromS3,
-  loadMailHtmlFromS3,
-  updateConfigSentAt,
-} from '../lib/s3';
+import { writeFileSync } from 'fs';
+import { getAllArchivesFromS3, updateConfigFields } from '../lib/s3';
+import { prepareAndSendEmail } from '../lib/email-sender';
 
 /**
  * Scheduled Email Delivery
@@ -15,95 +12,6 @@ import {
  * - scheduledAt が現在時刻±5分以内のアーカイブを配信
  * - 重複送信防止: sentAt !== null の場合はスキップ
  */
-
-interface ProductionEmailError {
-  type: string;
-  message: string;
-  details?: string;
-}
-
-/**
- * 画像パスを /MAIL-ASSETS/ から S3 URL に置換
- * 大文字小文字不問（/mail-assets/ も対応）
- */
-function replaceImagePaths(
-  html: string,
-  s3BaseUrl: string,
-  yyyy: string,
-  mm: string,
-  ddMsg: string
-): string {
-  // <Img> と <img> の両方、/MAIL-ASSETS/ と /mail-assets/ の両方に対応
-  const pattern = /<[Ii]mg[^>]*src=['"]\/[Mm][Aa][Ii][Ll]-[Aa][Ss][Ss][Ee][Tt][Ss]\/([^'"]+)['"]/g;
-
-  return html.replace(pattern, (match, filename) => {
-    const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
-    return match.replace(/\/[Mm][Aa][Ii][Ll]-[Aa][Ss][Ss][Ee][Tt][Ss]\/[^'"]+/, s3Url);
-  });
-}
-
-/**
- * Resend API で本番配信（Segment一斉送信）
- */
-async function sendProductionEmail(
-  html: string,
-  subject: string,
-  segmentId: string
-): Promise<{ success: boolean; id?: string; error?: string }> {
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-  const fromName = process.env.RESEND_FROM_NAME;
-  const fromAddress = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
-  const replyTo = process.env.RESEND_REPLY_TO || fromEmail;
-
-  try {
-    // Step 1: Broadcast を作成
-    const { data: createData, error: createError } = await getResendClient().broadcasts.create({
-      name: `Broadcast - ${subject}`,
-      segmentId: segmentId,
-      from: fromAddress,
-      replyTo: replyTo,
-      subject: subject,
-      html,
-    });
-
-    if (createError) {
-      return {
-        success: false,
-        error: createError.message || 'Broadcast作成エラー',
-      };
-    }
-
-    if (!createData?.id) {
-      return {
-        success: false,
-        error: 'Broadcast IDが取得できませんでした',
-      };
-    }
-
-    // Step 2: Broadcast を送信
-    const { data: sendData, error: sendError } = await getResendClient().broadcasts.send(createData.id);
-
-    if (sendError) {
-      return {
-        success: false,
-        error: sendError.message || 'Broadcast送信エラー',
-      };
-    }
-
-    return {
-      success: true,
-      id: sendData?.id || createData.id,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : '本番メール配信に失敗しました',
-    };
-  }
-}
 
 /**
  * メイン処理
@@ -127,7 +35,7 @@ async function main() {
 
   console.log(chalk.cyan(`現在時刻: ${now.toISOString()} (UTC)\n`));
 
-  // 1. S3から全config.jsonを取得
+  // 1. S3から全アーカイブ取得（予約配信は全件スキャン）
   console.log(chalk.cyan('S3から全アーカイブを取得中...'));
   const allArchives = await getAllArchivesFromS3();
 
@@ -139,26 +47,25 @@ async function main() {
 
   console.log(chalk.green(`✓ 全アーカイブ数: ${allArchives.length}件\n`));
 
-  // 2. 配信対象を抽出
+  // 2. 配信対象を抽出（status === "waiting-schedule-delivery" のみ）
   const targets = allArchives.filter((archive) => {
     const config = archive.config;
 
-    // 送信済みはスキップ
-    if (config.sentAt !== null) {
+    // waiting-schedule-delivery 以外はスキップ
+    if (config.status !== 'waiting-schedule-delivery') {
       return false;
     }
 
-    // scheduledAt がない場合はスキップ（即時配信対象）
+    // scheduledAt がない場合はスキップ（不整合データ）
     if (!config.scheduledAt) {
       return false;
     }
 
     const scheduledDate = new Date(config.scheduledAt);
 
-    // 配信時刻判定: scheduledAt ≤ 現在時刻 かつ scheduledAt > 現在時刻 - 5分
+    // 配信時刻判定: scheduledAt <= 現在時刻 かつ scheduledAt > 現在時刻 - 5分
     const diffMinutes = (now.getTime() - scheduledDate.getTime()) / (1000 * 60);
 
-    // 配信時刻到達 かつ 過去5分以内
     return diffMinutes >= 0 && diffMinutes < 5;
   });
 
@@ -170,7 +77,7 @@ async function main() {
 
   console.log(chalk.cyan(`配信対象: ${targets.length}件\n`));
 
-  // 3. 各アーカイブを配信
+  // 3. 各対象を配信（全モード共通関数）
   let successCount = 0;
   let failedCount = 0;
 
@@ -185,94 +92,36 @@ async function main() {
     console.log(chalk.gray(`  予約日時: ${config.scheduledAt}`));
     console.log(chalk.gray(`  Segment ID: ${config.segmentId || config.audienceId}\n`));
 
-    const errors: ProductionEmailError[] = [];
-    let hasError = false;
-
     try {
-      // mail.htmlを取得
-      console.log(chalk.cyan('S3からmail.htmlを取得中...'));
-      const htmlResult = await loadMailHtmlFromS3(yyyy, mm, ddMsg);
+      const result = await prepareAndSendEmail({
+        archive: target,
+        s3BaseUrl,
+        mode: 'production',
+        config: target.config,
+      });
 
-      if ('error' in htmlResult) {
-        errors.push({
-          type: 'mail.html',
-          message: 'mail.html の読み込みに失敗しました',
-          details: htmlResult.error,
-        });
-        hasError = true;
-      }
-
-      if (hasError) {
-        console.log(chalk.red.bold('\n✗ 配信でエラーが発生しました\n'));
-        errors.forEach(({ type, message, details }) => {
-          console.log(chalk.red(`  タイプ: ${type}`));
-          console.log(chalk.red(`  メッセージ: ${message}`));
-          if (details) {
-            console.log(chalk.red(`  詳細: ${details}`));
-          }
-          console.log();
-        });
-        failedCount++;
-        continue;
-      }
-
-      // 型ガード: htmlResult が { html: string } であることを確認
-      if (!('html' in htmlResult)) {
-        console.log(chalk.red.bold('\n✗ mail.html の読み込みに失敗しました\n'));
-        failedCount++;
-        continue;
-      }
-
-      let html = htmlResult.html;
-      console.log(chalk.green('✓ mail.html 読み込み'));
-
-      // 画像パス置換
-      html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, ddMsg);
-      console.log(chalk.green('✓ 画像パス置換'));
-
-      // Resend API配信
-      console.log(chalk.cyan('本番メールを送信中...'));
-      const sendResult = await sendProductionEmail(
-        html,
-        config.subject,
-        config.segmentId || config.audienceId!
-      );
-
-      if (!sendResult.success) {
-        errors.push({
-          type: '本番配信',
-          message: '本番メール配信に失敗しました',
-          details: sendResult.error,
-        });
-        hasError = true;
-      }
-
-      if (hasError) {
-        console.log(chalk.red.bold('\n✗ 配信でエラーが発生しました\n'));
-        errors.forEach(({ type, message, details }) => {
-          console.log(chalk.red(`  タイプ: ${type}`));
-          console.log(chalk.red(`  メッセージ: ${message}`));
-          if (details) {
-            console.log(chalk.red(`  詳細: ${details}`));
-          }
-          console.log();
-        });
+      if (!result.success) {
+        console.log(chalk.red.bold('\n✗ 配信でエラーが発生しました'));
+        console.log(chalk.red(`  エラー: ${result.error}`));
         failedCount++;
         continue;
       }
 
       console.log(chalk.green('✓ 本番メール配信'));
-      console.log(chalk.gray(`  送信ID: ${sendResult.id}`));
+      console.log(chalk.gray(`  送信ID: ${result.broadcastId}`));
 
-      // sentAt更新（S3に反映）
-      console.log(chalk.cyan('config.json の sentAt を更新中...'));
-      await updateConfigSentAt(yyyy, mm, ddMsg, new Date().toISOString());
-      console.log(chalk.green('✓ sentAt更新完了'));
+      // sentAt + status 更新（S3に反映）
+      console.log(chalk.cyan('config.json の sentAt・status を更新中...'));
+      await updateConfigFields(yyyy, mm, ddMsg, {
+        sentAt: new Date().toISOString(),
+        status: 'schedule-delivered',
+      });
+      writeFileSync('.git-commit-message', 'MAIL: Update config(schedule-delivered)', 'utf-8');
+      console.log(chalk.green('✓ sentAt・status更新完了'));
 
       successCount++;
-
     } catch (error) {
-      console.log(chalk.red.bold('\n✗ 予期しないエラーが発生しました\n'));
+      console.log(chalk.red.bold('\n✗ 予期しないエラーが発生しました'));
       console.error(error);
       failedCount++;
       continue;
@@ -291,7 +140,6 @@ async function main() {
 
   console.log(chalk.green.bold('\n✓ Scheduled Email Delivery完了\n'));
 
-  // 失敗があった場合はエラーコードを返す
   if (failedCount > 0) {
     process.exit(1);
   }

@@ -22,7 +22,7 @@ export function ArchiveCard({ archive }: ArchiveCardProps) {
   const isSent = archive.sentAt !== null;
 
   return (
-    <Link href={`/archives/${archive.path}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Link href={`/archives/${archive.s3Path}`} style={{ textDecoration: 'none', color: 'inherit' }}>
       <Card withBorder shadow="sm" radius="md" className={styles.card}>
         <Group justify="space-between" align="flex-start" mb="xs">
           <Title order={4} style={{ flex: 1 }}>{archive.subject}</Title>

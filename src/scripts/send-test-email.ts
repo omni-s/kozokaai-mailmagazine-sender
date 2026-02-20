@@ -1,287 +1,23 @@
 import 'dotenv/config';
-import { execSync } from 'child_process';
 import chalk from 'chalk';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { getLatestArchiveFromS3 } from '../lib/s3';
 import { writeFileSync, appendFileSync } from 'fs';
-import { getResendClient, getSegmentDetails, listSegmentContacts } from '../lib/resend';
-import { validateConfig, type Config } from '../lib/config-schema';
+import { getSegmentDetails, listSegmentContacts } from '../lib/resend';
+import { type Config } from '../lib/config-schema';
+import { getLatestPendingArchive, prepareAndSendEmail } from '../lib/email-sender';
+import { updateConfigFields } from '../lib/s3';
 import { formatInTimeZone } from 'date-fns-tz';
 
 /**
  * GitHub Actions Staging Workflow用テストメール送信スクリプト
  *
- * 最新コミットのメッセージから対象archiveを特定し、以下を実行:
- * 1. S3からmail.htmlとconfig.jsonを取得
- * 2. 画像パス置換（/mail-assets/ → S3 URL）
- * 3. Resend APIでテストメール送信（TEST_SEGMENT_ID必須、Segment一斉送信）
+ * S3から最新の未送信アーカイブを取得し、以下を実行:
+ * 1. 共通コア（prepareAndSendEmail）でテスト配信
+ * 2. 配信確認サマリーをMarkdownで生成
  */
-
-const PROJECT_ROOT = process.cwd();
-
-/**
- * S3 Client初期化
- */
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'ap-northeast-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
-});
-
-const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME!;
-
-interface TestEmailError {
-  type: string;
-  message: string;
-  details?: string;
-}
-
-interface ArchiveMetadata {
-  yyyy: string;
-  mm: string;
-  ddMsg: string;
-}
-
-/**
- * 最新コミットメッセージから対象archiveディレクトリ名を抽出
- * マージコミット対応: 最新10件のコミットから "MAIL:" プレフィックスを検索
- */
-function getTargetArchiveFromCommit(): string | null {
-  try {
-    // 最新10件のコミットから "MAIL:" プレフィックスを持つコミットを検索
-    const commitMessages = execSync('git log -10 --format=%s', {
-      cwd: PROJECT_ROOT,
-      encoding: 'utf-8',
-    }).trim().split('\n');
-
-    console.log(chalk.cyan(`コミット履歴を検索中...`));
-
-    for (const commitMessage of commitMessages) {
-      const match = commitMessage.match(/^MAIL:\s*(.+)$/);
-      if (match) {
-        console.log(chalk.cyan(`検出されたコミット: ${commitMessage}`));
-        const directoryName = match[1].trim();
-        console.log(chalk.cyan(`検出されたディレクトリ名: ${directoryName}`));
-        return directoryName;
-      }
-    }
-
-    console.log(chalk.yellow('MAIL: プレフィックスを持つコミットが見つかりませんでした'));
-    return null;
-  } catch (error) {
-    console.error(chalk.red('エラー: git log の実行に失敗しました'));
-    console.error(error);
-    return null;
-  }
-}
-
-/**
- * S3から最新のアーカイブを取得してArchiveMetadataを返す
- */
-async function getTargetArchiveFromS3(directoryName?: string): Promise<ArchiveMetadata | null> {
-  const result = await getLatestArchiveFromS3(directoryName);
-
-  if (!result.success) {
-    console.error(chalk.red(`S3エラー: ${result.error}`));
-    return null;
-  }
-
-  console.log(chalk.green('✓ S3から最新アーカイブを検出しました'));
-  console.log(chalk.gray(`  LastModified: ${result.lastModified.toISOString()}`));
-
-  return {
-    yyyy: result.yyyy,
-    mm: result.mm,
-    ddMsg: result.ddMsg,
-  };
-}
-
-/**
- * S3からオブジェクトを取得
- */
-async function getS3Object(key: string): Promise<string | null> {
-  try {
-    const command = new GetObjectCommand({
-      Bucket: S3_BUCKET_NAME,
-      Key: key,
-    });
-
-    const response = await s3Client.send(command);
-
-    if (!response.Body) {
-      return null;
-    }
-
-    const bodyContents = await response.Body.transformToString();
-    return bodyContents;
-  } catch (error) {
-    console.error(`Failed to get S3 object: ${key}`, error);
-    return null;
-  }
-}
-
-/**
- * 画像パスを /MAIL-ASSETS/ から S3 URL に置換
- * 大文字小文字不問（/mail-assets/ も対応）
- */
-function replaceImagePaths(
-  html: string,
-  s3BaseUrl: string,
-  yyyy: string,
-  mm: string,
-  ddMsg: string
-): string {
-  const pattern = /<[Ii]mg[^>]*src=['"]\/[Mm][Aa][Ii][Ll]-[Aa][Ss][Ss][Ee][Tt][Ss]\/([^'"]+)['"]/g;
-
-  return html.replace(pattern, (match, filename) => {
-    const s3Url = `${s3BaseUrl}/archives/${yyyy}/${mm}/${ddMsg}/assets/${filename}`;
-    return match.replace(/\/[Mm][Aa][Ii][Ll]-[Aa][Ss][Ss][Ee][Tt][Ss]\/[^'"]+/, s3Url);
-  });
-}
-
-/**
- * S3からconfig.jsonを取得
- */
-async function loadConfigFromS3(
-  yyyy: string,
-  mm: string,
-  ddMsg: string
-): Promise<Config | { error: string }> {
-  const configKey = `archives/${yyyy}/${mm}/${ddMsg}/config.json`;
-
-  try {
-    const configContent = await getS3Object(configKey);
-    if (!configContent) {
-      return {
-        error: `config.json が見つかりません: ${configKey}`,
-      };
-    }
-
-    const configData = JSON.parse(configContent);
-
-    // Zodスキーマでバリデーション
-    const result = validateConfig(configData);
-    if (!result.success) {
-      const errorMessages = result.error?.errors
-        .map((e) => `${e.path.join('.')}: ${e.message}`)
-        .join(', ');
-      return {
-        error: `config.json のバリデーションに失敗しました: ${errorMessages}`,
-      };
-    }
-
-    return result.data!;
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'config.json の読み込みに失敗しました',
-    };
-  }
-}
-
-/**
- * S3からmail.htmlを取得
- */
-async function loadMailHtmlFromS3(
-  yyyy: string,
-  mm: string,
-  ddMsg: string
-): Promise<{ html: string } | { error: string }> {
-  const htmlKey = `archives/${yyyy}/${mm}/${ddMsg}/mail.html`;
-
-  try {
-    const htmlContent = await getS3Object(htmlKey);
-    if (!htmlContent) {
-      return {
-        error: `mail.html が見つかりません: ${htmlKey}`,
-      };
-    }
-
-    return { html: htmlContent };
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : 'mail.html の読み込みに失敗しました',
-    };
-  }
-}
-
-/**
- * Resend API でテストメール送信（Segment一斉送信）
- *
- * @param html - メールHTML
- * @param subject - 件名
- * @param segmentId - Segment ID
- */
-async function sendTestEmail(
-  html: string,
-  subject: string,
-  segmentId: string
-): Promise<{ success: boolean; id?: string; error?: string }> {
-  const fromEmail = process.env.RESEND_TEST_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-  const fromName = process.env.RESEND_FROM_NAME;
-  const fromAddress = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
-  const replyTo = process.env.RESEND_REPLY_TO || fromEmail;
-
-  try {
-    // Step 1: Broadcast を作成
-    const { data: createData, error: createError } = await getResendClient().broadcasts.create({
-      name: `[TEST] Broadcast - ${subject}`,
-      segmentId: segmentId,
-      from: fromAddress,
-      replyTo: replyTo,
-      subject: `[TEST] ${subject}`,
-      html,
-    });
-
-    if (createError) {
-      return {
-        success: false,
-        error: createError.message || 'Broadcast作成エラー',
-      };
-    }
-
-    if (!createData?.id) {
-      return {
-        success: false,
-        error: 'Broadcast IDが取得できませんでした',
-      };
-    }
-
-    // Step 2: Broadcast を送信
-    const { data: sendData, error: sendError } = await getResendClient().broadcasts.send(createData.id);
-
-    if (sendError) {
-      return {
-        success: false,
-        error: sendError.message || 'Broadcast送信エラー',
-      };
-    }
-
-    return {
-      success: true,
-      id: sendData?.id || createData.id,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : 'テストメール送信に失敗しました',
-    };
-  }
-}
 
 /**
  * メールアドレスをマスク処理する
- * 例: kozoka@example.com → koz***@example.com
+ * 例: kozoka@example.com -> koz***@example.com
  */
 function maskEmail(email: string): string {
   const [local, domain] = email.split('@');
@@ -295,11 +31,11 @@ function maskEmail(email: string): string {
  */
 async function generateDeliverySummary(params: {
   config: Config;
-  archivePath: string;
+  s3ArchivePath: string;
   testSegmentId: string;
   broadcastId: string;
 }): Promise<string> {
-  const { config, archivePath, testSegmentId, broadcastId } = params;
+  const { config, s3ArchivePath, testSegmentId, broadcastId } = params;
 
   // 本番Segment情報を取得
   const productionSegmentId = config.segmentId || config.audienceId || 'unknown';
@@ -329,7 +65,7 @@ async function generateDeliverySummary(params: {
   lines.push('| 項目 | 値 |');
   lines.push('|------|-----|');
   lines.push(`| 件名 | ${config.subject} |`);
-  lines.push(`| アーカイブ | \`${archivePath}\` |`);
+  lines.push(`| アーカイブ | \`${s3ArchivePath}\` |`);
   lines.push(`| 配信タイプ | ${deliveryType} |`);
   lines.push(`| 予約日時 | ${scheduledDisplay} |`);
   lines.push('');
@@ -396,166 +132,72 @@ async function main() {
     process.exit(1);
   }
 
-  // 末尾スラッシュを削除して正規化
   const s3BaseUrl = (process.env.S3_BUCKET_URL || '').replace(/\/$/, '');
 
-  // 最新コミットから対象archiveを特定
-  const directoryName = getTargetArchiveFromCommit();
+  // 1. S3から最新pendingアーカイブ取得
+  console.log(chalk.cyan('S3から最新pendingアーカイブを取得中...'));
+  const archive = await getLatestPendingArchive();
 
-  let archiveMetadata: ArchiveMetadata | null = null;
-
-  if (directoryName) {
-    console.log(chalk.cyan('検出方法: Gitコミットメッセージ'));
-    console.log(chalk.cyan('S3でディレクトリ名を検索中...\n'));
-
-    // buildArchivePath() を使わず、S3で直接検索
-    archiveMetadata = await getTargetArchiveFromS3(directoryName);
-
-    if (!archiveMetadata) {
-      console.log(chalk.red(`エラー: "${directoryName}" に一致するアーカイブが見つかりませんでした`));
-      console.log(chalk.green('✓ テストメール送信完了（対象なし）\n'));
-      process.exit(0);
-    }
-  } else {
-    // Gitコミットから検出できない場合、S3から最新アーカイブを取得
-    console.log(chalk.yellow('Gitコミットから検出できませんでした'));
-    console.log(chalk.cyan('S3から最新アーカイブを取得中...\n'));
-
-    archiveMetadata = await getTargetArchiveFromS3();
-
-    if (!archiveMetadata) {
-      console.log(chalk.yellow('S3からもアーカイブを取得できませんでした'));
-      console.log(chalk.green('✓ テストメール送信完了（対象なし）\n'));
-      process.exit(0);
-    }
+  if (!archive) {
+    console.log(chalk.yellow('pendingアーカイブが見つかりません'));
+    console.log(chalk.green('✓ テストメール送信完了（対象なし）\n'));
+    process.exit(0);
   }
 
-  // アーカイブパスを構築
-  const { yyyy, mm, ddMsg } = archiveMetadata;
-  const archivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
+  const { yyyy, mm, ddMsg } = archive;
+  const s3ArchivePath = `archives/${yyyy}/${mm}/${ddMsg}`;
+  console.log(chalk.green(`✓ 対象アーカイブ: ${s3ArchivePath}`));
 
-  console.log(chalk.cyan(`対象アーカイブ: ${archivePath}\n`));
-
-  let hasError = false;
-  const errors: TestEmailError[] = [];
-
-  // 1. S3からconfig.jsonを取得
-  console.log(chalk.cyan('config.jsonを取得中...'));
-  const configResult = await loadConfigFromS3(yyyy, mm, ddMsg);
-
-  if ('error' in configResult) {
-    errors.push({
-      type: 'config.json',
-      message: 'config.json の読み込みに失敗しました',
-      details: configResult.error,
-    });
-    hasError = true;
-  }
-
-  if (hasError) {
-    console.log(chalk.red.bold('\n✗ テストメール送信でエラーが発生しました\n'));
-    errors.forEach(({ type, message, details }) => {
-      console.log(chalk.red(`タイプ: ${type}`));
-      console.log(chalk.red(`メッセージ: ${message}`));
-      if (details) {
-        console.log(chalk.red(`詳細: ${details}`));
-      }
-      console.log();
-    });
-    process.exit(1);
-  }
-
-  const config = configResult as Config;
-  console.log(chalk.green('✓ config.json 読み込み'));
-
-  // 2. S3からmail.htmlを取得
-  console.log(chalk.cyan('mail.htmlを取得中...'));
-  const htmlResult = await loadMailHtmlFromS3(yyyy, mm, ddMsg);
-
-  if ('error' in htmlResult) {
-    errors.push({
-      type: 'mail.html',
-      message: 'mail.html の読み込みに失敗しました',
-      details: htmlResult.error,
-    });
-    hasError = true;
-  }
-
-  if (hasError) {
-    console.log(chalk.red.bold('\n✗ テストメール送信でエラーが発生しました\n'));
-    errors.forEach(({ type, message, details }) => {
-      console.log(chalk.red(`タイプ: ${type}`));
-      console.log(chalk.red(`メッセージ: ${message}`));
-      if (details) {
-        console.log(chalk.red(`詳細: ${details}`));
-      }
-      console.log();
-    });
-    process.exit(1);
-  }
-
-  let html = (htmlResult as { html: string }).html;
-  console.log(chalk.green('✓ mail.html 読み込み'));
-
-  // 3. 画像パス置換
-  html = replaceImagePaths(html, s3BaseUrl, yyyy, mm, ddMsg);
-  console.log(chalk.green('✓ 画像パス置換'));
-
-  // 4. テストメール送信
+  // 2. テスト配信（全モード共通関数）
   console.log(chalk.cyan('テストメールを送信中...'));
-  const sendResult = await sendTestEmail(html, config.subject, testSegmentId);
+  const result = await prepareAndSendEmail({
+    archive,
+    s3BaseUrl,
+    mode: 'test',
+    testSegmentId,
+    config: archive.config,
+  });
 
-  if (!sendResult.success) {
-    errors.push({
-      type: 'テストメール送信',
-      message: 'テストメール送信に失敗しました',
-      details: sendResult.error,
-    });
-    hasError = true;
-  }
-
-  if (hasError) {
-    console.log(chalk.red.bold('\n✗ テストメール送信でエラーが発生しました\n'));
-    errors.forEach(({ type, message, details }) => {
-      console.log(chalk.red(`タイプ: ${type}`));
-      console.log(chalk.red(`メッセージ: ${message}`));
-      if (details) {
-        console.log(chalk.red(`詳細: ${details}`));
-      }
-      console.log();
-    });
+  if (!result.success) {
+    console.log(chalk.red.bold('\n✗ テストメール送信でエラーが発生しました'));
+    console.log(chalk.red(`  エラー: ${result.error}`));
     process.exit(1);
   }
 
   console.log(chalk.green('✓ テストメール送信'));
-  console.log(chalk.gray(`  送信ID: ${sendResult.id}`));
-
+  console.log(chalk.gray(`  送信ID: ${result.broadcastId}`));
   console.log(chalk.gray(`  送信方法: Segment一斉送信`));
   console.log(chalk.gray(`  Test Segment ID: ${testSegmentId}`));
+  console.log(chalk.gray(`  件名: ${result.subject}`));
 
-  console.log(chalk.gray(`  件名: [TEST] ${config.subject}`));
+  // 3. status を "tested" に更新
+  console.log(chalk.cyan('config.json の status を tested に更新中...'));
+  try {
+    await updateConfigFields(yyyy, mm, ddMsg, { status: 'tested' });
+    console.log(chalk.green('✓ status更新完了'));
+  } catch (error) {
+    console.error(chalk.red('エラー: status更新に失敗しました'), error);
+    process.exit(1);
+  }
 
-  // 5. 配信確認サマリーを生成
+  // 4. テスト固有: 配信確認サマリー生成
   console.log(chalk.cyan('\n配信確認サマリーを生成中...'));
   try {
     const summary = await generateDeliverySummary({
-      config,
-      archivePath,
+      config: archive.config,
+      s3ArchivePath,
       testSegmentId,
-      broadcastId: sendResult.id || 'unknown',
+      broadcastId: result.broadcastId || 'unknown',
     });
 
-    // .delivery-summary.md に書き出し
     writeFileSync('.delivery-summary.md', summary, 'utf-8');
     console.log(chalk.green('✓ .delivery-summary.md を生成しました'));
 
-    // $GITHUB_STEP_SUMMARY にも書き出し（GitHub Actions環境のみ）
     if (process.env.GITHUB_STEP_SUMMARY) {
       appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary, 'utf-8');
       console.log(chalk.green('✓ GitHub Step Summary に書き出しました'));
     }
   } catch (summaryError) {
-    // サマリー生成失敗はテスト送信成功には影響しない
     console.log(chalk.yellow(`⚠ サマリー生成に失敗しました: ${summaryError}`));
   }
 

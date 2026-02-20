@@ -157,7 +157,7 @@ export function ArchiveAccordion({ archives }: ArchiveAccordionProps) {
                         <Collapse in={isMonthExpanded}>
                           <Box pl="sm" mt="xs" id={`month-${yearMonth}-content`}>
                             {monthArchives.map((archive) => (
-                              <Group key={archive.path} gap="xs" wrap="nowrap" align="flex-start">
+                              <Group key={archive.s3Path} gap="xs" wrap="nowrap" align="flex-start">
                                 <NavLink
                                   href={`/archives/${archive.yyyy}/${archive.mm}/${archive.ddMsg}`}
                                   label={

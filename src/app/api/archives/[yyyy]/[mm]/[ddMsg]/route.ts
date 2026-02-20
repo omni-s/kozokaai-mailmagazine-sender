@@ -33,8 +33,8 @@ export async function DELETE(
     }
 
     // S3からアーカイブを削除
-    const archivePath = `${yyyy}/${mm}/${decodedDdMsg}`;
-    await deleteArchiveFromS3(archivePath);
+    const s3ArchivePath = `${yyyy}/${mm}/${decodedDdMsg}`;
+    await deleteArchiveFromS3(s3ArchivePath);
 
     // Full Route Cache を無効化（サイドバーの archives 再取得のため）
     revalidatePath('/', 'layout');
