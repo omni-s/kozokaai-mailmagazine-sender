@@ -164,7 +164,7 @@ production-dispatcher.ts (Production Workflow)
   → Git commit & push
       ↓
 send-scheduled-emails.ts (cron: 5分ごと)
-  → scheduledAt <= 現在時刻 かつ status="waiting-schedule-delivery"
+  → scheduledAt <= 現在時刻 かつ status="waiting-schedule-delivery"（上限なし）
   → 本番配信実行
   → status="schedule-delivered", sentAt=ISO8601
   → .git-commit-message: "MAIL: Update config(schedule-delivered)"
