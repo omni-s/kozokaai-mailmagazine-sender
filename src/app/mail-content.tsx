@@ -20,7 +20,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
   return (
     <EmailWrapper
       preview={preview}
-      previewText="NotebookLMの音声解説で自分の考えを整理しよう！「要約する」「別の形式に変換する」だけじゃない、ポッドキャスト風の掛け合いで頭にすんなり入る活用法をご紹介。他にもClaude CodeでRPGを書いた話、IBM i Bootcamp 2026 Spring登壇のお知らせなど最新トピックをお届けします。"
+      previewText="NotebookLMの音声解説で自分の考えを整理しよう！「要約する」「別の形式に変換する」だけじゃない、ポッドキャスト風の掛け合いで頭にすんなり入る活用法をご紹介。他にもClaude CodeでRPGを書いた話、IBM i Bootcamp 2026 Spring登壇のお知らせなど最新トピックをお届けします!"
     >
       {/* ロゴ */}
       <EmailSection marginBottom="0">
