@@ -379,10 +379,10 @@ export async function getLatestArchiveFromS3(
         // 例: "summer-sale" → archives/2026/01/14-summer-sale/config.json
         // 正規表現をエスケープ
         const escaped = directoryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        pattern = new RegExp(`^archives\\/(\\d{4})\\/(\\d{2})\\/([\\w-]*${escaped})\\/config\\.json$`);
+        pattern = new RegExp(`^archives\\/(\\d{4})\\/(\\d{2})\\/((?:[^\\/])*${escaped})\\/config\\.json$`);
       } else {
         // directoryName が指定されない場合、すべてを対象
-        pattern = /^archives\/(\d{4})\/(\d{2})\/([\w-]+)\/config\.json$/;
+        pattern = /^archives\/(\d{4})\/(\d{2})\/([^/]+)\/config\.json$/;
       }
 
       const match = file.Key.match(pattern);
@@ -473,7 +473,7 @@ export async function getAllArchivesFromS3(): Promise<
       if (!file.Key) continue;
 
       // パスをパース: archives/YYYY/MM/DD-MSG/config.json
-      const pattern = /^archives\/(\d{4})\/(\d{2})\/([\w-]+)\/config\.json$/;
+      const pattern = /^archives\/(\d{4})\/(\d{2})\/([^/]+)\/config\.json$/;
       const match = file.Key.match(pattern);
 
       if (!match) {
