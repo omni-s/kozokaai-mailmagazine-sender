@@ -142,7 +142,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: '#00ADAA', textDecoration: 'underline' }}
-          >Google NotebookLM of 音声解説で自分の考えを整理しよう</a>』
+          >Google NotebookLMの音声解説で自分の考えを整理しよう</a>』
         </p>
       </EmailSection>
         
@@ -463,7 +463,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
+                    2026年3月、株式会社MONO-X が主催する特別セミナー「IBM i Bootcamp 2026 Spring」が、東京・大阪・名古屋の3都市で開催されます。そしてこの度、弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
@@ -568,7 +568,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
         </EmailText>
         <EmailText variant="muted" style={{ fontSize: '11px', color: '#999999', lineHeight: '1.6', marginTop: '12px' }}>
           株式会社kozokaAI<br />
-          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17階
+          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
         </EmailText>
       </EmailSection>
     </EmailWrapper>
