@@ -57,7 +57,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
               fontFamily: 'sans-serif',
             }}
           >
-            メールメタヘッダーのテスト
+            AIで現場をブースト！AIが“業務を動かす”瞬間を毎号お届けします。
           </p>
           <div style={{ marginTop: '5px', marginBottom: '5px' }}>
             <hr
@@ -187,9 +187,6 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     毎日届くFAXの入力、終わらない議事録作成、活用できていない基幹データ……。<br />
                     弊社のAIソリューションが、貴社の業務を劇的にスマートにします。
                   </p>
-                  <div style={{ marginTop: '0px', textAlign: 'center' }}>
-                    <EmailButton href="https://www.kozoka.ai/contact" target="_blank" rel="noopener noreferrer" backgroundColor="#66f9f5" color="#000000">問い合わせる</EmailButton>
-                  </div>
                 </td>
                 <td width="150" valign="top" style={{ paddingLeft: '5px' }}>
                   <Img
