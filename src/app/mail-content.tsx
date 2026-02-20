@@ -142,7 +142,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: '#00ADAA', textDecoration: 'underline' }}
-          >Google NotebookLM of 音声解説で自分の考えを整理しよう</a>』
+          >Google NotebookLMの音声解説で自分の考えを整理しよう</a>』
         </p>
       </EmailSection>
         
@@ -213,7 +213,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                     }}
                   >
                     FAX受注入力AI 公式キャラクター<br />
-                    注注くん（ちゅうちゅう）
+                    注注（ちゅうちゅう）くん
                   </p>
                 </td>
               </tr>
@@ -379,7 +379,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    大学院までビジネスを専攻し、現在はエンジニアとして働いている私なりに、AIの現状について調べてみたことを共有したいと思い、この記事を書いています。
+                    大学院までビジネスを専攻し、現在はエンジニアとして働いている私なりに、AIの現状について調べてみたことを共有したいと思い、この記事を書いています。技術的に深掘りするというよりも、AIの正体について理解を深めてみたい方向けの内容です。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
@@ -463,7 +463,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
                       fontFamily: 'sans-serif',
                     }}
                   >
-                    弊社代表の藤井が、全3会場すべてに登壇することが決定いたしました。
+                    2026年3月、株式会社MONO-X が主催する特別セミナー「IBM i Bootcamp 2026 Spring」が、東京・大阪・名古屋の3都市で開催されます。そしてこの度、kozokaAIの登壇が決定いたしました。
                   </p>
                   <div style={{ marginTop: '16px', width: '100%' }}>
                   <a
@@ -537,7 +537,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
       {/* フッター */}
       <EmailSection>
         <EmailText variant="muted" style={{ fontSize: '11px', color: '#999999', lineHeight: '1.6', marginTop: '20px' }}>
-          本メールは、弊社および関連会社（株式会社MONO-X）の社員と名刺交換させて頂いた方、セミナーやイベントのご登録、各種資料をダウンロードおよびお知らせメールをご希望頂いた皆さまにお送りしております。お預かりした個人情報は、各社のプライバシーポリシー（
+          本メールは、弊社および関係会社（株式会社MONO-X）の社員と名刺交換させて頂いた方、セミナーやイベントのご登録、各種資料をダウンロードおよびお知らせメールをご希望頂いた皆さまにお送りしております。お預かりした個人情報は、各社のプライバシーポリシー（
           <a
             href="https://www.kozoka-ai.co.jp/assets/documents/kozokaAI-privacy-policy.pdf"
             target="_blank"
@@ -568,7 +568,7 @@ export function MailContentBody({ preview = false }: { preview?: boolean }) {
         </EmailText>
         <EmailText variant="muted" style={{ fontSize: '11px', color: '#999999', lineHeight: '1.6', marginTop: '12px' }}>
           株式会社kozokaAI<br />
-          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17階
+          〒106-6117 東京都港区六本木6-10-1 六本木ヒルズ森タワー 17F
         </EmailText>
       </EmailSection>
     </EmailWrapper>
